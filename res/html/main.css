@@ -1,0 +1,153 @@
+.fullscaleview {
+    height: 100%;
+    width: 100%;
+}
+
+.black {
+    background-color: #000000FF;
+}
+
+.colflex {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.rowflex {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+}
+
+#songlisttop {
+    height: 185px;
+    width: 100%;
+}
+
+#main_top {
+    height: 38px;
+    width: 100%;
+}
+
+.tablehead {
+    height: 20px;
+    width: 100%;
+    background-color: #252525FF;
+}
+
+.tablebody {
+    color: #DEDEDEFF;
+    font-size: 16px;
+    font-family: "Terminus (TTF):style=Bold";
+}
+
+.vertscroll {
+    width: 10px;
+    height: 100px;
+    right: 0px;
+    background-color: #ACACAC66;
+}
+
+.horiscroll {
+    width: 100px;
+    height: 10px;
+    bottom: 0px;
+    background-color: #ACACAC66;
+}
+
+.vertgap5 {
+    height: 5px;
+    width: 100%;
+    background-color: #151515FF;
+}
+.horgap5 {
+    height: 100%;
+    width: 5px;
+    background-color: #151515FF;
+}
+
+.gap {
+    width: 5px;
+}
+
+.overflowhidden {
+    overflow: hidden;
+}
+
+#headerbck {
+    background-color: #343434FF;
+    width: 100%;
+    height: 38px;
+}
+
+#toolbar {
+    width: 100%;
+    height: 30px;
+    margin: auto;
+    top: 4px;
+    display: flex;
+    flex-direction: row;
+}
+
+.toolbtn {
+    background-color: #454545FF;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    box-shadow: 5px #0000000A;
+}
+
+.closeicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("close.png");
+    blocks: no;
+}
+
+#maxicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("max.png");
+    blocks: no;
+}
+
+#clipboardicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("max.png");
+    blocks: no;
+}
+
+#propertiesicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("max.png");
+    blocks: no;
+}
+
+.infobck {
+    width: 100%;
+    height: 30px;
+    background-color: #454545FF;
+    border-radius: 4px;
+    box-shadow: 5px #0000000A;
+}
+
+.infotf {
+    width: 100%;
+    height: 100%;
+    blocks: no;
+    color: #DEDEDEFF;
+    font-size: 16px;
+    text-align: center;
+    font-family: "Terminus (TTF):style=Bold";
+}
+
+.dragger {
+    width: 15px;
+    height: 15px;
+    border-radius: 2px;
+    background-color: #00000099;
+}
