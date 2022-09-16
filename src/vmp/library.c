@@ -77,9 +77,9 @@ static int lib_file_data_step(const char* fpath, const struct stat* sb, int tfla
 
 	// add file data
 
-	MPUT(song, "file/path", path);
-	MPUT(song, "file/size", size);
-	MPUT(song, "file/added", time_str);
+	MPUTR(song, "file/path", path);
+	MPUTR(song, "file/size", size);
+	MPUTR(song, "file/added", time_str);
 	MPUTR(song, "file/last_played", cstr_new_cstring("0"));
 	MPUTR(song, "file/last_skipped", cstr_new_cstring("0"));
 	MPUTR(song, "file/play_count", cstr_new_cstring("0"));
@@ -107,11 +107,10 @@ static int lib_file_data_step(const char* fpath, const struct stat* sb, int tfla
 	}
 
 	// cleanup
-	REL(real);     // REL 1
-	REL(time_str); // REL 0
+	REL(real); // REL 1
 
 	if (song)
-	    MPUT(lib.files, fpath + strlen(lib.path) + 1, song); // use relative path as path
+	    MPUTR(lib.files, fpath + strlen(lib.path) + 1, song); // use relative path as path
 
 	/* char* size = cstr_new_format(20, "%li", sb->st_size); // REL 0 */
 	/* MPUT(lib.files, fpath + strlen(lib.path) + 1, size);  // use relative path as path */

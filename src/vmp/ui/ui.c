@@ -92,6 +92,16 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	case UI_TABLE_EVENT_KEY:
 	{
 	    zc_log_debug("key %s", table->id);
+	    ev_t ev = *((ev_t*) userdata);
+
+	    if (ev.keycode == SDLK_DOWN || ev.keycode == SDLK_UP)
+	    {
+		int32_t index = table->selected_index;
+
+		if (ev.keycode == SDLK_DOWN) index += 1;
+		if (ev.keycode == SDLK_UP) index -= 1;
+		ui_table_select(table, index);
+	    }
 	}
 	break;
 	case UI_TABLE_EVENT_DROP:
@@ -151,6 +161,8 @@ void ui_init(float width, float height)
     ui.full_btn = view_get_subview(ui.view_base, "app_maximize_btn");
     vh_button_add(ui.full_btn, VH_BUTTON_NORMAL, btn_cb);
 
+    REL(btn_cb);
+
     /* songlist */
 
     vec_t* fields = VNEW();
@@ -199,22 +211,14 @@ void ui_init(float width, float height)
     view_t* songlistevt    = view_get_subview(ui.view_base, "songlistevt");
     view_t* songlisthead   = view_get_subview(ui.view_base, "songlisthead");
 
-    textstyle_t ts = ui_util_gen_textstyle(songlist);
+    /* textstyle_t ts = ui_util_gen_textstyle(songlist); */
 
-    ts.align        = TA_CENTER;
-    ts.margin_right = 0;
-    ts.size         = 60.0;
-    ts.textcolor    = 0x353535FF;
-    ts.backcolor    = 0x252525FF;
-    ts.multiline    = 0;
-
-    if (songlist)
-    {
-	tg_text_add(songlist);
-	tg_text_set(songlist, "SONGS", ts);
-    }
-    else
-	zc_log_debug("songlistbck not found");
+    /* ts.align        = TA_CENTER; */
+    /* ts.margin_right = 0; */
+    /* ts.size         = 60.0; */
+    /* ts.textcolor    = 0x353535FF; */
+    /* ts.backcolor    = 0x252525FF; */
+    /* ts.multiline    = 0; */
 
     ui.songlisttable = ui_table_create(
 	"songlisttable",
@@ -229,12 +233,13 @@ void ui_init(float width, float height)
     vec_t* file_list_data = VNEW();
     lib_read_files("/home/milgra/Projects/apps/vmp/tst", files);
 
-    mem_describe(files, 0);
-
     map_values(files, file_list_data);
     REL(files);
 
     ui_table_set_data(ui.songlisttable, file_list_data);
+    REL(file_list_data);
+
+    REL(fields);
 
     ui_manager_activate(songlistevt);
 
@@ -255,6 +260,7 @@ void ui_destroy()
     ui_manager_remove(ui.view_base);
 
     REL(ui.view_base);
+    REL(ui.songlisttable);
 
     ui_manager_destroy(); // DESTROY 1
 
