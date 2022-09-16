@@ -19,6 +19,7 @@ void ui_describe();
 #include "bm_rgba_util.c"
 #include "coder.c"
 #include "config.c"
+#include "library.c"
 #include "tg_css.c"
 #include "tg_text.c"
 #include "ui_compositor.c"
@@ -100,58 +101,6 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
     }
 }
 
-void ui_add_cursor()
-{
-    ui.cursor                         = view_new("ui.cursor", ((r2_t){10, 10, 10, 10}));
-    ui.cursor->exclude                = 0;
-    ui.cursor->style.background_color = 0xFF000099;
-    ui.cursor->needs_touch            = 0;
-    tg_css_add(ui.cursor);
-    ui_manager_add_to_top(ui.cursor);
-}
-
-void ui_update_cursor(r2_t frame)
-{
-    view_set_frame(ui.cursor, frame);
-}
-
-void ui_render_without_cursor(uint32_t time)
-{
-    ui_manager_remove(ui.cursor);
-    ui_manager_render(time);
-    ui_manager_add_to_top(ui.cursor);
-}
-
-void ui_save_screenshot(uint32_t time, char hide_cursor)
-{
-    if (config_get("lib_path"))
-    {
-	static int cnt    = 0;
-	view_t*    root   = ui_manager_get_root();
-	r2_t       frame  = root->frame.local;
-	bm_rgba_t* screen = bm_rgba_new(frame.w, frame.h); // REL 0
-
-	// remove cursor for screenshot to remain identical
-
-	if (hide_cursor) ui_render_without_cursor(time);
-
-	ui_compositor_render_to_bmp(screen);
-
-	char*      name    = cstr_new_format(20, "screenshot%.3i.png", cnt++); // REL 1
-	char*      path    = path_new_append(config_get("lib_path"), name);    // REL 2
-	bm_rgba_t* flipped = bm_rgba_new_flip_y(screen);                       // REL 3
-
-	coder_write_png(path, flipped);
-
-	REL(flipped); // REL 3
-	REL(name);    // REL 2
-	REL(path);    // REL 1
-	REL(screen);  // REL 0
-
-	if (hide_cursor) ui_update_cursor(frame); // full screen cursor to indicate screenshot, next step will reset it
-    }
-}
-
 void ui_create_views(float width, float height)
 {
     // generate views from descriptors
@@ -205,20 +154,45 @@ void ui_init(float width, float height)
     /* songlist */
 
     vec_t* fields = VNEW();
-    VADDR(fields, cstr_new_cstring("file/basename"));
-    VADDR(fields, num_new_int(400));
-    /* VADDR(fields, cstr_new_cstring("file/mime")); */
-    /* VADDR(fields, num_new_int(200)); */
-    /* VADDR(fields, cstr_new_cstring("file/path")); */
-    /* VADDR(fields, num_new_int(200)); */
-    VADDR(fields, cstr_new_cstring("file/size"));
-    VADDR(fields, num_new_int(120));
-    VADDR(fields, cstr_new_cstring("file/last_access"));
-    VADDR(fields, num_new_int(180));
-    VADDR(fields, cstr_new_cstring("file/last_modification"));
-    VADDR(fields, num_new_int(180));
-    VADDR(fields, cstr_new_cstring("file/last_status"));
-    VADDR(fields, num_new_int(180));
+
+    VADDR(fields, cstr_new_cstring("index"));
+    VADDR(fields, num_new_int(60));
+    VADDR(fields, cstr_new_cstring("meta/artist"));
+    VADDR(fields, num_new_int(200));
+    VADDR(fields, cstr_new_cstring("meta/album"));
+    VADDR(fields, num_new_int(200));
+    VADDR(fields, cstr_new_cstring("meta/title"));
+    VADDR(fields, num_new_int(350));
+    VADDR(fields, cstr_new_cstring("meta/date"));
+    VADDR(fields, num_new_int(70));
+    VADDR(fields, cstr_new_cstring("meta/genre"));
+    VADDR(fields, num_new_int(150));
+    VADDR(fields, cstr_new_cstring("meta/track"));
+    VADDR(fields, num_new_int(60));
+    VADDR(fields, cstr_new_cstring("meta/disc"));
+    VADDR(fields, num_new_int(60));
+    VADDR(fields, cstr_new_cstring("file/duration"));
+    VADDR(fields, num_new_int(50));
+    VADDR(fields, cstr_new_cstring("file/channels"));
+    VADDR(fields, num_new_int(40));
+    VADDR(fields, cstr_new_cstring("file/bit_rate"));
+    VADDR(fields, num_new_int(100));
+    VADDR(fields, cstr_new_cstring("file/sample_rate"));
+    VADDR(fields, num_new_int(80));
+    VADDR(fields, cstr_new_cstring("file/play_count"));
+    VADDR(fields, num_new_int(55));
+    VADDR(fields, cstr_new_cstring("file/skip_count"));
+    VADDR(fields, num_new_int(55));
+    VADDR(fields, cstr_new_cstring("file/added"));
+    VADDR(fields, num_new_int(150));
+    VADDR(fields, cstr_new_cstring("file/last_played"));
+    VADDR(fields, num_new_int(155));
+    VADDR(fields, cstr_new_cstring("file/last_skipped"));
+    VADDR(fields, num_new_int(155));
+    VADDR(fields, cstr_new_cstring("file/media_type"));
+    VADDR(fields, num_new_int(80));
+    VADDR(fields, cstr_new_cstring("file/container"));
+    VADDR(fields, num_new_int(80));
 
     view_t* songlist       = view_get_subview(ui.view_base, "songlisttable");
     view_t* songlistscroll = view_get_subview(ui.view_base, "songlistscroll");
@@ -251,8 +225,16 @@ void ui_init(float width, float height)
 	fields,
 	on_songlist_event);
 
-    /* ui.song_list_data = VNEW(); // REL S0 */
-    /* ui_table_set_data(ui.songlisttable, ui.song_list_data); */
+    map_t* files          = MNEW(); // REL 0
+    vec_t* file_list_data = VNEW();
+    lib_read_files("/home/milgra/Projects/apps/vmp/tst", files);
+
+    mem_describe(files, 0);
+
+    map_values(files, file_list_data);
+    REL(files);
+
+    ui_table_set_data(ui.songlisttable, file_list_data);
 
     ui_manager_activate(songlistevt);
 
@@ -277,6 +259,58 @@ void ui_destroy()
     ui_manager_destroy(); // DESTROY 1
 
     text_destroy(); // DESTROY 0
+}
+
+void ui_add_cursor()
+{
+    ui.cursor                         = view_new("ui.cursor", ((r2_t){10, 10, 10, 10}));
+    ui.cursor->exclude                = 0;
+    ui.cursor->style.background_color = 0xFF000099;
+    ui.cursor->needs_touch            = 0;
+    tg_css_add(ui.cursor);
+    ui_manager_add_to_top(ui.cursor);
+}
+
+void ui_update_cursor(r2_t frame)
+{
+    view_set_frame(ui.cursor, frame);
+}
+
+void ui_render_without_cursor(uint32_t time)
+{
+    ui_manager_remove(ui.cursor);
+    ui_manager_render(time);
+    ui_manager_add_to_top(ui.cursor);
+}
+
+void ui_save_screenshot(uint32_t time, char hide_cursor)
+{
+    if (config_get("lib_path"))
+    {
+	static int cnt    = 0;
+	view_t*    root   = ui_manager_get_root();
+	r2_t       frame  = root->frame.local;
+	bm_rgba_t* screen = bm_rgba_new(frame.w, frame.h); // REL 0
+
+	// remove cursor for screenshot to remain identical
+
+	if (hide_cursor) ui_render_without_cursor(time);
+
+	ui_compositor_render_to_bmp(screen);
+
+	char*      name    = cstr_new_format(20, "screenshot%.3i.png", cnt++); // REL 1
+	char*      path    = path_new_append(config_get("lib_path"), name);    // REL 2
+	bm_rgba_t* flipped = bm_rgba_new_flip_y(screen);                       // REL 3
+
+	coder_write_png(path, flipped);
+
+	REL(flipped); // REL 3
+	REL(name);    // REL 2
+	REL(path);    // REL 1
+	REL(screen);  // REL 0
+
+	if (hide_cursor) ui_update_cursor(frame); // full screen cursor to indicate screenshot, next step will reset it
+    }
 }
 
 void ui_update_layout(float w, float h)

@@ -269,7 +269,7 @@ view_t* ui_table_item_create(
 
 		wth += size->intv;
 
-		tg_text_set(cellview, value, ts);
+		if (value) tg_text_set(cellview, value, ts);
 	    }
 
 	    view_set_frame(rowview, (r2_t){0, 0, wth, 20});
