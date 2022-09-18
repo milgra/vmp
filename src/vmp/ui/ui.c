@@ -21,6 +21,7 @@ void ui_describe();
 #include "config.c"
 #include "library.c"
 #include "tg_css.c"
+#include "tg_knob.c"
 #include "tg_text.c"
 #include "ui_compositor.c"
 #include "ui_manager.c"
@@ -28,6 +29,7 @@ void ui_describe();
 #include "ui_util.c"
 #include "vh_button.c"
 #include "vh_key.c"
+#include "vh_knob.c"
 #include "viewgen_css.c"
 #include "viewgen_html.c"
 #include "viewgen_type.c"
@@ -111,6 +113,14 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
     }
 }
 
+void ui_pos_change(view_t* view, float angle)
+{
+}
+
+void ui_vol_change(view_t* view, float angle)
+{
+}
+
 void ui_create_views(float width, float height)
 {
     // generate views from descriptors
@@ -156,12 +166,37 @@ void ui_init(float width, float height)
     cb_t* btn_cb = cb_new(ui_on_btn_event, NULL);
 
     ui.exit_btn = view_get_subview(ui.view_base, "app_close_btn");
-    vh_button_add(ui.exit_btn, VH_BUTTON_NORMAL, btn_cb);
+    if (ui.exit_btn) vh_button_add(ui.exit_btn, VH_BUTTON_NORMAL, btn_cb);
 
     ui.full_btn = view_get_subview(ui.view_base, "app_maximize_btn");
-    vh_button_add(ui.full_btn, VH_BUTTON_NORMAL, btn_cb);
+    if (ui.full_btn) vh_button_add(ui.full_btn, VH_BUTTON_NORMAL, btn_cb);
+
+    /* knobs */
+
+    view_t* seekknob = view_get_subview(ui.view_base, "seekknob");
+    view_t* playbtn  = view_get_subview(ui.view_base, "playbtn");
+    view_t* volknob  = view_get_subview(ui.view_base, "volknob");
+    view_t* mutebtn  = view_get_subview(ui.view_base, "mutebtn");
+
+    tg_knob_add(seekknob);
+    vh_knob_add(seekknob, ui_pos_change);
+
+    tg_knob_add(volknob);
+    vh_knob_add(volknob, ui_vol_change);
+
+    vh_button_add(playbtn, VH_BUTTON_TOGGLE, btn_cb);
+    vh_button_add(mutebtn, VH_BUTTON_TOGGLE, btn_cb);
 
     REL(btn_cb);
+
+    /* textfields */
+
+    view_t* infotf = view_get_subview(ui.view_base, "infotf");
+
+    textstyle_t infots = ui_util_gen_textstyle(infotf);
+
+    tg_text_add(infotf);
+    tg_text_set(infotf, "This is the info textfield", infots);
 
     /* songlist */
 

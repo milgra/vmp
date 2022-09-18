@@ -48,7 +48,7 @@ add_project_arguments('-DPKG_DATADIR="' + pkg_datadir + '"',
 add_project_arguments('-Wno-unused-but-set-variable', language: 'c')
 
 if get_option('buildtype') == 'debug'
-    add_project_arguments('-DDEBUG',language: 'c')
+#    add_project_arguments('-DDEBUG',language: 'c')
 endif
 
 vmp_inc = include_directories(

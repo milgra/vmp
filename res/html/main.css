@@ -57,52 +57,111 @@
     background-color: #ACACAC66;
 }
 
-.vertgap5 {
+.vertgap {
     height: 5px;
     width: 100%;
-    background-color: #151515FF;
 }
-.horgap5 {
+.horgap {
     height: 100%;
     width: 5px;
-    background-color: #151515FF;
 }
 
 .gap {
     width: 5px;
 }
 
+.wth50 {
+    width: 50px;
+    height: 100%;
+    background-color: #00FF00FF;
+}
+
+.wth100 {
+    width: 100px;
+    height: 100%;
+    background-color: #FF0000FF;
+}
+
 .overflowhidden {
     overflow: hidden;
 }
 
-#headerbck {
-    background-color: #343434FF;
+#headercol {
     width: 100%;
-    height: 38px;
+    height: 100px;
 }
 
-#toolbar {
-    width: 100%;
-    height: 30px;
-    margin: auto;
-    top: 4px;
+.headerrow {
     display: flex;
     flex-direction: row;
+    width: 100%;
+    height: 30px;
+}
+
+#toolbarbodycol {
+    width: 100%;
+    height: 100%;
+    background-color: #454545FF;
 }
 
 .toolbtn {
-    background-color: #454545FF;
     width: 30px;
     height: 30px;
-    border-radius: 4px;
-    box-shadow: 5px #0000000A;
 }
 
-.closeicon {
+#closeicon {
     width: 30px;
     height: 30px;
     background-image: url("close.png");
+    blocks: no;
+}
+
+#previcon {
+    width: 30px;
+    height: 30px;
+    background-image: url("prev.png");
+    blocks: no;
+}
+
+#nexticon {
+    width: 30px;
+    height: 30px;
+    background-image: url("next.png");
+    blocks: no;
+}
+
+#playicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("play.png");
+    blocks: no;
+}
+
+#shuffleicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("shuffle.png");
+    blocks: no;
+}
+
+#settingsicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("settings.png");
+    blocks: no;
+}
+
+#donateicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("donate.png");
+    blocks: no;
+}
+
+#editicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("edit.png");
     blocks: no;
 }
 
@@ -120,14 +179,21 @@
     blocks: no;
 }
 
-#propertiesicon {
+#filtericon {
     width: 30px;
     height: 30px;
-    background-image: url("max.png");
+    background-image: url("filter.png");
     blocks: no;
 }
 
-.infobck {
+#clearicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("close.png");
+    blocks: no;
+}
+
+#seekbar {
     width: 100%;
     height: 30px;
     background-color: #454545FF;
@@ -135,7 +201,23 @@
     box-shadow: 5px #0000000A;
 }
 
-.infotf {
+#volbar {
+    width: 100px;
+    height: 30px;
+    background-color: #454545FF;
+    border-radius: 4px;
+    box-shadow: 5px #0000000A;
+}
+
+#timebck {
+    width: 100%;
+    height: 30px;
+    background-color: #676767FF;
+    border-radius: 4px;
+    box-shadow: 5px #0000000A;
+}
+
+#timetf {
     width: 100%;
     height: 100%;
     blocks: no;
@@ -145,9 +227,131 @@
     font-family: "Terminus (TTF):style=Bold";
 }
 
+#infobck {
+    width: 500px;
+    height: 30px;
+    background-color: #454545FF;
+    border-radius: 4px;
+    box-shadow: 5px #0000000A;
+}
+
+#infotf {
+    width: 100%;
+    height: 100%;
+    blocks: no;
+    color: #DEDEDEFF;
+    font-size: 16px;
+    text-align: center;
+    font-family: "Terminus (TTF):style=Bold";
+}
+
+#filterbck {
+    width: 100%;
+    height: 30px;
+    background-color: #454545FF;
+    border-radius: 4px;
+    box-shadow: 5px #0000000A;
+}
+
+#filtertf {
+    width: 100%;
+    height: 100%;
+    blocks: no;
+    color: #DEDEDEFF;
+    font-size: 16px;
+    text-align: center;
+    font-family: "Terminus (TTF):style=Bold";
+}
+
+#buttonsbck {
+    width: 100%;
+    height: 30px;
+    display: flex;
+    flex-direction: row;
+}
+
 .dragger {
     width: 15px;
     height: 15px;
     border-radius: 2px;
     background-color: #00000099;
+}
+
+#header {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100px;
+}
+
+#seekknob {
+    width: 100px;
+    height: 100px;
+    left: 0px;
+}
+
+#playbtn {
+    width: 40px;
+    height: 40px;
+    margin: 30px;
+}
+
+#playicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("play.png");
+    blocks: no;
+}
+
+#pauseicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("pause.png");
+    blocks: no;
+}
+
+#volknob {
+    width: 100px;
+    height: 100px;
+    right: 0px;
+}
+
+#mutebtn {
+    width: 40px;
+    height: 40px;
+    margin: 30px;
+}
+
+#muteicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("mute.png");
+    blocks: no;
+}
+
+#unmuteicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("unmute.png");
+    blocks: no;
+}
+
+#controls {
+    width: 600px;
+    height: 100px;
+    margin: auto;
+    bottom: 0px;
+}
+
+.50px {
+    width: 45px;
+    height: 100%;
+}
+
+#toolbar {
+    top: 5px;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 89px;
 }

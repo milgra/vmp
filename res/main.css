@@ -947,3 +947,31 @@
     height: 100%;
 }
 
+#seekknob {
+    width: 100px;
+    height: 100px;
+    right: 20px;
+    padding: 0px;
+}
+
+#playbtn {
+    width: 40px;
+    height: 40px;
+    top: 30px;
+    left: 30px;
+    padding: 15px;
+}
+
+#playicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("play.png");
+    blocks: no;
+}
+
+#pauseicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("pause.png");
+    blocks: no;
+}
