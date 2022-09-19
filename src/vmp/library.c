@@ -64,53 +64,23 @@ static int lib_file_data_step(const char* fpath, const struct stat* sb, int tfla
     {
 	map_t* song = MNEW();
 
-	char* path = cstr_new_cstring(fpath + strlen(lib.path));
+	char* path = cstr_new_cstring((char*) fpath + strlen(lib.path));
 	char* size = cstr_new_format(20, "%li", sb->st_size); // REL 0
-
-	char* time_str = CAL(80, NULL, cstr_describe); // REL 0
-	// snprintf(time_str, 20, "%lu", time(NULL));
-
-	time_t now;
-	time(&now);
-	struct tm ts = *localtime(&now);
-	strftime(time_str, 80, "%Y-%m-%d %H:%M", &ts);
 
 	// add file data
 
-	MPUTR(song, "file/path", path);
-	MPUTR(song, "file/size", size);
-	MPUTR(song, "file/added", time_str);
-	MPUTR(song, "file/last_played", cstr_new_cstring("0"));
-	MPUTR(song, "file/last_skipped", cstr_new_cstring("0"));
-	MPUTR(song, "file/play_count", cstr_new_cstring("0"));
-	MPUTR(song, "file/skip_count", cstr_new_cstring("0"));
+	MPUTR(song, "path", path);
+	MPUTR(song, "size", size);
+	MPUTR(song, "added", cstr_new_cstring("..."));
+	MPUTR(song, "played", cstr_new_cstring("..."));
+	MPUTR(song, "skipped", cstr_new_cstring("..."));
+	MPUTR(song, "plays", cstr_new_cstring("..."));
+	MPUTR(song, "skips", cstr_new_cstring("..."));
+	MPUTR(song, "artist", cstr_new_cstring("..."));
+	MPUTR(song, "album", cstr_new_cstring("..."));
+	MPUTR(song, "title", path_new_filename(path));
 
-	char* real = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s", lib.path, path); // REL 1
-
-	zc_log_debug("lib : analyzing %s", real);
-
-	// read and add file and meta data
-
-	int res = coder_load_metadata_into(real, song);
-
-	if (res == 0)
-	{
-	    if (MGET(song, "meta/artist") == NULL) MPUTR(song, "meta/artist", cstr_new_cstring("Unknown"));
-	    if (MGET(song, "meta/album") == NULL) MPUTR(song, "meta/album", cstr_new_cstring("Unknown"));
-	    if (MGET(song, "meta/title") == NULL) MPUTR(song, "meta/title", path_new_filename(path));
-	}
-	else
-	{
-	    // file is not a media file readable by ffmpeg, we skip it
-	    REL(song);
-	    song = NULL;
-	}
-
-	// cleanup
-	REL(real); // REL 1
-
-	if (song)
-	    MPUTR(lib.files, fpath + strlen(lib.path) + 1, song); // use relative path as path
+	MPUTR(lib.files, fpath + strlen(lib.path) + 1, song); // use relative path as path
 
 	/* char* size = cstr_new_format(20, "%li", sb->st_size); // REL 0 */
 	/* MPUT(lib.files, fpath + strlen(lib.path) + 1, size);  // use relative path as path */

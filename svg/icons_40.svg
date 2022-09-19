@@ -7,7 +7,7 @@
    id="svg8"
    inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
    sodipodi:docname="icons_40.svg"
-   inkscape:export-filename="../res/img/mute.png"
+   inkscape:export-filename="../res/img/unmute.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -27,10 +27,10 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="15.734375"
-     inkscape:cx="14.967229"
+     inkscape:cx="15.030785"
      inkscape:cy="19.797418"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer4"
+     inkscape:current-layer="layer5"
      inkscape:document-rotation="0"
      showgrid="true"
      units="px"
@@ -101,7 +101,7 @@
      inkscape:groupmode="layer"
      id="layer5"
      inkscape:label="UnMute"
-     style="display:none;opacity:0.999904;fill:#ffffff">
+     style="display:inline;opacity:0.5;fill:#ffffff">
     <circle
        id="path174"
        style="fill:#ffffff;stroke:#000000;stroke-width:0.264583"
@@ -125,7 +125,7 @@
      inkscape:groupmode="layer"
      id="layer4"
      inkscape:label="mute"
-     style="display:inline;fill:#ffffff">
+     style="display:none;fill:#ffffff">
     <path
        id="path1247-7-1"
        style="display:inline;opacity:0.999904;fill:#ffffff;fill-opacity:1;stroke-width:0.218042"

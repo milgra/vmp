@@ -1,6 +1,7 @@
 #include "config.c"
 #include "evrecorder.c"
 #include "filemanager.c"
+#include "library.c"
 #include "ui.c"
 #include "ui_compositor.c"
 #include "ui_manager.c"
@@ -42,6 +43,25 @@ void init(int width, int height)
     }
 
     ui_update_layout(width, height);
+
+    /* load library */
+
+    map_t* files          = MNEW(); // REL 0
+    vec_t* file_list_data = VNEW();
+    char*  libpath        = config_get("lib_path");
+
+    zc_time(NULL);
+    lib_read_files(libpath, files);
+    zc_time("listing library");
+
+    map_values(files, file_list_data);
+    REL(files);
+
+    ui_set_songs(file_list_data);
+
+    REL(file_list_data);
+
+    /* start analyzing immediately */
 }
 
 void update(ev_t ev)
@@ -106,12 +126,15 @@ int main(int argc, char* argv[])
     zc_time(NULL);
 
     printf("Visual Music Player v" VMP_VERSION " by Milan Toth ( www.milgra.com )\n");
+    printf("If you like this app try Multimedia File Manager (github.com/milgra/mmfm) or Sway Oveview ( github.com/milgra/sov )\n");
+    printf("Or my games : Cortex ( github.com/milgra/cortex ), Termite (github.com/milgra/termite) or Brawl (github.com/milgra/brawl)\n\n");
 
     const char* usage =
 	"Usage: vmp [options]\n"
 	"\n"
 	"  -h, --help                          Show help message and quit.\n"
 	"  -v                                  Increase verbosity of messages, defaults to errors and warnings only.\n"
+	"  -l --library= [library path] \t library path, ~/Music by default\n"
 	"  -c --config= [config file] \t use config file for session\n"
 	"  -r --resources= [resources folder] \t use resources dir for session\n"
 	"  -s --record= [recorder file] \t record session to file\n"
@@ -123,6 +146,7 @@ int main(int argc, char* argv[])
 	{
 	    {"help", no_argument, NULL, 'h'},
 	    {"verbose", no_argument, NULL, 'v'},
+	    {"library", optional_argument, 0, 'l'},
 	    {"resources", optional_argument, 0, 'r'},
 	    {"record", optional_argument, 0, 's'},
 	    {"replay", optional_argument, 0, 'p'},
@@ -134,21 +158,24 @@ int main(int argc, char* argv[])
     char* rec_par = NULL;
     char* rep_par = NULL;
     char* frm_par = NULL;
+    char* lib_par = NULL;
 
+    int verbose      = 0;
     int option       = 0;
     int option_index = 0;
 
-    while ((option = getopt_long(argc, argv, "vhr:s:p:c:f:", long_options, &option_index)) != -1)
+    while ((option = getopt_long(argc, argv, "vhr:s:p:c:f:l:", long_options, &option_index)) != -1)
     {
 	switch (option)
 	{
 	    case '?': printf("parsing option %c value: %s\n", option, optarg); break;
 	    case 'c': cfg_par = cstr_new_cstring(optarg); break; // REL 0
+	    case 'l': lib_par = cstr_new_cstring(optarg); break; // REL 1
 	    case 'r': res_par = cstr_new_cstring(optarg); break; // REL 1
 	    case 's': rec_par = cstr_new_cstring(optarg); break; // REL 2
 	    case 'p': rep_par = cstr_new_cstring(optarg); break; // REL 3
 	    case 'f': frm_par = cstr_new_cstring(optarg); break; // REL 4
-	    case 'v': zc_log_inc_verbosity(); break;
+	    case 'v': verbose = 1; break;
 	    default: fprintf(stderr, "%s", usage); return EXIT_FAILURE;
 	}
     }
@@ -165,6 +192,7 @@ int main(int argc, char* argv[])
     char* sdl_base = SDL_GetBasePath();
     char* wrk_path = path_new_normalize(sdl_base, NULL); // REL 6
     SDL_free(sdl_base);
+    char* lib_path    = lib_par ? path_new_normalize(lib_par, wrk_path) : path_new_normalize("~/Music", wrk_path);
     char* res_path    = res_par ? path_new_normalize(res_par, wrk_path) : cstr_new_cstring(PKG_DATADIR);                        // REL 7
     char* cfgdir_path = cfg_par ? path_new_normalize(cfg_par, wrk_path) : path_new_normalize("~/.config/mmfm", getenv("HOME")); // REL 8
     char* css_path    = path_new_append(res_path, "html/main.css");                                                             // REL 9
@@ -176,15 +204,19 @@ int main(int argc, char* argv[])
 
     // print path info to console
 
-    zc_log_debug("top path      : %s", top_path);
-    zc_log_debug("working path  : %s", wrk_path);
-    zc_log_debug("resource path : %s", res_path);
-    zc_log_debug("config path   : %s", cfg_path);
-    zc_log_debug("state path   : %s", per_path);
-    zc_log_debug("css path      : %s", css_path);
-    zc_log_debug("html path     : %s", html_path);
-    zc_log_debug("record path   : %s", rec_path);
-    zc_log_debug("replay path   : %s", rep_path);
+    printf("library path  : %s\n", lib_path);
+    printf("top path      : %s\n", top_path);
+    printf("working path  : %s\n", wrk_path);
+    printf("resource path : %s\n", res_path);
+    printf("config path   : %s\n", cfg_path);
+    printf("state path    : %s\n", per_path);
+    printf("css path      : %s\n", css_path);
+    printf("html path     : %s\n", html_path);
+    printf("record path   : %s\n", rec_path);
+    printf("replay path   : %s\n", rep_path);
+    printf("\n");
+
+    if (verbose) zc_log_inc_verbosity();
 
     // init config
 
@@ -192,6 +224,7 @@ int main(int argc, char* argv[])
 
     config_set("dark_mode", "false");
     config_set("res_path", res_path);
+    config_set("lib_path", lib_path);
 
     // read config, it overwrites defaults if exists
 
@@ -218,6 +251,7 @@ int main(int argc, char* argv[])
     // cleanup
 
     if (cfg_par) REL(cfg_par); // REL 0
+    if (lib_par) REL(lib_par); // REL 1
     if (res_par) REL(res_par); // REL 1
     if (rec_par) REL(rec_par); // REL 2
     if (rep_par) REL(rep_par); // REL 3
@@ -225,6 +259,7 @@ int main(int argc, char* argv[])
 
     REL(top_path);    // REL 5
     REL(wrk_path);    // REL 6
+    REL(lib_path);    // REL 7
     REL(res_path);    // REL 7
     REL(cfgdir_path); // REL 8
     REL(css_path);    // REL 9

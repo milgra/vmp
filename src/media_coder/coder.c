@@ -283,8 +283,8 @@ int coder_load_metadata_into(const char* path, map_t* map)
 		    memcpy(media_type, format->mime_type, slash - format->mime_type);
 		    memcpy(container, slash + 1, strlen(format->mime_type) - (slash - format->mime_type));
 
-		    MPUT(map, "media/media_type", media_type);
-		    MPUT(map, "media/container", container);
+		    MPUT(map, "type", media_type);
+		    MPUT(map, "container", container);
 
 		    REL(media_type); // REL 0
 		    REL(container);  // REL 1
@@ -315,13 +315,13 @@ int coder_load_metadata_into(const char* path, map_t* map)
 		    int   dur   = pFormatCtx->duration / 1000000;
 		    char* dur_s = CAL(10, NULL, cstr_describe);
 		    snprintf(dur_s, 10, "%i:%.2i", (short) dur / 60, dur - (short) (dur / 60) * 60);
-		    MPUT(map, "media/duration", dur_s);
+		    MPUT(map, "duration", dur_s);
 		    REL(dur_s);
 		}
 		else
 		{
 		    printf("coder_get_metadata no stream information found!!!\n");
-		    MPUTR(map, "media/duration", cstr_new_cstring("0"));
+		    MPUTR(map, "duration", cstr_new_cstring("0"));
 		}
 
 		for (unsigned i = 0; i < pFormatCtx->nb_streams; i++)
@@ -340,9 +340,9 @@ int coder_load_metadata_into(const char* path, map_t* map)
 			    snprintf(bitrate, 10, "%li", param->bit_rate);
 			    snprintf(samplerate, 10, "%i", param->sample_rate);
 
-			    MPUTR(map, "audio/channels", channels);      // REL 0
-			    MPUTR(map, "audio/bit_rate", bitrate);       // REL 1
-			    MPUTR(map, "audio/sample_rate", samplerate); // REL 2
+			    MPUTR(map, "channels", channels);     // REL 0
+			    MPUTR(map, "bitrate", bitrate);       // REL 1
+			    MPUTR(map, "samplerate", samplerate); // REL 2
 			}
 			else if (param->codec_type == AVMEDIA_TYPE_VIDEO)
 			{
@@ -354,9 +354,9 @@ int coder_load_metadata_into(const char* path, map_t* map)
 			    snprintf(bitrate, 10, "%li", param->bit_rate);
 			    snprintf(samplerate, 10, "%i", param->sample_rate);
 
-			    MPUTR(map, "video/channels", channels);      // REL 0
-			    MPUTR(map, "video/bit_rate", bitrate);       // REL 1
-			    MPUTR(map, "video/sample_rate", samplerate); // REL 2
+			    MPUTR(map, "channels", channels);     // REL 0
+			    MPUTR(map, "bitrate", bitrate);       // REL 1
+			    MPUTR(map, "samplerate", samplerate); // REL 2
 			}
 		    }
 		}

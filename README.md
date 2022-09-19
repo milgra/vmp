@@ -1,4 +1,4 @@
 # vmp
 Visual music player
 
-VMP is an integral part of SwayOS
+Visual Music Player was made for SwayOS.

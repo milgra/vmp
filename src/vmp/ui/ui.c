@@ -11,6 +11,8 @@ void ui_render_without_cursor(uint32_t time);
 void ui_save_screenshot(uint32_t time, char hide_cursor);
 void ui_update_layout(float w, float h);
 void ui_describe();
+void ui_set_songs(vec_t* songs);
+void ui_show_progress(char* progress);
 
 #endif
 
@@ -43,6 +45,7 @@ void ui_describe();
 #include "zc_number.c"
 #include "zc_path.c"
 #include "zc_text.c"
+#include "zc_time.c"
 
 struct _ui_t
 {
@@ -53,6 +56,9 @@ struct _ui_t
     cb_t* sizecb;
 
     ui_table_t* songlisttable;
+
+    view_t*     infotf;
+    textstyle_t infots;
 } ui;
 
 void ui_on_key_down(void* userdata, void* data)
@@ -193,10 +199,6 @@ void ui_create_views(float width, float height)
     // generate views from descriptors
 
     vec_t* view_list = viewgen_html_create(config_get("html_path"));
-
-    zc_log_debug("VIEW LIST");
-    mem_describe(view_list, 0);
-
     viewgen_css_apply(view_list, config_get("css_path"), config_get("res_path"));
     viewgen_type_apply(view_list);
     ui.view_base = RET(vec_head(view_list));
@@ -282,12 +284,11 @@ void ui_init(float width, float height)
 
     /* textfields */
 
-    view_t* infotf = view_get_subview(ui.view_base, "infotf");
+    ui.infotf = view_get_subview(ui.view_base, "infotf");
+    ui.infots = ui_util_gen_textstyle(ui.infotf);
 
-    textstyle_t infots = ui_util_gen_textstyle(infotf);
-
-    tg_text_add(infotf);
-    tg_text_set(infotf, "This is the info textfield", infots);
+    tg_text_add(ui.infotf);
+    tg_text_set(ui.infotf, "This is the info textfield", ui.infots);
 
     view_t* filtertf = view_get_subview(ui.view_base, "filtertf");
 
@@ -309,41 +310,41 @@ void ui_init(float width, float height)
 
     VADDR(fields, cstr_new_cstring("index"));
     VADDR(fields, num_new_int(60));
-    VADDR(fields, cstr_new_cstring("meta/artist"));
-    VADDR(fields, num_new_int(200));
-    VADDR(fields, cstr_new_cstring("meta/album"));
-    VADDR(fields, num_new_int(200));
-    VADDR(fields, cstr_new_cstring("meta/title"));
+    VADDR(fields, cstr_new_cstring("title"));
     VADDR(fields, num_new_int(350));
-    VADDR(fields, cstr_new_cstring("meta/date"));
+    VADDR(fields, cstr_new_cstring("artist"));
+    VADDR(fields, num_new_int(200));
+    VADDR(fields, cstr_new_cstring("album"));
+    VADDR(fields, num_new_int(200));
+    VADDR(fields, cstr_new_cstring("date"));
     VADDR(fields, num_new_int(70));
-    VADDR(fields, cstr_new_cstring("meta/genre"));
+    VADDR(fields, cstr_new_cstring("genre"));
     VADDR(fields, num_new_int(150));
-    VADDR(fields, cstr_new_cstring("meta/track"));
+    VADDR(fields, cstr_new_cstring("track"));
     VADDR(fields, num_new_int(60));
-    VADDR(fields, cstr_new_cstring("meta/disc"));
+    VADDR(fields, cstr_new_cstring("disc"));
     VADDR(fields, num_new_int(60));
-    VADDR(fields, cstr_new_cstring("file/duration"));
+    VADDR(fields, cstr_new_cstring("duration"));
     VADDR(fields, num_new_int(50));
-    VADDR(fields, cstr_new_cstring("file/channels"));
+    VADDR(fields, cstr_new_cstring("channels"));
     VADDR(fields, num_new_int(40));
-    VADDR(fields, cstr_new_cstring("file/bit_rate"));
+    VADDR(fields, cstr_new_cstring("bitrate"));
     VADDR(fields, num_new_int(100));
-    VADDR(fields, cstr_new_cstring("file/sample_rate"));
+    VADDR(fields, cstr_new_cstring("samplerate"));
     VADDR(fields, num_new_int(80));
-    VADDR(fields, cstr_new_cstring("file/play_count"));
+    VADDR(fields, cstr_new_cstring("plays"));
     VADDR(fields, num_new_int(55));
-    VADDR(fields, cstr_new_cstring("file/skip_count"));
+    VADDR(fields, cstr_new_cstring("skips"));
     VADDR(fields, num_new_int(55));
-    VADDR(fields, cstr_new_cstring("file/added"));
+    VADDR(fields, cstr_new_cstring("added"));
     VADDR(fields, num_new_int(150));
-    VADDR(fields, cstr_new_cstring("file/last_played"));
+    VADDR(fields, cstr_new_cstring("played"));
     VADDR(fields, num_new_int(155));
-    VADDR(fields, cstr_new_cstring("file/last_skipped"));
+    VADDR(fields, cstr_new_cstring("skipped"));
     VADDR(fields, num_new_int(155));
-    VADDR(fields, cstr_new_cstring("file/media_type"));
+    VADDR(fields, cstr_new_cstring("type"));
     VADDR(fields, num_new_int(80));
-    VADDR(fields, cstr_new_cstring("file/container"));
+    VADDR(fields, cstr_new_cstring("container"));
     VADDR(fields, num_new_int(80));
 
     view_t* songlist       = view_get_subview(ui.view_base, "songlisttable");
@@ -368,16 +369,6 @@ void ui_init(float width, float height)
 	songlisthead,
 	fields,
 	on_songlist_event);
-
-    map_t* files          = MNEW(); // REL 0
-    vec_t* file_list_data = VNEW();
-    lib_read_files("/home/milgra/Projects/apps/vmp/tst", files);
-
-    map_values(files, file_list_data);
-    REL(files);
-
-    ui_table_set_data(ui.songlisttable, file_list_data);
-    REL(file_list_data);
 
     REL(fields);
 
@@ -468,6 +459,16 @@ void ui_update_layout(float w, float h)
 void ui_describe()
 {
     view_describe(ui.view_base, 0);
+}
+
+void ui_set_songs(vec_t* songs)
+{
+    ui_table_set_data(ui.songlisttable, songs);
+}
+
+void ui_show_progress(char* progress)
+{
+    tg_text_set(ui.infotf, progress, ui.infots);
 }
 
 #endif
