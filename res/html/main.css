@@ -109,10 +109,17 @@
     height: 30px;
 }
 
-#closeicon {
+.closeicon {
     width: 30px;
     height: 30px;
     background-image: url("close.png");
+    blocks: no;
+}
+
+.closeiconblack {
+    width: 30px;
+    height: 30px;
+    background-image: url("closeblack.png");
     blocks: no;
 }
 
@@ -135,6 +142,22 @@
     height: 30px;
     background-image: url("play.png");
     blocks: no;
+}
+
+#shuffleoff {
+    width: 30px;
+    height: 30px;
+}
+
+#shuffleon {
+    top: 4px;
+    left: 4px;
+    width: 22px;
+    height: 22px;
+    border-radius: 3px;
+    background-color: #ABABAB99;
+    blocks: no;
+    box-shadow: 5px #0000000A;
 }
 
 #shuffleicon {
@@ -210,9 +233,10 @@
 }
 
 #timebck {
+    top: 4px;
     width: 100%;
-    height: 30px;
-    background-color: #676767FF;
+    height: 22px;
+    background-color: #BBBBBBFF;
     border-radius: 4px;
     box-shadow: 5px #0000000A;
 }
@@ -221,7 +245,7 @@
     width: 100%;
     height: 100%;
     blocks: no;
-    color: #DEDEDEFF;
+    color: #EFEFEFFF;
     font-size: 16px;
     text-align: center;
     font-family: "Terminus (TTF):style=Bold";
@@ -230,16 +254,13 @@
 #infobck {
     width: 500px;
     height: 30px;
-    background-color: #454545FF;
-    border-radius: 4px;
-    box-shadow: 5px #0000000A;
 }
 
 #infotf {
     width: 100%;
     height: 100%;
     blocks: no;
-    color: #DEDEDEFF;
+    color: #EFEFEFFF;
     font-size: 16px;
     text-align: center;
     font-family: "Terminus (TTF):style=Bold";
@@ -248,7 +269,7 @@
 #filterbck {
     width: 100%;
     height: 30px;
-    background-color: #454545FF;
+    background-color: #DEDEDEFF;
     border-radius: 4px;
     box-shadow: 5px #0000000A;
 }
@@ -257,7 +278,7 @@
     width: 100%;
     height: 100%;
     blocks: no;
-    color: #DEDEDEFF;
+    color: #232323FF;
     font-size: 16px;
     text-align: center;
     font-family: "Terminus (TTF):style=Bold";
@@ -288,12 +309,13 @@
     width: 100px;
     height: 100px;
     left: 0px;
+    align-items: center;
 }
 
 #playbtn {
     width: 40px;
     height: 40px;
-    margin: 30px;
+    margin: auto;
 }
 
 #playicon {
@@ -314,12 +336,13 @@
     width: 100px;
     height: 100px;
     right: 0px;
+    align-items: center;
 }
 
 #mutebtn {
     width: 40px;
     height: 40px;
-    margin: 30px;
+    margin: auto;
 }
 
 #muteicon {
@@ -340,11 +363,11 @@
     width: 600px;
     height: 100px;
     margin: auto;
-    bottom: 0px;
+    bottom: 5px;
 }
 
 .50px {
-    width: 45px;
+    width: 50px;
     height: 100%;
 }
 
@@ -354,4 +377,79 @@
     flex-direction: row;
     width: 100%;
     height: 89px;
+}
+
+#filterbarbck {
+    width: 100%;
+    height: 28px;
+    background-color: #EFEFEFFF;
+    box-shadow: 5px #0000000A;
+    border-radius: 4px;
+}
+
+#filterbar {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+#filterbtn {
+    width: 30px;
+    height: 30px;
+}
+
+#clearbtn {
+    width: 30px;
+    height: 30px;
+}
+
+.if_clear_btn_back {
+    background-color: #FFFFFFFF;
+    right: 5px;
+    top: 5px;
+    width: 25px;
+    height: 25px;
+    border-radius: 5px;
+    box-shadow: 3px #00000022;
+}
+
+.if_clear_btn {
+    width: 100%;
+    height: 100%;
+}
+
+.if_clear_btn_icon {
+    left: -2px;
+    top: -2px;
+    width: 30px;
+    height: 30px;
+    background-image: url("close.png");
+    blocks: no;
+}
+
+#visuals {
+    width: 600px;
+    height: 90px;
+    margin: auto;
+    bottom: 110px;
+    background-color: #404040FF;
+    border-radius: 4px;
+}
+
+.freq {
+    width: 100%;
+    height: 90px;
+    background-color: #000000FF;
+    border-radius: 4px;
+    margin: 2px;
+}
+
+.cover {
+    width: 90px;
+    height: 90px;
+    background-color: #000000FF;
+    border-radius: 4px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }

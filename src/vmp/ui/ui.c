@@ -20,6 +20,7 @@ void ui_describe();
 #include "coder.c"
 #include "config.c"
 #include "library.c"
+#include "songlist.c"
 #include "tg_css.c"
 #include "tg_knob.c"
 #include "tg_text.c"
@@ -30,6 +31,7 @@ void ui_describe();
 #include "vh_button.c"
 #include "vh_key.c"
 #include "vh_knob.c"
+#include "viewer.c"
 #include "viewgen_css.c"
 #include "viewgen_html.c"
 #include "viewgen_type.c"
@@ -47,8 +49,8 @@ struct _ui_t
     view_t* view_base;
     view_t* cursor; // replay cursor
 
-    view_t* exit_btn;
-    view_t* full_btn;
+    void* viewer;
+    cb_t* sizecb;
 
     ui_table_t* songlisttable;
 } ui;
@@ -58,13 +60,78 @@ void ui_on_key_down(void* userdata, void* data)
     // ev_t* ev = (ev_t*) data;
 }
 
+void ui_content_size_cb(void* userdata, void* data)
+{
+    /* v2_t* r = (v2_t*) data; */
+    /* vh_cv_body_set_content_size(uiv.visubody, (int) r->x, (int) r->y); */
+}
+
 void ui_on_btn_event(void* userdata, void* data)
 {
     // ev_t* ev = (ev_t*) data;
-    view_t* btnview = data;
+    view_t*      btnview = data;
+    vh_button_t* vh      = btnview->handler_data;
 
-    if (btnview == ui.exit_btn) wm_close();
-    if (btnview == ui.full_btn) wm_toggle_fullscreen();
+    if (strcmp(btnview->id, "playbtn") == 0)
+    {
+	if (vh->state == VH_BUTTON_DOWN)
+	{
+	    if (ui.viewer) viewer_play(ui.viewer);
+	    else
+	    {
+		char* path = songlist_get_current_path();
+		if (path) ui.viewer = viewer_open(path, ui.sizecb);
+	    }
+	}
+	else
+	{
+	    if (ui.viewer) viewer_pause(ui.viewer);
+	}
+    };
+    if (strcmp(btnview->id, "mutebtn") == 0)
+    {
+	if (ui.viewer)
+	{
+	    if (vh->state == VH_BUTTON_DOWN) viewer_mute(ui.viewer);
+	    else viewer_unmute(ui.viewer);
+	}
+    };
+    if (strcmp(btnview->id, "prevbtn") == 0)
+    {
+	if (ui.viewer) viewer_close(ui.viewer);
+	ui.viewer  = NULL;
+	char* path = songlist_get_prev_path();
+	if (path) ui.viewer = viewer_open(path, ui.sizecb);
+    };
+    if (strcmp(btnview->id, "nextbtn") == 0)
+    {
+	if (ui.viewer) viewer_close(ui.viewer);
+	ui.viewer  = NULL;
+	char* path = songlist_get_next_path();
+	if (path) ui.viewer = viewer_open(path, ui.sizecb);
+    };
+    if (strcmp(btnview->id, "shufflebtn") == 0)
+    {
+	songlist_toggle_shuffle();
+    };
+    if (strcmp(btnview->id, "settingsbtn") == 0)
+    {
+	// show settings popup
+    };
+    if (strcmp(btnview->id, "donatebtn") == 0)
+    {
+	// show donate popup
+    };
+    if (strcmp(btnview->id, "filterbtn") == 0)
+    {
+	// show filter popup
+    };
+    if (strcmp(btnview->id, "clearbtn") == 0)
+    {
+	// clear filter bar
+    };
+    if (strcmp(btnview->id, "exitbtn") == 0) wm_close();
+    if (strcmp(btnview->id, "maxbtn") == 0) wm_toggle_fullscreen();
 }
 
 void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
@@ -161,15 +228,15 @@ void ui_init(float width, float height)
     vh_key_add(ui.view_base, key_cb); // listen on ui.view_base for shortcuts
     REL(key_cb);
 
+    /* size callback */
+
+    cb_t* sizecb = cb_new(ui_content_size_cb, NULL);
+
+    ui.sizecb = sizecb;
+
     /* app buttons */
 
     cb_t* btn_cb = cb_new(ui_on_btn_event, NULL);
-
-    ui.exit_btn = view_get_subview(ui.view_base, "app_close_btn");
-    if (ui.exit_btn) vh_button_add(ui.exit_btn, VH_BUTTON_NORMAL, btn_cb);
-
-    ui.full_btn = view_get_subview(ui.view_base, "app_maximize_btn");
-    if (ui.full_btn) vh_button_add(ui.full_btn, VH_BUTTON_NORMAL, btn_cb);
 
     /* knobs */
 
@@ -189,6 +256,30 @@ void ui_init(float width, float height)
 
     REL(btn_cb);
 
+    /* buttons */
+
+    view_t* prevbtn     = view_get_subview(ui.view_base, "prevbtn");
+    view_t* nextbtn     = view_get_subview(ui.view_base, "nextbtn");
+    view_t* shufflebtn  = view_get_subview(ui.view_base, "shufflebtn");
+    view_t* editbtn     = view_get_subview(ui.view_base, "editbtn");
+    view_t* settingsbtn = view_get_subview(ui.view_base, "settingsbtn");
+    view_t* donatebtn   = view_get_subview(ui.view_base, "donatebtn");
+    view_t* maxbtn      = view_get_subview(ui.view_base, "maxbtn");
+    view_t* exitbtn     = view_get_subview(ui.view_base, "exitbtn");
+    view_t* filterbtn   = view_get_subview(ui.view_base, "filterbtn");
+    view_t* clearbtn    = view_get_subview(ui.view_base, "clearbtn");
+
+    vh_button_add(prevbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(nextbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(shufflebtn, VH_BUTTON_TOGGLE, btn_cb);
+    vh_button_add(editbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(settingsbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(donatebtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(maxbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(exitbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(filterbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(clearbtn, VH_BUTTON_NORMAL, btn_cb);
+
     /* textfields */
 
     view_t* infotf = view_get_subview(ui.view_base, "infotf");
@@ -197,6 +288,20 @@ void ui_init(float width, float height)
 
     tg_text_add(infotf);
     tg_text_set(infotf, "This is the info textfield", infots);
+
+    view_t* filtertf = view_get_subview(ui.view_base, "filtertf");
+
+    textstyle_t filterts = ui_util_gen_textstyle(filtertf);
+
+    tg_text_add(filtertf);
+    tg_text_set(filtertf, "This is the search textfield", filterts);
+
+    view_t* timetf = view_get_subview(ui.view_base, "timetf");
+
+    textstyle_t timets = ui_util_gen_textstyle(timetf);
+
+    tg_text_add(timetf);
+    tg_text_set(timetf, "05:23 / 08:33", timets);
 
     /* songlist */
 
@@ -294,6 +399,7 @@ void ui_destroy()
 {
     ui_manager_remove(ui.view_base);
 
+    REL(ui.sizecb);
     REL(ui.view_base);
     REL(ui.songlisttable);
 

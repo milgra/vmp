@@ -33,7 +33,7 @@ void tg_knob_gen(view_t* view)
 	    tg->fore       = bm_rgba_new(view->frame.local.w, view->frame.local.h); // REL 2
 
 	    uint32_t basecol   = 0x454545FF;
-	    uint32_t outercol  = 0x545454FF;
+	    uint32_t outercol  = 0x343434FF;
 	    uint32_t centercol = 0x676767FF;
 	    uint32_t shadowcol = 0xABABAB0A;
 
@@ -104,6 +104,10 @@ void tg_knob_add(view_t* view)
     view->tex_gen_data = tg;
     view->tex_gen      = tg_knob_gen;
     view->exclude      = 0;
+
+    view->needs_touch   = 1;
+    view->blocks_touch  = 1;
+    view->blocks_scroll = 1;
 }
 
 void tg_knob_set_angle(view_t* view, float angle)

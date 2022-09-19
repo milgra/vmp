@@ -16,7 +16,11 @@
 #include "zc_callback.c"
 
 void* viewer_open(char* path, cb_t* sizecb);
+void  viewer_play(void* ms);
+void  viewer_pause(void* ms);
 void  viewer_close(void* ms);
+void  viewer_mute(void* ms);
+void  viewer_unmute(void* ms);
 void  video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm);
 
 #endif
@@ -1274,6 +1278,22 @@ void viewer_close(void* msp)
     if (ms->sizecb) REL(ms->sizecb);
     av_free(ms->filename);
     av_free(ms);
+}
+
+void viewer_play(void* ms)
+{
+}
+
+void viewer_pause(void* ms)
+{
+}
+
+void viewer_mute(void* ms)
+{
+}
+
+void viewer_unmute(void* ms)
+{
 }
 
 // display related

@@ -4,6 +4,7 @@
 #include "zc_text.c"
 #include "zc_bm_rgba.c"
 #include "zc_string.c"
+#include <linux/limits.h>
 #include <stdint.h>
 
 typedef enum _textalign_t
@@ -29,7 +30,7 @@ typedef enum _autosize_t
 
 typedef struct _textstyle_t
 {
-    char*       font;
+    char        font[PATH_MAX];
     textalign_t align;
     vertalign_t valign;
     autosize_t  autosize;

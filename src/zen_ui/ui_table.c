@@ -364,9 +364,6 @@ void ui_table_del(
 
     if (uit->items) REL(uit->items);
 
-    // TODO maybe textstyle should handle this release itself
-    REL(uit->textstyle.font);
-
     if (uit->body_v) REL(uit->body_v);
     if (uit->evnt_v) REL(uit->evnt_v);
     if (uit->scrl_v) REL(uit->scrl_v);
