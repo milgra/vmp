@@ -298,12 +298,12 @@ int coder_load_metadata_into(const char* path, map_t* map)
 
 		while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
 		{
-		    char* value = cstr_new_cstring(tag->value);                    // REL 0
-		    char* key   = cstr_new_format(100, "%s/%s", "meta", tag->key); // REL 1
+		    char* value = cstr_new_cstring(tag->value); // REL 0
+		    /* char* key   = cstr_new_format(100, "%s/%s", "meta", tag->key); // REL 1 */
 
-		    MPUT(map, key, value);
+		    MPUT(map, tag->key, value);
 
-		    REL(key);   // REL 0
+		    /* REL(key);   // REL 0 */
 		    REL(value); // REL 1
 		}
 

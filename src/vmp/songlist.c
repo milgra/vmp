@@ -24,12 +24,12 @@ struct _songlist_t
 
     vec_t* songs;         // all items in library
     vec_t* visible_songs; // filtered items
-} sl;
+} sl = {0};
 
 char* songlist_get_current_path()
 {
     char* path = NULL;
-    if (sl.current_index < sl.visible_songs->length)
+    if (sl.visible_songs && sl.current_index < sl.visible_songs->length)
     {
 	map_t* song = sl.visible_songs->data[sl.current_index];
 	path        = MGET(song, "path");
@@ -40,7 +40,7 @@ char* songlist_get_current_path()
 char* songlist_get_prev_path()
 {
     char* path = NULL;
-    if (sl.current_index - 1 > -1)
+    if (sl.visible_songs && sl.current_index - 1 > -1)
     {
 	map_t* song = sl.visible_songs->data[sl.current_index - 1];
 	path        = MGET(song, "path");
@@ -51,7 +51,7 @@ char* songlist_get_prev_path()
 char* songlist_get_next_path()
 {
     char* path = NULL;
-    if (sl.current_index + 1 < sl.visible_songs->length)
+    if (sl.visible_songs && sl.current_index + 1 < sl.visible_songs->length)
     {
 	map_t* song = sl.visible_songs->data[sl.current_index + 1];
 	path        = MGET(song, "path");

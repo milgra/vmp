@@ -1,3 +1,4 @@
+#include "analyzer.c"
 #include "config.c"
 #include "evrecorder.c"
 #include "filemanager.c"
@@ -23,6 +24,9 @@ struct
 {
     char replay;
     char record;
+
+    float       analyzer_ratio;
+    analyzer_t* analyzer;
 } mmfm = {0};
 
 void init(int width, int height)
@@ -46,28 +50,54 @@ void init(int width, int height)
 
     /* load library */
 
-    map_t* files          = MNEW(); // REL 0
-    vec_t* file_list_data = VNEW();
-    char*  libpath        = config_get("lib_path");
+    map_t* files    = MNEW(); // REL 0
+    vec_t* songlist = VNEW();
+    char*  libpath  = config_get("lib_path");
 
     zc_time(NULL);
     lib_read_files(libpath, files);
     zc_time("listing library");
 
-    map_values(files, file_list_data);
-    REL(files);
+    map_values(files, songlist);
 
-    ui_set_songs(file_list_data);
-
-    REL(file_list_data);
+    ui_set_songs(songlist);
 
     /* start analyzing immediately */
+
+    mmfm.analyzer = analyzer_run(songlist);
+
+    REL(files);
+    REL(songlist);
+
+    /* reload files again */
 }
 
 void update(ev_t ev)
 {
     if (ev.type == EV_TIME)
     {
+	/* check analyzer */
+
+	if (mmfm.analyzer)
+	{
+	    if (mmfm.analyzer_ratio < mmfm.analyzer->ratio)
+	    {
+		char text[100];
+		snprintf(text, 100, "Analyzing songs %.2i%%", (int) (mmfm.analyzer->ratio * 100.0));
+		ui_show_progress(text);
+	    }
+
+	    if (mmfm.analyzer->ratio == 1.0)
+	    {
+		printf("RELOAD\n");
+		ui_set_songs(mmfm.analyzer->songs);
+
+		REL(mmfm.analyzer);
+		mmfm.analyzer       = NULL;
+		mmfm.analyzer_ratio = 0.0;
+	    }
+	}
+
 	/* ui_visualizer_update_video(); */
 
 	if (mmfm.replay)

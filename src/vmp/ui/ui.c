@@ -308,8 +308,6 @@ void ui_init(float width, float height)
 
     vec_t* fields = VNEW();
 
-    VADDR(fields, cstr_new_cstring("index"));
-    VADDR(fields, num_new_int(60));
     VADDR(fields, cstr_new_cstring("title"));
     VADDR(fields, num_new_int(350));
     VADDR(fields, cstr_new_cstring("artist"));

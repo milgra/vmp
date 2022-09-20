@@ -7,7 +7,6 @@
 void lib_read_files(char* libpath, map_t* db);
 void lib_delete_file(char* libpath, map_t* entry);
 int  lib_rename_file(char* old, char* new, char* new_dirs);
-void lib_analyze_files(ch_t* channel, map_t* files);
 
 #endif
 
@@ -118,115 +117,6 @@ int lib_rename_file(char* old_path, char* new_path, char* new_dirs)
 	return error;
     }
     return error;
-}
-
-void lib_analyze_files(ch_t* channel, map_t* files)
-{
-    if (lib.lock) return;
-
-    lib.lock  = 1;
-    lib.files = RET(files); // REL 0
-    lib.paths = VNEW();     // REL 1
-
-    map_keys(files, lib.paths);
-
-    SDL_CreateThread(analyzer_thread, "analyzer", channel);
-}
-
-int analyzer_thread(void* chptr)
-{
-    ch_t*    channel = chptr;
-    map_t*   song    = NULL;
-    uint32_t total   = lib.paths->length;
-    int      ratio   = -1;
-
-    while (lib.paths->length > 0)
-    {
-	if (!song)
-	{
-	    song = MNEW();
-
-	    char* path = vec_tail(lib.paths);
-	    char* size = MGET(lib.files, path);
-
-	    char* time_str = CAL(80, NULL, cstr_describe); // REL 0
-	    // snprintf(time_str, 20, "%lu", time(NULL));
-
-	    time_t now;
-	    time(&now);
-	    struct tm ts = *localtime(&now);
-	    strftime(time_str, 80, "%Y-%m-%d %H:%M", &ts);
-
-	    // add file data
-
-	    MPUT(song, "file/path", path);
-	    MPUT(song, "file/size", size);
-	    MPUT(song, "file/added", time_str);
-	    MPUTR(song, "file/last_played", cstr_new_cstring("0"));
-	    MPUTR(song, "file/last_skipped", cstr_new_cstring("0"));
-	    MPUTR(song, "file/play_count", cstr_new_cstring("0"));
-	    MPUTR(song, "file/skip_count", cstr_new_cstring("0"));
-
-	    char* real = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s", lib.path, path); // REL 1
-
-	    zc_log_debug("lib : analyzing %s", real);
-
-	    // read and add file and meta data
-
-	    int res = coder_load_metadata_into(real, song);
-
-	    if (res == 0)
-	    {
-		if (MGET(song, "meta/artist") == NULL) MPUTR(song, "meta/artist", cstr_new_cstring("Unknown"));
-		if (MGET(song, "meta/album") == NULL) MPUTR(song, "meta/album", cstr_new_cstring("Unknown"));
-		if (MGET(song, "meta/title") == NULL) MPUTR(song, "meta/title", path_new_filename(path));
-
-		// try to send it to main thread
-		if (ch_send(channel, song)) song = NULL;
-	    }
-	    else
-	    {
-		// file is not a media file readable by ffmpeg, we skip it
-		REL(song);
-		song = NULL;
-	    }
-
-	    // cleanup
-	    REL(real);     // REL 1
-	    REL(time_str); // REL 0
-
-	    // remove entry from remaining
-	    vec_rem_at_index(lib.paths, lib.paths->length - 1);
-	}
-	else
-	{
-	    // wait for main thread to process new entries
-	    SDL_Delay(5);
-	    if (ch_send(channel, song)) song = NULL;
-	}
-
-	// show progress
-	int ratio_new = (int) ((float) (total - lib.paths->length) / (float) total * 100.0);
-	if (ratio != ratio_new)
-	{
-	    ratio = ratio_new;
-	    zc_log_debug("lib : analyzer progress : %i%%", ratio);
-	}
-    }
-
-    // send empty song to initiaite finish
-    song = MNEW();                                        // REL 2
-    MPUTR(song, "file/path", cstr_new_cstring("//////")); // impossible path
-    ch_send(channel, song);                               // send finishing entry
-
-    REL(lib.files); // REL 0
-    REL(lib.paths); // REL 1
-
-    lib.files = NULL;
-    lib.paths = NULL;
-
-    lib.lock = 0;
-    return 0;
 }
 
 #endif
