@@ -49,6 +49,31 @@ void init(int width, int height)
 
     ui_update_layout(width, height);
 
+    map_t* fields = MNEW();
+
+    MPUTR(fields, "artist", cstr_new_cstring("artist"));
+    MPUTR(fields, "album", cstr_new_cstring("album"));
+    MPUTR(fields, "title", cstr_new_cstring("title"));
+    MPUTR(fields, "date", cstr_new_cstring("date"));
+    MPUTR(fields, "genre", cstr_new_cstring("genre"));
+    MPUTR(fields, "track", cstr_new_cstring("track"));
+    MPUTR(fields, "disc", cstr_new_cstring("disc"));
+    MPUTR(fields, "duration", cstr_new_cstring("duration"));
+    MPUTR(fields, "channels", cstr_new_cstring("channels"));
+    MPUTR(fields, "bitrate", cstr_new_cstring("bitrate"));
+    MPUTR(fields, "samplerate", cstr_new_cstring("samplerate"));
+    MPUTR(fields, "plays", cstr_new_cstring("plays"));
+    MPUTR(fields, "skips", cstr_new_cstring("skips"));
+    MPUTR(fields, "added", cstr_new_cstring("added"));
+    MPUTR(fields, "played", cstr_new_cstring("played"));
+    MPUTR(fields, "skipped", cstr_new_cstring("skipped"));
+    MPUTR(fields, "type", cstr_new_cstring("type"));
+    MPUTR(fields, "container", cstr_new_cstring("container"));
+
+    songlist_set_fields(fields);
+
+    REL(fields);
+
     /* load library */
 
     map_t* files    = MNEW(); // REL 0
@@ -95,7 +120,7 @@ void update(ev_t ev)
 	    {
 		songlist_set_songs(mmfm.analyzer->songs);
 
-		ui_set_songs(mmfm.analyzer->songs);
+		ui_set_songs(songlist_get_visible_songs());
 
 		REL(mmfm.analyzer);
 		mmfm.analyzer       = NULL;

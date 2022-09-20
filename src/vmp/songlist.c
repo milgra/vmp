@@ -4,32 +4,39 @@
 #include "zc_map.c"
 #include "zc_vector.c"
 
-char* songlist_get_current_path();
-char* songlist_get_prev_path();
-char* songlist_get_next_path();
-void  songlist_set_current_index(int index);
-void  songlist_toggle_shuffle();
-void  songlist_set_songs(vec_t* songs);
-void  songlist_apply_filter();
-void  songlist_apply_sorting();
-void  songlist_set_filter(char* filter);
-void  songlist_set_sorting(char* sorting);
+char*  songlist_get_current_path();
+char*  songlist_get_prev_path();
+char*  songlist_get_next_path();
+void   songlist_set_current_index(int index);
+void   songlist_toggle_shuffle();
+void   songlist_set_songs(vec_t* songs);
+void   songlist_apply_filter();
+void   songlist_apply_sorting();
+void   songlist_set_filter(char* filter);
+void   songlist_set_sorting(char* sorting);
+void   songlist_set_fields(map_t* fields);
+vec_t* songlist_get_visible_songs();
 
 #endif
 
 #if __INCLUDE_LEVEL__ == 0
 
 #include "cstr_util.c"
+#include "utf8.h"
 #include "zc_cstring.c"
 #include <stdlib.h>
 
 struct _songlist_t
 {
+    map_t* fields;
+
     int    current_index; // actual index
     vec_t* songs;         // all items in library
     vec_t* visible_songs; // filtered items
-    char*  filter;        // artist is Metallica album is Ride the lightning and genre is not Rock and genre is Metal
-    char*  sorting;       // 1 is ascending 0 is descending
+
+    char*  filter;    // artist is Metallica album is Ride the lightning genre is Rock genre is Metal
+    map_t* filtermap; // key - field,
+    char*  sorting;   // 1 is ascending 0 is descending
     vec_t* sortvec;
 } sl = {0};
 
@@ -77,10 +84,104 @@ void songlist_toggle_shuffle()
 
 void songlist_apply_filter()
 {
+    if (sl.visible_songs) vec_reset(sl.visible_songs);
+    else sl.visible_songs = VNEW();
+
+    if (sl.filter != NULL)
+    {
+	vec_t* filtered = VNEW();
+	vec_t* fields   = VNEW();
+
+	map_keys(sl.fields, fields);
+
+	for (int index = 0;
+	     index < sl.songs->length;
+	     index++)
+	{
+	    map_t* entry = sl.songs->data[index];
+
+	    for (int fi = 0; fi < fields->length; fi++)
+	    {
+		char* field       = fields->data[fi];
+		char* filtervalue = MGET(sl.filtermap, field);
+		if (filtervalue == NULL) filtervalue = MGET(sl.filtermap, "*");
+
+		if (filtervalue != NULL)
+		{
+		    char* value = MGET(entry, field);
+
+		    if (value != NULL)
+		    {
+			if (utf8casestr(filtervalue, value))
+			{
+			    VADD(filtered, entry);
+			    continue;
+			}
+		    }
+		}
+	    }
+	}
+
+	vec_add_in_vector(sl.visible_songs, filtered);
+	REL(filtered);
+    }
+    else
+    {
+	vec_add_in_vector(sl.visible_songs, sl.songs);
+    }
 }
 
 void songlist_set_filter(char* filter)
 {
+    if (sl.filter != NULL) REL(sl.filter);
+    sl.filter = NULL;
+    if (filter) sl.filter = cstr_new_cstring(filter);
+
+    if (sl.filter)
+    {
+	vec_t* words = cstr_split(sl.filter, " ");
+
+	if (sl.filtermap) REL(sl.filtermap);
+	sl.filtermap = MNEW();
+
+	char* currentfield = NULL;
+	char* currentword  = cstr_new_cstring("");
+
+	for (int index = 0; index < words->length; index++)
+	{
+	    char* word = words->data[index];
+
+	    if (strcmp(word, "is") == 0) continue;
+
+	    if (map_get(sl.fields, word) != NULL)
+	    {
+		if (currentword != NULL && currentfield != NULL) MPUT(sl.filtermap, currentfield, currentword);
+
+		if (currentword) REL(currentword);
+		if (currentfield) REL(currentfield);
+
+		// store as field
+		currentfield = word;
+		currentword  = cstr_new_cstring("");
+	    }
+	    else
+	    {
+		currentword = cstr_append(currentword, word);
+		currentword = cstr_append(currentword, " ");
+	    }
+	}
+
+	// add final words
+
+	if (currentword != NULL && currentfield != NULL) MPUT(sl.filtermap, currentfield, currentword);
+	else if (currentword != NULL) MPUT(sl.filtermap, "*", currentword);
+
+	if (currentword) REL(currentword);
+	if (currentfield) REL(currentfield);
+
+	printf("FILTER:\n");
+	mem_describe(sl.filtermap, 0);
+    }
 }
 
 int songlist_comp_entry(void* left, void* right)
@@ -93,8 +194,6 @@ int songlist_comp_entry(void* left, void* right)
 	char* field = sl.sortvec->data[index];
 	int   dir   = atoi(sl.sortvec->data[index + 1]);
 	if (dir == 0) dir = -1;
-
-	printf("field %s dir %i\n", field, dir);
 
 	char* la = MGET(l, field);
 	char* ra = MGET(r, field);
@@ -125,7 +224,7 @@ void songlist_apply_sorting()
     {
 	if (sl.sortvec) REL(sl.sortvec);
 	sl.sortvec = cstr_split(sl.sorting, " ");
-	vec_sort(sl.songs, songlist_comp_entry);
+	vec_sort(sl.visible_songs, songlist_comp_entry);
     }
 }
 
@@ -144,6 +243,18 @@ void songlist_set_songs(vec_t* songs)
 
     songlist_apply_filter();
     songlist_apply_sorting();
+}
+
+void songlist_set_fields(map_t* fields)
+{
+    if (sl.fields) REL(sl.fields);
+    sl.fields = NULL;
+    if (fields) sl.fields = RET(fields);
+}
+
+vec_t* songlist_get_visible_songs()
+{
+    return sl.visible_songs;
 }
 
 #endif
