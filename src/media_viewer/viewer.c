@@ -21,7 +21,8 @@ void  viewer_pause(void* ms);
 void  viewer_close(void* ms);
 void  viewer_mute(void* ms);
 void  viewer_unmute(void* ms);
-void  video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm);
+void  viewer_video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm);
+void  viewer_audio_refresh(void* opaque, bm_rgba_t* bml, bm_rgba_t* bmr);
 
 #endif
 
@@ -70,6 +71,11 @@ void  video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm);
 #define AV_SYNC_FRAMEDUP_THRESHOLD 0.1
 /* no AV correction is done if too big error */
 #define AV_NOSYNC_THRESHOLD 10.0
+
+/* For Frequence/RDFT visualizer */
+/* NOTE: the size must be big enough to compensate the hardware audio buffersize size */
+/* TODO: We assume that a decoded and resampled frame fits into this buffer */
+#define SAMPLE_ARRAY_SIZE (8 * 65536)
 
 static int framedrop = -1; // drop frames on slow cpu
 
@@ -177,6 +183,14 @@ typedef struct MediaState
 
     struct SwsContext* img_convert_ctx; // image conversion context for scaling on upload
     struct SwrContext* swr_ctx;         // resample context for audio
+
+    /* frequency/rdft visu related */
+
+    int64_t audio_callback_time; // for storing last audio callback
+
+    int16_t sample_array[SAMPLE_ARRAY_SIZE];
+    int     sample_array_index;
+    int     last_i_start;
 } MediaState;
 
 // timing related
@@ -517,13 +531,33 @@ int viewer_audio_decode_frame(MediaState* is)
     return resampled_data_size;
 }
 
+/* copy samples for viewing in editor window */
+static void update_sample_display(MediaState* is, short* samples, int samples_size)
+{
+    int size, len;
+
+    size = samples_size / sizeof(short);
+    while (size > 0)
+    {
+	len = SAMPLE_ARRAY_SIZE - is->sample_array_index;
+	if (len > size)
+	    len = size;
+	memcpy(is->sample_array + is->sample_array_index, samples, len * sizeof(short));
+	samples += len;
+	is->sample_array_index += len;
+	if (is->sample_array_index >= SAMPLE_ARRAY_SIZE)
+	    is->sample_array_index = 0;
+	size -= len;
+    }
+}
+
 /* prepare a new audio buffer */
 static void viewer_sdl_audio_callback(void* opaque, Uint8* stream, int len)
 {
     MediaState* ms = opaque;
     int         audio_size, len1;
 
-    int64_t audio_callback_time = av_gettime_relative();
+    ms->audio_callback_time = av_gettime_relative();
 
     while (len > 0)
     {
@@ -540,7 +574,7 @@ static void viewer_sdl_audio_callback(void* opaque, Uint8* stream, int len)
 	    else
 	    {
 		// TODO use this in oscilloscope
-		// if (ms->show_mode != SHOW_MODE_VIDEO) update_sample_display(ms, (int16_t*) ms->audio_buf, audio_size);
+		update_sample_display(ms, (int16_t*) ms->audio_buf, audio_size);
 
 		ms->audio_buf_size = audio_size;
 	    }
@@ -569,7 +603,7 @@ static void viewer_sdl_audio_callback(void* opaque, Uint8* stream, int len)
     /* Let's assume the audio driver that ms used by SDL has two periods. */
     if (!isnan(ms->audio_clock))
     {
-	clock_set_at(&ms->audclk, ms->audio_clock - (double) (2 * ms->audio_hw_buf_size + ms->audio_write_buf_size) / ms->audio_tgt.bytes_per_sec, ms->audio_clock_serial, audio_callback_time / 1000000.0);
+	clock_set_at(&ms->audclk, ms->audio_clock - (double) (2 * ms->audio_hw_buf_size + ms->audio_write_buf_size) / ms->audio_tgt.bytes_per_sec, ms->audio_clock_serial, ms->audio_callback_time / 1000000.0);
 	viewer_sync_clock_to_slave(&ms->extclk, &ms->audclk);
     }
 }
@@ -595,6 +629,7 @@ int viewer_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int 
 	av_channel_layout_uninit(wanted_channel_layout);
 	av_channel_layout_default(wanted_channel_layout, wanted_nb_channels);
     }
+
     if (wanted_channel_layout->order != AV_CHANNEL_ORDER_NATIVE)
     {
 	av_channel_layout_uninit(wanted_channel_layout);
@@ -604,6 +639,7 @@ int viewer_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int 
     wanted_nb_channels   = wanted_channel_layout->nb_channels;
     wanted_spec.channels = wanted_nb_channels;
     wanted_spec.freq     = wanted_sample_rate;
+
     if (wanted_spec.freq <= 0 || wanted_spec.channels <= 0)
     {
 	av_log(NULL, AV_LOG_ERROR, "Invalid sample rate or channel count!\n");
@@ -617,6 +653,7 @@ int viewer_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int 
     wanted_spec.samples  = FFMAX(SDL_AUDIO_MIN_BUFFER_SIZE, 2 << av_log2(wanted_spec.freq / SDL_AUDIO_MAX_CALLBACKS_PER_SEC));
     wanted_spec.callback = viewer_sdl_audio_callback;
     wanted_spec.userdata = opaque;
+
     while (!(audio_dev = SDL_OpenAudioDevice(NULL, 0, &wanted_spec, &spec, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE)))
     {
 	av_log(NULL, AV_LOG_WARNING, "SDL_OpenAudio (%d channels, %d Hz): %s\n", wanted_spec.channels, wanted_spec.freq, SDL_GetError());
@@ -653,8 +690,10 @@ int viewer_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int 
 
     audio_hw_params->fmt  = AV_SAMPLE_FMT_S16;
     audio_hw_params->freq = spec.freq;
+
     if (av_channel_layout_copy(&audio_hw_params->ch_layout, wanted_channel_layout) < 0)
 	return -1;
+
     audio_hw_params->frame_size    = av_samples_get_buffer_size(NULL, audio_hw_params->ch_layout.nb_channels, 1, audio_hw_params->fmt, 1);
     audio_hw_params->bytes_per_sec = av_samples_get_buffer_size(NULL, audio_hw_params->ch_layout.nb_channels, audio_hw_params->freq, audio_hw_params->fmt, 1);
 
@@ -664,7 +703,7 @@ int viewer_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int 
 	return -1;
     }
 
-    zc_log_debug("spec size %i channels %i freq %i", spec.size, spec.channels, spec.freq);
+    zc_log_debug("spec size %i channels %i freq %i", spec.size, audio_hw_params->ch_layout.nb_channels, spec.freq);
 
     return spec.size;
 }
@@ -1423,7 +1462,7 @@ void video_display(MediaState* ms, bm_rgba_t* bm)
 }
 
 /* called to display each frame */
-void video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm)
+void viewer_video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm)
 {
     MediaState* ms = opaque;
     double      time;
@@ -1506,6 +1545,212 @@ void video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm)
 	if (ms->force_refresh && ms->vidfq.rindex_shown) video_display(ms, bm);
     }
     ms->force_refresh = 0;
+}
+
+static inline int compute_mod(int a, int b)
+{
+    return a < 0 ? a % b + b : a % b;
+}
+
+void viewer_audio_refresh(void* opaque, bm_rgba_t* bitmap, bm_rgba_t* bmr)
+{
+    MediaState* ms = opaque;
+
+    int     i, i_start, x, y1, y2, y, ys, delay, n, nb_display_channels;
+    int     ch, channels, h, h2;
+    int64_t time_diff;
+    int     rdft_bits, nb_freq;
+
+    int edge   = 2;
+    int width  = bitmap->w - 2 * edge;
+    int height = bitmap->h - 2 * edge;
+
+    /* prepare bits */
+
+    for (rdft_bits = 1; (1 << rdft_bits) < 2 * height; rdft_bits++)
+	;
+    nb_freq = 1 << (rdft_bits - 1);
+
+    /* ms->-show_mode = showmode; */
+
+    /* /\* compute display index : center on currently output samples *\/ */
+    channels = ms->audio_tgt.ch_layout.nb_channels;
+
+    if (channels == 0) return;
+
+    nb_display_channels = channels;
+
+    int show_mode = 0; // 0 - waves 1 - rdft
+
+    if (!ms->paused)
+    {
+	int data_used = show_mode == 0 ? width : (2 * nb_freq);
+	n             = 2 * channels;
+	delay         = ms->audio_write_buf_size;
+
+	delay /= n;
+
+	/* to be more precise, we take into account the time spent since
+	       the last buffer computation */
+	if (ms->audio_callback_time)
+	{
+	    time_diff = av_gettime_relative() - ms->audio_callback_time;
+	    delay -= (time_diff * ms->audio_tgt.freq) / 1000000;
+	}
+
+	delay += 2 * data_used;
+	if (delay < data_used)
+	    delay = data_used;
+
+	i_start = x = compute_mod(ms->sample_array_index - delay * channels, SAMPLE_ARRAY_SIZE);
+	if (show_mode == 0)
+	{
+	    h = INT_MIN;
+	    for (i = 0; i < 1000; i += channels)
+	    {
+		int idx   = (SAMPLE_ARRAY_SIZE + x - i) % SAMPLE_ARRAY_SIZE;
+		int a     = ms->sample_array[idx];
+		int b     = ms->sample_array[(idx + 4 * channels) % SAMPLE_ARRAY_SIZE];
+		int c     = ms->sample_array[(idx + 5 * channels) % SAMPLE_ARRAY_SIZE];
+		int d     = ms->sample_array[(idx + 9 * channels) % SAMPLE_ARRAY_SIZE];
+		int score = a - d;
+		if (h < score && (b ^ c) < 0)
+		{
+		    h       = score;
+		    i_start = idx;
+		}
+	    }
+	}
+
+	ms->last_i_start = i_start;
+    }
+    else
+    {
+	i_start = ms->last_i_start;
+    }
+
+    int ytop  = 0;
+    int xleft = 0;
+
+    if (show_mode == 0)
+    {
+	gfx_rect(bitmap, edge, edge, width, height, 0x000000FF, 1);
+
+	/* total height for one channel */
+	h = height;
+	/* graph height / 2 */
+	h2 = (h * 9) / 20;
+
+	for (ch = 0; ch < nb_display_channels; ch++)
+	{
+	    i  = i_start + ch;
+	    y1 = ytop + (h / 2); /* position of center line */
+
+	    int prevy = 0;
+	    for (x = 0; x < width; x++)
+	    {
+		y = (ms->sample_array[i] * h2) >> 15;
+		if (y < 0)
+		{
+		    y  = -y;
+		    ys = y1 - y;
+		    y2 = ys;
+		}
+		else
+		{
+		    ys = y1;
+		    y2 = ys + y;
+		}
+
+		int sy = prevy < y2 ? prevy : y2;
+		int hy = prevy < y2 ? y2 - prevy : prevy - y2;
+		if (hy == 0) hy = 1;
+
+		gfx_rect(bitmap, xleft + x, sy, 1, hy, 0xFFFFFFFF, 1);
+
+		prevy = y2;
+
+		i += channels;
+		if (i >= SAMPLE_ARRAY_SIZE)
+		    i -= SAMPLE_ARRAY_SIZE;
+	    }
+	}
+    }
+    /* else */
+    /* { */
+    /* 	/\* if (realloc_texture(&ms->vis_texture, SDL_PIXELFORMAT_ARGB8888, width, height, SDL_BLENDMODE_NONE, 1) < 0) *\/ */
+    /* 	/\*   return; *\/ */
+
+    /* 	nb_display_channels = FFMIN(nb_display_channels, 2); */
+    /* 	if (rdft_bits != ms->rdft_bits) */
+    /* 	{ */
+    /* 	    av_rdft_end(ms->rdft); */
+    /* 	    av_free(ms->rdft_data); */
+    /* 	    ms->rdft      = av_rdft_init(rdft_bits, DFT_R2C); */
+    /* 	    ms->rdft_bits = rdft_bits; */
+    /* 	    ms->rdft_data = av_malloc_array(nb_freq, 4 * sizeof(*ms->rdft_data)); */
+    /* } */
+
+    /* 	if (!ms->rdft || !ms->rdft_data) */
+    /* 	{ */
+    /* 	    av_log(NULL, AV_LOG_ERROR, "Failed to allocate buffers for RDFT, switching to waves display\n"); */
+    /* 	    show_mode = 0; */
+    /* 	} */
+    /* 	else */
+    /* 	{ */
+    /* 	    FFTSample* data[2]; */
+    /* 	    SDL_Rect   rect = {.x = ms->xpos, .y = 0, .w = 1, .h = height}; */
+    /* 	    uint32_t*  pixels; */
+    /* 	    int        pitch; */
+
+    /* 	    ch = index; */
+    /* 	    for (ch = 0; ch < nb_display_channels; ch++) */
+    /* 	    { */
+    /* 		data[ch] = ms->rdft_data + 2 * nb_freq * ch; */
+    /* 		i        = i_start + ch; */
+    /* 		for (x = 0; x < 2 * nb_freq; x++) */
+    /* 		{ */
+    /* 		    double w    = (x - nb_freq) * (1.0 / nb_freq); */
+    /* 		    data[ch][x] = ms->sample_array[i] * (1.0 - w * w); */
+    /* 		    i += channels; */
+    /* 		    if (i >= SAMPLE_ARRAY_SIZE) */
+    /* 			i -= SAMPLE_ARRAY_SIZE; */
+    /* 		} */
+    /* 		av_rdft_calc(ms->rdft, data[ch]); */
+    /* 	    } */
+    /* 	    /\* Least efficient way to do this, we should of course */
+    /* 	     * directly access it but it is more than fast enough. *\/ */
+    /* 	    /\* if (!SDL_LockTexture(ms->vis_texture, &rect, (void**)&pixels, &pitch)) *\/ */
+    /* 	    /\* { *\/ */
+
+    /* 	    pitch = width; */
+    /* 	    pitch >>= 2; */
+    /* 	    pixels = (uint32_t*) bitmap->data; */
+    /* 	    pixels += pitch * height; */
+    /* 	    for (y = 0; y < height; y++) */
+    /* 	    { */
+    /* 		double w = 1 / sqrt(nb_freq); */
+    /* 		int    a = sqrt(w * sqrt(data[0][2 * y + 0] * data[0][2 * y + 0] + data[0][2 * y + 1] * data[0][2 * y + 1])); */
+    /* 		int    b = (nb_display_channels == 2) ? sqrt(w * hypot(data[1][2 * y + 0], data[1][2 * y + 1])) */
+    /* 						      : a; */
+    /* 		a        = FFMIN(a, 255); */
+    /* 		b        = FFMIN(b, 255); */
+    /* 		pixels -= pitch; */
+    /* 		uint32_t color = ((a << 16) + (b << 8) + ((a + b) >> 1)) << 8 | 0xFF; */
+
+    /* 		int h = bitmap->h; */
+    /* 		gfx_rect(bitmap, ms->xpos + edge, h - edge - y, 1, 1, color, 1); */
+    /* 		gfx_rect(bitmap, ms->xpos + edge + 1, 0, 1, h, 0xFFFFFFFF, 1); */
+    /* 		/\*}*\/ */
+    /* 		/\* SDL_UnlockTexture(ms->vis_texture); *\/ */
+    /* 	    } */
+    /* 	    /\* SDL_RenderCopy(renderer, ms->vis_texture, NULL, NULL); *\/ */
+    /* 	} */
+    /* 	if (!ms->paused && index == 1) */
+    /* 	    ms->xpos++; */
+    /* 	if (ms->xpos >= width) */
+    /* 	    ms->xpos = ms->xleft; */
+    /* } */
 }
 
 #endif

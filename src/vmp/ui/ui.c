@@ -13,6 +13,7 @@ void ui_update_layout(float w, float h);
 void ui_describe();
 void ui_set_songs(vec_t* songs);
 void ui_show_progress(char* progress);
+void ui_update_palyer();
 
 #endif
 
@@ -54,6 +55,10 @@ struct _ui_t
 
     void* viewer;
     cb_t* sizecb;
+
+    view_t* cover;
+    view_t* visL;
+    view_t* visR;
 
     ui_table_t* songlisttable;
 
@@ -380,6 +385,12 @@ void ui_init(float width, float height)
 
     ui_manager_activate(songlistevt);
 
+    /* get visual views */
+
+    ui.cover = view_get_subview(ui.view_base, "cover");
+    ui.visL  = view_get_subview(ui.view_base, "visL");
+    ui.visR  = view_get_subview(ui.view_base, "visR");
+
     // show texture map for debug
 
     /* view_t* texmap       = view_new("texmap", ((r2_t){0, 0, 150, 150})); */
@@ -454,6 +465,18 @@ void ui_save_screenshot(uint32_t time, char hide_cursor)
 	REL(screen);  // REL 0
 
 	if (hide_cursor) ui_update_cursor(frame); // full screen cursor to indicate screenshot, next step will reset it
+    }
+}
+
+void ui_update_palyer()
+{
+    if (ui.viewer)
+    {
+	double rem;
+	viewer_video_refresh(ui.viewer, &rem, ui.cover->texture.bitmap);
+	viewer_audio_refresh(ui.viewer, ui.visL->texture.bitmap, ui.visR->texture.bitmap);
+	ui.cover->texture.changed = 1;
+	ui.visL->texture.changed  = 1;
     }
 }
 

@@ -125,7 +125,7 @@ void update(ev_t ev)
 	    }
 	}
 
-	/* ui_visualizer_update_video(); */
+	ui_update_palyer();
 
 	if (mmfm.replay)
 	{
