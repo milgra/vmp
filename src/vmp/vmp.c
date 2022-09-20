@@ -71,6 +71,8 @@ void init(int width, int height)
     MPUTR(fields, "container", cstr_new_cstring("container"));
 
     songlist_set_fields(fields);
+    songlist_set_filter(NULL);
+    songlist_set_sorting("artist 1 album 1 title 1");
 
     REL(fields);
 
@@ -94,11 +96,6 @@ void init(int width, int height)
 
     REL(files);
     REL(songlist);
-
-    /* set default sorting, should be loaded from state */
-
-    songlist_set_filter(NULL);
-    songlist_set_sorting("artist 1 album 1 title 1");
 }
 
 void update(ev_t ev)

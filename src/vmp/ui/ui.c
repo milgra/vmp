@@ -156,7 +156,15 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	break;
 	case UI_TABLE_EVENT_OPEN:
 	{
-	    zc_log_debug("open %s", table->id);
+	    vec_t* selected = userdata;
+	    map_t* info     = selected->data[0];
+	    char*  path     = MGET(info, "path");
+	    char*  realpath = path_new_append(config_get("lib_path"), path);
+
+	    if (ui.viewer) viewer_close(ui.viewer);
+	    ui.viewer = viewer_open(realpath, ui.sizecb);
+
+	    REL(realpath);
 	}
 	break;
 	case UI_TABLE_EVENT_DRAG:
