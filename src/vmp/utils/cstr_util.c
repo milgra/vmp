@@ -227,11 +227,11 @@ vec_t* cstr_split(char* str, char* del)
     while (token != NULL)
     {
 	char* txt = CAL(strlen(token) + 1, NULL, cstr_describe);
-	memcpy(txt, token, strlen(token));
+	strcpy(txt, token);
 
 	VADDR(result, txt);
 
-	token = strtok(NULL, str);
+	token = strtok(NULL, del);
     }
 
     return result;

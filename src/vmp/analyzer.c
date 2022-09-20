@@ -76,7 +76,7 @@ int analyzer_thread(void* chptr)
 	analyzer->ratio = (float) index / (float) analyzer->songs->length;
     }
 
-    /* vec_rem_in_vector(analyzer->songs, trash); */
+    vec_rem_in_vector(analyzer->songs, trash);
 
     REL(trash);
 

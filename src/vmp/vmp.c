@@ -3,6 +3,7 @@
 #include "evrecorder.c"
 #include "filemanager.c"
 #include "library.c"
+#include "songlist.c"
 #include "ui.c"
 #include "ui_compositor.c"
 #include "ui_manager.c"
@@ -69,7 +70,10 @@ void init(int width, int height)
     REL(files);
     REL(songlist);
 
-    /* reload files again */
+    /* set default sorting, should be loaded from state */
+
+    songlist_set_filter(NULL);
+    songlist_set_sorting("artist 1 album 1 title 1");
 }
 
 void update(ev_t ev)
@@ -89,7 +93,8 @@ void update(ev_t ev)
 
 	    if (mmfm.analyzer->ratio == 1.0)
 	    {
-		printf("RELOAD\n");
+		songlist_set_songs(mmfm.analyzer->songs);
+
 		ui_set_songs(mmfm.analyzer->songs);
 
 		REL(mmfm.analyzer);
@@ -301,7 +306,7 @@ int main(int argc, char* argv[])
     if (rep_path) REL(rep_path); // REL 15
 
 #ifdef DEBUG
-    mem_stats();
+	/* mem_stats(); */
 #endif
 
     return 0;
