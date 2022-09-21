@@ -477,6 +477,7 @@ void ui_update_palyer()
 	viewer_audio_refresh(ui.viewer, ui.visL->texture.bitmap, ui.visR->texture.bitmap);
 	ui.cover->texture.changed = 1;
 	ui.visL->texture.changed  = 1;
+	ui.visR->texture.changed  = 1;
     }
 }
 
