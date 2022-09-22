@@ -222,8 +222,6 @@ void songlist_apply_sorting()
 {
     if (sl.sorting)
     {
-	if (sl.sortvec) REL(sl.sortvec);
-	sl.sortvec = cstr_split(sl.sorting, " ");
 	vec_sort(sl.visible_songs, songlist_comp_entry);
     }
 }
@@ -232,7 +230,12 @@ void songlist_set_sorting(char* sorting)
 {
     if (sl.sorting != NULL) REL(sl.sorting);
     sl.sorting = NULL;
-    if (sorting) sl.sorting = cstr_new_cstring(sorting);
+    if (sorting)
+    {
+	sl.sorting = cstr_new_cstring(sorting);
+	if (sl.sortvec) REL(sl.sortvec);
+	sl.sortvec = cstr_split(sl.sorting, " ");
+    }
 }
 
 void songlist_set_songs(vec_t* songs)
