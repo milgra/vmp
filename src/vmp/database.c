@@ -58,11 +58,11 @@ void db_read(char* libpath)
 
     char* dbpath = path_new_append(libpath, "zenmusic.kvl"); // REL 0
 
-    zc_log_debug("db : reading db %s", dbpath);
+    zc_log_info("READING DB %s", dbpath);
 
     kvlist_read(dbpath, db, "path");
 
-    zc_log_debug("db : loaded, entries : %i", db->count);
+    zc_log_info("%i ENTRIES LOADED", db->count);
 
     REL(dbpath); // REL 0
 }
@@ -77,13 +77,14 @@ void db_write(char* libpath)
 
     if (res < 0) zc_log_debug("ERROR db_write cannot write database %s\n", dbpath);
 
-    zc_log_debug("db : written");
+    zc_log_info("%i ENTRIED WRITTEN", db->count);
 
     REL(dbpath); // REL 0
 }
 
 void db_add_entry(char* path, map_t* entry)
 {
+    printf("adding entry %s\n", path);
     MPUT(db, path, entry);
 }
 

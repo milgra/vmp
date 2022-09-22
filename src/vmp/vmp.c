@@ -81,8 +81,10 @@ void init(int width, int height)
 
     char* libpath = config_get("lib_path");
 
+    zc_time(NULL);
     db_init();        // destroy 1
     db_read(libpath); // read up database if exist
+    zc_time("parsing database");
 
     /* load library */
 
@@ -92,33 +94,30 @@ void init(int width, int height)
     lib_read_files(config_get("lib_path"), files); // read all files under library path
     zc_time("parsing library");
 
-    vec_t* songlist = VNEW();
-
     if (db_count() == 0)
     {
+	// add unanalyzed files to db to show something
+	vec_t* songlist = VNEW();
 	map_values(files, songlist);
-	// show files until song info is parsed
-	songlist_set_songs(songlist);
-	ui_set_songs(songlist_get_visible_songs());
+	db_add_entries(songlist);
 	// analyze all
 	mmfm.analyzer = analyzer_run(songlist);
+	REL(songlist);
     }
     else
     {
 	db_remove_non_existing(files);
 	db_filter_existing(files);
-	db_get_entries(songlist);
-	// show current db until remaining is parsed
-	songlist_set_songs(songlist);
-	ui_set_songs(songlist_get_visible_songs());
 	// analyze remaining
 	vec_t* remaining = VNEW();
 	map_values(files, remaining);
 	mmfm.analyzer = analyzer_run(remaining);
+	REL(remaining);
     }
 
     REL(files);
-    REL(songlist);
+
+    ui_update_songlist();
 }
 
 void update(ev_t ev)
@@ -139,11 +138,8 @@ void update(ev_t ev)
 	    if (mmfm.analyzer->ratio == 1.0)
 	    {
 		db_add_entries(mmfm.analyzer->songs);
-
-		vec_t* entries = VNEW();
-		db_get_entries(entries);
-		songlist_set_songs(entries);
-		ui_set_songs(songlist_get_visible_songs());
+		db_write(config_get("lib_path"));
+		ui_update_songlist();
 
 		REL(mmfm.analyzer);
 		mmfm.analyzer       = NULL;

@@ -63,7 +63,7 @@ static int lib_file_data_step(const char* fpath, const struct stat* sb, int tfla
     {
 	map_t* song = MNEW();
 
-	char* path = cstr_new_cstring((char*) fpath + strlen(lib.path));
+	char* path = cstr_new_cstring((char*) fpath + strlen(lib.path) + 1);
 	char* size = cstr_new_format(20, "%li", sb->st_size); // REL 0
 
 	// add file data

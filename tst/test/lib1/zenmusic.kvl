@@ -1,786 +1,778 @@
-file/channels
-2
-file/path
+disc
+0/0
+bitrate
+0
+date
+1984
+duration
+0:04
+played
+0
+genre
+Synthpop
+size
+71839
+channels
+0
+path
 Alphaville/Forever Young/002 Summer In Berlin.mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
+artist
+Alphaville
+skipped
 0
-file/sample_rate
-44100
-meta/comments
+container
+mpeg
+comments
 best songs
-file/skip_count
+plays
 0
-file/media_type
-audio
-meta/title
+added
+2022-09-22 20:09
+skips
+0
+title
 Summer In Berlin
-file/play_count
+samplerate
 0
-meta/artist
-Alphaville
-file/container
-mpeg
-meta/track
+encoder
+Lavf58.45.100
+track
 2/10
-meta/album
+album
 Forever Young
-file/last_played
-0
-meta/disc
-0/0
-meta/date
-1984
-file/duration
-0:04
-meta/genre
-Synthpop
-file/size
-65178
--
-file/channels
-2
-file/path
-Yser C/Unknown/000 Odyssey (N++ launch Trailer Song).mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-2021-07-17 22:46
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-1
-file/media_type
+type
 audio
-meta/title
-Odyssey (N++ launch Trailer Song)
-file/play_count
-0
-meta/artist
-Yser C
-file/container
-mpeg
-meta/track
+-
+disc
 0/0
-meta/album
-Unknown
-file/last_played
+bitrate
 0
-meta/disc
-0/0
-file/duration
+duration
 2:00
-meta/genre
+played
+0
+genre
 Jazz
-file/size
-1920902
-meta/TYER
+size
+1927563
+TYER
 0
--
-file/channels
-2
-file/path
-Unknown/Unknown/MOTHER nocover nometa.opus
-file/container
-ogg
-file/added
-2021-07-17 22:44
-file/bit_rate
+channels
 0
-file/last_skipped
+path
+Yser C/Unknown/000 Odyssey (N++ launch Trailer Song).mp3
+artist
+Yser C
+skipped
 0
-meta/album
-Unknown
-file/sample_rate
-48000
-file/last_played
+container
+mpeg
+comments
+best songs
+plays
 0
-file/skip_count
+added
+2022-09-22 20:09
+skips
 0
-file/media_type
+title
+Odyssey (N++ launch Trailer Song)
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+0/0
+album
+...
+type
 audio
-meta/title
+-
+bitrate
+0
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
 MOTHER nocover nometa
-file/duration
+duration
 0:06
-file/play_count
+played
 0
-meta/artist
-Unknown
-file/size
+samplerate
+48000
+size
 73225
--
-file/channels
+channels
 2
-file/path
-Amy Macdonald/Collection/002 This Is The Life.mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
+path
+Unknown/Unknown/MOTHER nocover nometa.opus
+artist
+...
+skipped
 0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
+container
+ogg
+album
+...
+type
 audio
-meta/title
-This Is The Life
-file/play_count
-0
-meta/artist
-Amy Macdonald
-file/container
-mpeg
-meta/track
-2/0
-meta/album
-Collection
-file/last_played
-0
-meta/disc
+-
+disc
 0/0
-meta/date
+bitrate
+0
+date
 2007
-file/duration
+duration
 0:04
-meta/genre
+played
+0
+genre
 Rock
-file/size
-65173
--
-file/channels
-2
-file/path
-Alphaville/Forever Young/006 Forever Young.mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
+size
+71834
+channels
 0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
-audio
-meta/title
-Forever Young
-file/play_count
-1
-meta/artist
-Alphaville
-file/container
-mpeg
-meta/track
-6/10
-meta/album
-Forever Young
-file/last_played
-2021-07-17 22:47
-meta/disc
-0/0
-meta/date
-1984
-file/duration
-0:04
-meta/genre
-Synthpop
-file/size
-65175
--
-file/channels
-2
-file/path
-Ace of Base/Collection/075 All That She Wants [1993].mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
-audio
-meta/title
-All That She Wants [1993]
-file/play_count
-0
-meta/artist
-Ace of Base
-file/container
-mpeg
-meta/track
-75/0
-meta/album
-Collection
-file/last_played
-0
-meta/disc
-0/0
-meta/date
-1993
-file/duration
-0:07
-meta/genre
-Dance
-file/size
-119703
--
-file/channels
-2
-file/path
-Alcest/Kodama (Deluxe edition)/001 Kodama.mp3
-meta/album_artist
-Alcest
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-meta/composer
-Stéphane Paut
-file/media_type
-audio
-meta/title
-Kodama
-file/play_count
-0
-meta/artist
-Alcest
-file/container
-mpeg
-meta/track
-1/7
-meta/album
-Kodama (Deluxe edition)
-file/last_played
-0
-meta/disc
-1/1
-meta/date
-2016
-file/duration
-0:10
-meta/genre
-Metal
-file/size
-169107
--
-file/channels
-2
-file/path
-Unknown/Unknown/Animals As Leaders -  CAFO  Prosthetic Records.mp4
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-127691
-file/last_skipped
-2021-07-17 22:47
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-1
-file/media_type
-video
-meta/minor_version
-512
-meta/title
-Animals As Leaders -  CAFO  Prosthetic Records
-file/play_count
-0
-meta/major_brand
-M4A 
-meta/artist
-Unknown
-meta/compatible_brands
-M4A isomiso2
-file/container
-mp4
-meta/album
-Unknown
-file/last_played
-0
-file/duration
-0:06
-meta/genre
-Metal
-file/size
-98085
--
-file/channels
-2
-file/path
-Alphaville/Forever Young/005 Fallen Angel.mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
-audio
-meta/title
-Fallen Angel
-file/play_count
-0
-meta/artist
-Alphaville
-file/container
-mpeg
-meta/track
-5/10
-meta/album
-Forever Young
-file/last_played
-0
-meta/disc
-0/0
-meta/date
-1984
-file/duration
-0:04
-meta/genre
-Synthpop
-file/size
-65174
--
-file/channels
-2
-file/path
-Anima Sound System/'68 (Remixes)/004 '68 (De-Phazz Old Style Dub) [feat. De-Phazz].mp3
-meta/album_artist
-Anima Sound System
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-meta/composer
-Frierson
-file/media_type
-audio
-meta/title
-'68 (De-Phazz Old Style Dub) [feat. De-Phazz]
-file/play_count
-0
-meta/artist
-Anima Sound System
-file/container
-mpeg
-meta/track
-4/0
-meta/album
-'68 (Remixes)
-file/last_played
-0
-meta/disc
-1/0
-meta/date
-2013
-file/duration
-0:04
-meta/genre
-Electronic
-file/size
-65266
--
-file/channels
-2
-file/path
-Unknown/Unknown/ROYKSOPP nocover nometa.mp4
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-127946
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
-video
-meta/minor_version
-512
-meta/title
-ROYKSOPP nocover nometa
-file/play_count
-0
-meta/major_brand
-isom
-meta/artist
-Unknown
-meta/compatible_brands
-isomiso2avc1mp41
-file/container
-mp4
-meta/album
-Unknown
-file/last_played
-0
-file/duration
-0:06
-file/size
-255293
--
-file/channels
-2
-file/path
-Unknown/Unknown/ADELE nocover nometa.aac
-file/container
-aac
-file/added
-2021-07-17 22:44
-file/bit_rate
-135375
-file/last_skipped
-0
-meta/album
-Unknown
-file/sample_rate
-48000
-meta/comments
-best songs
-file/last_played
-0
-file/skip_count
-0
-file/media_type
-audio
-meta/title
-ADELE nocover nometa
-file/duration
-0:05
-file/play_count
-0
-meta/artist
-Unknown
-file/size
-98305
--
-file/channels
-2
-file/path
-Alphaville/Forever Young/004 To Germany With Love.mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
-audio
-meta/title
-To Germany With Love
-file/play_count
-0
-meta/artist
-Alphaville
-file/container
-mpeg
-meta/track
-4/10
-meta/album
-Forever Young
-file/last_played
-0
-meta/disc
-0/0
-meta/date
-1984
-file/duration
-0:04
-meta/genre
-Synthpop
-file/size
-65182
--
-file/channels
-2
-file/path
-Amy Macdonald/A Curious Thing/001 Don't Tell Me That It's Over.mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
-audio
-meta/title
-Don't Tell Me That It's Over
-file/play_count
-0
-meta/artist
+path
+Amy Macdonald/Collection/002 This Is The Life.mp3
+artist
 Amy Macdonald
-file/container
-mpeg
-meta/track
-1/0
-meta/album
-A Curious Thing
-file/last_played
+skipped
 0
-meta/disc
-0/0
-meta/date
-2010
-file/duration
-0:04
-meta/genre
-Rock
-file/size
-65190
--
-file/channels
-2
-file/path
-Alphaville/Forever Young/003 Big In Japan.mp3
-meta/encoder
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+This Is The Life
+samplerate
+0
+encoder
 Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
-audio
-meta/title
-Big In Japan
-file/play_count
-0
-meta/artist
-Alphaville
-file/container
-mpeg
-meta/track
-3/10
-meta/album
-Forever Young
-file/last_played
-0
-meta/disc
-0/0
-meta/date
-1984
-file/duration
-0:04
-meta/genre
-Synthpop
-file/size
-65174
--
-file/channels
-2
-file/path
-Unknown/Unknown/ADELE_SIL.aac
-file/container
-aac
-file/added
-2021-07-17 22:44
-file/bit_rate
-4875
-file/last_skipped
-2021-07-17 22:47
-meta/album
-Unknown
-file/sample_rate
-48000
-meta/comments
-best songs
-file/last_played
-0
-file/skip_count
-3
-file/media_type
-audio
-meta/title
-ADELE_SIL
-file/duration
-2:58
-file/play_count
-0
-meta/artist
-Unknown
-file/size
-108747
--
-file/channels
-2
-file/path
-Amy Macdonald/A Curious Thing/002 Spark.mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-0
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-0
-file/media_type
-audio
-meta/title
-Spark
-file/play_count
-1
-meta/artist
-Amy Macdonald
-file/container
-mpeg
-meta/track
+track
 2/0
-meta/album
-A Curious Thing
-file/last_played
-2021-07-17 22:47
-meta/disc
-0/0
-meta/date
-2010
-file/duration
-0:04
-meta/genre
-Rock
-file/size
-65167
--
-file/channels
-2
-file/path
-10cc/Unknown/000 I'm Not In Love.mp3
-meta/encoder
-Lavf58.45.100
-file/added
-2021-07-17 22:44
-file/bit_rate
-128000
-file/last_skipped
-2021-07-17 22:46
-file/sample_rate
-44100
-meta/comments
-best songs
-file/skip_count
-1
-file/media_type
+album
+Collection
+type
 audio
-meta/title
-I'm Not In Love
-file/play_count
-0
-meta/artist
-10cc
-file/container
-mpeg
-meta/track
+-
+disc
 0/0
-meta/album
-Unknown
-file/last_played
+bitrate
 0
-meta/disc
-0/0
-meta/date
-1974
-file/duration
+date
+1993
+duration
 0:07
-meta/genre
-Electronic
-file/size
-124746
-meta/TYER
+played
 0
+genre
+Dance
+size
+119491
+channels
+0
+path
+Ace of Base/Collection/075 All That She Wants [1993].mp3
+artist
+Ace of Base
+skipped
+0
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+All That She Wants [1993]
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+75/0
+album
+Collection
+type
+audio
+-
+disc
+0/0
+bitrate
+0
+date
+1984
+duration
+0:04
+played
+0
+genre
+Synthpop
+size
+71836
+channels
+0
+path
+Alphaville/Forever Young/006 Forever Young.mp3
+artist
+Alphaville
+skipped
+0
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+Forever Young
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+6/10
+album
+Forever Young
+type
+audio
+-
+bitrate
+0
+duration
+0:06
+played
+0
+genre
+Metal
+size
+104506
+channels
+0
+path
+Unknown/Unknown/Animals As Leaders -  CAFO  Prosthetic Records.mp4
+artist
+...
+skipped
+0
+compatible_brands
+isomiso2mp41
+container
+mp4
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+Animals As Leaders -  CAFO  Prosthetic Records
+samplerate
+0
+major_brand
+isom
+encoder
+Lavf58.45.100
+minor_version
+512
+album
+...
+type
+video
+-
+disc
+0/0
+bitrate
+0
+date
+1984
+duration
+0:04
+played
+0
+genre
+Synthpop
+size
+71835
+channels
+0
+path
+Alphaville/Forever Young/005 Fallen Angel.mp3
+artist
+Alphaville
+skipped
+0
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+Fallen Angel
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+5/10
+album
+Forever Young
+type
+audio
+-
+disc
+1/1
+bitrate
+0
+date
+2016
+duration
+0:10
+played
+0
+genre
+Metal
+size
+167588
+channels
+0
+path
+Alcest/Kodama (Deluxe edition)/001 Kodama.mp3
+artist
+Alcest
+skipped
+0
+container
+mpeg
+comments
+best songs
+composer
+Stéphane Paut
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+Kodama
+samplerate
+0
+album_artist
+Alcest
+encoder
+Lavf58.45.100
+track
+1/7
+album
+Kodama (Deluxe edition)
+type
+audio
+-
+disc
+1/0
+bitrate
+0
+date
+2013
+duration
+0:04
+played
+0
+genre
+Electronic
+size
+71927
+channels
+0
+path
+Anima Sound System/'68 (Remixes)/004 '68 (De-Phazz Old Style Dub) [feat. De-Phazz].mp3
+artist
+Anima Sound System
+skipped
+0
+container
+mpeg
+comments
+best songs
+composer
+Frierson
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+'68 (De-Phazz Old Style Dub) [feat. De-Phazz]
+samplerate
+0
+album_artist
+Anima Sound System
+encoder
+Lavf58.45.100
+track
+4/0
+album
+'68 (Remixes)
+type
+audio
+-
+bitrate
+127345
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+ADELE nocover nometa
+duration
+0:06
+played
+0
+samplerate
+48000
+size
+104702
+channels
+2
+path
+Unknown/Unknown/ADELE nocover nometa.aac
+artist
+...
+skipped
+0
+container
+aac
+album
+...
+type
+audio
+-
+bitrate
+0
+duration
+0:06
+played
+0
+size
+261683
+channels
+0
+path
+Unknown/Unknown/ROYKSOPP nocover nometa.mp4
+artist
+...
+skipped
+0
+compatible_brands
+isomiso2avc1mp41
+container
+mp4
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+ROYKSOPP nocover nometa
+samplerate
+0
+major_brand
+isom
+encoder
+Lavf58.45.100
+minor_version
+512
+album
+...
+type
+video
+-
+disc
+0/0
+bitrate
+0
+date
+1984
+duration
+0:04
+played
+0
+genre
+Synthpop
+size
+71843
+channels
+0
+path
+Alphaville/Forever Young/004 To Germany With Love.mp3
+artist
+Alphaville
+skipped
+0
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+To Germany With Love
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+4/10
+album
+Forever Young
+type
+audio
+-
+disc
+0/0
+bitrate
+0
+date
+1984
+duration
+0:04
+played
+0
+genre
+Synthpop
+size
+71835
+channels
+0
+path
+Alphaville/Forever Young/003 Big In Japan.mp3
+artist
+Alphaville
+skipped
+0
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+Big In Japan
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+3/10
+album
+Forever Young
+type
+audio
+-
+disc
+0/0
+bitrate
+0
+date
+2010
+duration
+0:04
+played
+0
+genre
+Rock
+size
+71851
+channels
+0
+path
+Amy Macdonald/A Curious Thing/001 Don't Tell Me That It's Over.mp3
+artist
+Amy Macdonald
+skipped
+0
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+Don't Tell Me That It's Over
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+1/0
+album
+A Curious Thing
+type
+audio
+-
+bitrate
+5014
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+ADELE_SIL
+duration
+3:03
+played
+0
+samplerate
+48000
+size
+115144
+channels
+2
+path
+Unknown/Unknown/ADELE_SIL.aac
+artist
+...
+skipped
+0
+container
+aac
+album
+...
+type
+audio
+-
+disc
+0/0
+bitrate
+0
+date
+1974
+duration
+0:07
+played
+0
+genre
+Electronic
+size
+119474
+TYER
+0
+channels
+0
+path
+10cc/Unknown/000 I'm Not In Love.mp3
+artist
+10cc
+skipped
+0
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+I'm Not In Love
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+0/0
+album
+...
+type
+audio
+-
+disc
+0/0
+bitrate
+0
+date
+2010
+duration
+0:04
+played
+0
+genre
+Rock
+size
+71828
+channels
+0
+path
+Amy Macdonald/A Curious Thing/002 Spark.mp3
+artist
+Amy Macdonald
+skipped
+0
+container
+mpeg
+comments
+best songs
+plays
+0
+added
+2022-09-22 20:09
+skips
+0
+title
+Spark
+samplerate
+0
+encoder
+Lavf58.45.100
+track
+2/0
+album
+A Curious Thing
+type
+audio
 -
