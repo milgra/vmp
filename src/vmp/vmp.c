@@ -29,6 +29,8 @@ struct
 
     float       analyzer_ratio;
     analyzer_t* analyzer;
+
+    int frames;
 } mmfm = {0};
 
 void init(int width, int height)
@@ -49,81 +51,94 @@ void init(int width, int height)
     }
 
     ui_update_layout(width, height);
+}
 
-    map_t* fields = MNEW();
-
-    MPUTR(fields, "artist", cstr_new_cstring("artist"));
-    MPUTR(fields, "album", cstr_new_cstring("album"));
-    MPUTR(fields, "title", cstr_new_cstring("title"));
-    MPUTR(fields, "date", cstr_new_cstring("date"));
-    MPUTR(fields, "genre", cstr_new_cstring("genre"));
-    MPUTR(fields, "track", cstr_new_cstring("track"));
-    MPUTR(fields, "disc", cstr_new_cstring("disc"));
-    MPUTR(fields, "duration", cstr_new_cstring("duration"));
-    MPUTR(fields, "channels", cstr_new_cstring("channels"));
-    MPUTR(fields, "bitrate", cstr_new_cstring("bitrate"));
-    MPUTR(fields, "samplerate", cstr_new_cstring("samplerate"));
-    MPUTR(fields, "plays", cstr_new_cstring("plays"));
-    MPUTR(fields, "skips", cstr_new_cstring("skips"));
-    MPUTR(fields, "added", cstr_new_cstring("added"));
-    MPUTR(fields, "played", cstr_new_cstring("played"));
-    MPUTR(fields, "skipped", cstr_new_cstring("skipped"));
-    MPUTR(fields, "type", cstr_new_cstring("type"));
-    MPUTR(fields, "container", cstr_new_cstring("container"));
-
-    songlist_set_fields(fields);
-    songlist_set_filter(NULL);
-    songlist_set_sorting("artist 1 album 1 title 1");
-
-    REL(fields);
-
-    /* load database */
-
-    char* libpath = config_get("lib_path");
-
-    zc_time(NULL);
-    db_init();        // destroy 1
-    db_read(libpath); // read up database if exist
-    zc_time("parsing database");
-
-    /* load library */
-
-    map_t* files = MNEW(); // REL 0
-
-    zc_time(NULL);
-    lib_read_files(config_get("lib_path"), files); // read all files under library path
-    zc_time("parsing library");
-
-    if (db_count() == 0)
+void post_render_init()
+{
+    if (mmfm.frames < 3) mmfm.frames += 1;
+    else if (mmfm.frames == 3)
     {
-	// add unanalyzed files to db to show something
-	vec_t* songlist = VNEW();
-	map_values(files, songlist);
-	db_add_entries(songlist);
-	// analyze all
-	mmfm.analyzer = analyzer_run(songlist);
-	REL(songlist);
-    }
-    else
-    {
-	db_remove_non_existing(files);
-	db_filter_existing(files);
-	// analyze remaining
-	vec_t* remaining = VNEW();
-	map_values(files, remaining);
-	mmfm.analyzer = analyzer_run(remaining);
-	REL(remaining);
-    }
+	mmfm.frames = 4;
 
-    REL(files);
+	map_t* fields = MNEW();
 
-    ui_update_songlist();
+	MPUTR(fields, "artist", cstr_new_cstring("artist"));
+	MPUTR(fields, "album", cstr_new_cstring("album"));
+	MPUTR(fields, "title", cstr_new_cstring("title"));
+	MPUTR(fields, "date", cstr_new_cstring("date"));
+	MPUTR(fields, "genre", cstr_new_cstring("genre"));
+	MPUTR(fields, "track", cstr_new_cstring("track"));
+	MPUTR(fields, "disc", cstr_new_cstring("disc"));
+	MPUTR(fields, "duration", cstr_new_cstring("duration"));
+	MPUTR(fields, "channels", cstr_new_cstring("channels"));
+	MPUTR(fields, "bitrate", cstr_new_cstring("bitrate"));
+	MPUTR(fields, "samplerate", cstr_new_cstring("samplerate"));
+	MPUTR(fields, "plays", cstr_new_cstring("plays"));
+	MPUTR(fields, "skips", cstr_new_cstring("skips"));
+	MPUTR(fields, "added", cstr_new_cstring("added"));
+	MPUTR(fields, "played", cstr_new_cstring("played"));
+	MPUTR(fields, "skipped", cstr_new_cstring("skipped"));
+	MPUTR(fields, "type", cstr_new_cstring("type"));
+	MPUTR(fields, "container", cstr_new_cstring("container"));
+
+	songlist_set_fields(fields);
+	songlist_set_filter(NULL);
+	songlist_set_sorting("artist 1 album 1 title 1");
+
+	REL(fields);
+
+	/* load database */
+
+	char* libpath = config_get("lib_path");
+
+	zc_time(NULL);
+	db_init();        // destroy 1
+	db_read(libpath); // read up database if exist
+	zc_time("parsing database");
+
+	/* load library */
+
+	map_t* files = MNEW(); // REL 0
+
+	zc_time(NULL);
+	lib_read_files(config_get("lib_path"), files); // read all files under library path
+	zc_time("parsing library");
+
+	if (db_count() == 0)
+	{
+	    // add unanalyzed files to db to show something
+	    vec_t* songlist = VNEW();
+	    map_values(files, songlist);
+	    db_add_entries(songlist);
+	    // analyze all
+	    mmfm.analyzer = analyzer_run(songlist);
+	    REL(songlist);
+	}
+	else
+	{
+	    db_remove_non_existing(files);
+	    db_filter_existing(files);
+	    // analyze remaining
+	    vec_t* remaining = VNEW();
+	    map_values(files, remaining);
+	    mmfm.analyzer = analyzer_run(remaining);
+	    REL(remaining);
+	}
+
+	REL(files);
+
+	ui_update_songlist();
+    }
 }
 
 void update(ev_t ev)
 {
     if (ev.type == EV_TIME)
     {
+	/* check init */
+
+	if (mmfm.frames < 4) post_render_init();
+
 	/* check analyzer */
 
 	if (mmfm.analyzer)
@@ -138,6 +153,7 @@ void update(ev_t ev)
 	    if (mmfm.analyzer->ratio == 1.0)
 	    {
 		db_add_entries(mmfm.analyzer->songs);
+		db_organize(config_get("lib_path"), db_get_db());
 		db_write(config_get("lib_path"));
 		ui_update_songlist();
 

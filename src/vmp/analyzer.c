@@ -58,9 +58,12 @@ int analyzer_thread(void* chptr)
 
 	if (res == 0)
 	{
-	    if (MGET(song, "artist") == NULL) MPUTR(song, "artist", cstr_new_cstring("Unknown"));
-	    if (MGET(song, "album") == NULL) MPUTR(song, "album", cstr_new_cstring("Unknown"));
-	    if (MGET(song, "title") == NULL) MPUTR(song, "title", path_new_filename(path));
+	    char* artist = MGET(song, "artist");
+	    char* album  = MGET(song, "album");
+	    char* title  = MGET(song, "title");
+	    if (strcmp(artist, "...") == 0) MPUTR(song, "artist", cstr_new_cstring("Unknown"));
+	    if (strcmp(album, "...") == 0) MPUTR(song, "album", cstr_new_cstring("Unknown"));
+	    if (strcmp(title, "...") == 0) MPUTR(song, "title", path_new_filename(path));
 	}
 	else
 	{
