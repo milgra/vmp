@@ -1327,20 +1327,28 @@ void viewer_close(void* msp)
     av_free(ms);
 }
 
-void viewer_play(void* ms)
+void viewer_play(void* p)
 {
+    MediaState* ms = p;
+    if (ms->paused) viewer_stream_toggle_pause(ms);
 }
 
-void viewer_pause(void* ms)
+void viewer_pause(void* p)
 {
+    MediaState* ms = p;
+    if (!ms->paused) viewer_stream_toggle_pause(ms);
 }
 
-void viewer_mute(void* ms)
+void viewer_mute(void* p)
 {
+    MediaState* ms = p;
+    if (ms) ms->muted = 1;
 }
 
-void viewer_unmute(void* ms)
+void viewer_unmute(void* p)
 {
+    MediaState* ms = p;
+    if (ms) ms->muted = 0;
 }
 
 // display related

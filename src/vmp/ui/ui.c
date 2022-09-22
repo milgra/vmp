@@ -62,6 +62,9 @@ struct _ui_t
 
     ui_table_t* songlisttable;
 
+    map_t* played_song;
+    int    shuffle;
+
     view_t*     infotf;
     textstyle_t infots;
 } ui;
@@ -90,8 +93,18 @@ void ui_on_btn_event(void* userdata, void* data)
 	    if (ui.viewer) viewer_play(ui.viewer);
 	    else
 	    {
-		char* path = songlist_get_current_path();
-		if (path) ui.viewer = viewer_open(path, ui.sizecb);
+		map_t* song = songlist_get_song(0);
+		if (song)
+		{
+		    if (ui.played_song) REL(ui.played_song);
+		    ui.played_song = RET(ui.played_song);
+
+		    char* path     = MGET(song, "path");
+		    char* realpath = path_new_append(config_get("lib_path"), path);
+
+		    ui.viewer = viewer_open(realpath, ui.sizecb);
+		    // TODO update songlisttable
+		}
 	    }
 	}
 	else
@@ -110,20 +123,50 @@ void ui_on_btn_event(void* userdata, void* data)
     if (strcmp(btnview->id, "prevbtn") == 0)
     {
 	if (ui.viewer) viewer_close(ui.viewer);
-	ui.viewer  = NULL;
-	char* path = songlist_get_prev_path();
-	if (path) ui.viewer = viewer_open(path, ui.sizecb);
+	ui.viewer = NULL;
+
+	map_t* prev = NULL;
+
+	if (ui.shuffle == 0 && ui.played_song) prev = songlist_get_prev_song(ui.played_song);
+	else prev = songlist_get_song(1);
+
+	if (prev)
+	{
+	    if (ui.played_song) REL(ui.played_song);
+	    ui.played_song = RET(prev);
+
+	    char* path     = MGET(prev, "path");
+	    char* realpath = path_new_append(config_get("lib_path"), path);
+
+	    ui.viewer = viewer_open(realpath, ui.sizecb);
+	    // TODO update songlisttable
+	}
     };
     if (strcmp(btnview->id, "nextbtn") == 0)
     {
 	if (ui.viewer) viewer_close(ui.viewer);
-	ui.viewer  = NULL;
-	char* path = songlist_get_next_path();
-	if (path) ui.viewer = viewer_open(path, ui.sizecb);
+	ui.viewer = NULL;
+
+	map_t* next = NULL;
+
+	if (ui.shuffle == 0 && ui.played_song) next = songlist_get_prev_song(ui.played_song);
+	else next = songlist_get_song(1);
+
+	if (next)
+	{
+	    if (ui.played_song) REL(ui.played_song);
+	    ui.played_song = RET(next);
+
+	    char* path     = MGET(next, "path");
+	    char* realpath = path_new_append(config_get("lib_path"), path);
+
+	    ui.viewer = viewer_open(realpath, ui.sizecb);
+	    // TODO update songlisttable
+	}
     };
     if (strcmp(btnview->id, "shufflebtn") == 0)
     {
-	songlist_toggle_shuffle();
+	ui.shuffle = 1 - ui.shuffle;
     };
     if (strcmp(btnview->id, "settingsbtn") == 0)
     {
@@ -163,11 +206,18 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	{
 	    vec_t* selected = userdata;
 	    map_t* info     = selected->data[0];
-	    char*  path     = MGET(info, "path");
-	    char*  realpath = path_new_append(config_get("lib_path"), path);
+
+	    if (ui.played_song) REL(ui.played_song);
+	    ui.played_song = RET(info);
+
+	    char* path     = MGET(info, "path");
+	    char* realpath = path_new_append(config_get("lib_path"), path);
 
 	    if (ui.viewer) viewer_close(ui.viewer);
 	    ui.viewer = viewer_open(realpath, ui.sizecb);
+
+	    view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
+	    vh_button_set_state(playbtn, VH_BUTTON_DOWN);
 
 	    REL(realpath);
 	}
@@ -406,6 +456,8 @@ void ui_init(float width, float height)
 void ui_destroy()
 {
     ui_manager_remove(ui.view_base);
+
+    if (ui.played_song) REL(ui.played_song);
 
     REL(ui.sizecb);
     REL(ui.view_base);

@@ -4,11 +4,9 @@
 #include "zc_map.c"
 #include "zc_vector.c"
 
-char*  songlist_get_current_path();
-char*  songlist_get_prev_path();
-char*  songlist_get_next_path();
-void   songlist_set_current_index(int index);
-void   songlist_toggle_shuffle();
+map_t* songlist_get_song(int shuffle);
+map_t* songlist_get_prev_song(map_t* song);
+map_t* songlist_get_next_song(map_t* song);
 void   songlist_set_songs(vec_t* songs);
 void   songlist_apply_filter();
 void   songlist_apply_sorting();
@@ -30,7 +28,6 @@ struct _songlist_t
 {
     map_t* fields;
 
-    int    current_index; // actual index
     vec_t* songs;         // all items in library
     vec_t* visible_songs; // filtered items
 
@@ -40,46 +37,48 @@ struct _songlist_t
     vec_t* sortvec;
 } sl = {0};
 
-char* songlist_get_current_path()
+map_t* songlist_get_song(int shuffle)
 {
-    char* path = NULL;
-    if (sl.visible_songs && sl.current_index < sl.visible_songs->length)
+    map_t* result = NULL;
+    if (sl.visible_songs && sl.visible_songs->length > 0)
     {
-	map_t* song = sl.visible_songs->data[sl.current_index];
-	path        = MGET(song, "path");
+	int index = 0;
+	if (shuffle) index = rand() % sl.visible_songs->length;
+	result = sl.visible_songs->data[index];
     }
-    return path;
+    return result;
 }
 
-char* songlist_get_prev_path()
+map_t* songlist_get_prev_song(map_t* song)
 {
-    char* path = NULL;
-    if (sl.visible_songs && sl.current_index - 1 > -1)
+    map_t* result = NULL;
+    if (sl.visible_songs && sl.visible_songs->length > 0)
     {
-	map_t* song = sl.visible_songs->data[sl.current_index - 1];
-	path        = MGET(song, "path");
+	uint32_t index = vec_index_of_data(sl.visible_songs, song);
+	printf("PREV SONG INDEX %i\n", index);
+	if (index < UINT32_MAX)
+	{
+	    index -= 1;
+	    if (index > -1) result = sl.visible_songs->data[index];
+	}
     }
-    return path;
+    return result;
 }
 
-char* songlist_get_next_path()
+map_t* songlist_get_next_song(map_t* song)
 {
-    char* path = NULL;
-    if (sl.visible_songs && sl.current_index + 1 < sl.visible_songs->length)
+    map_t* result = NULL;
+    if (sl.visible_songs && sl.visible_songs->length > 0)
     {
-	map_t* song = sl.visible_songs->data[sl.current_index + 1];
-	path        = MGET(song, "path");
+	uint32_t index = vec_index_of_data(sl.visible_songs, song);
+	printf("NEXT SONG INDEX %i\n", index);
+	if (index < UINT32_MAX)
+	{
+	    index += 1;
+	    if (index < sl.visible_songs->length) result = sl.visible_songs->data[index];
+	}
     }
-    return path;
-}
-
-void songlist_set_current_index(int index)
-{
-    sl.current_index = index;
-}
-
-void songlist_toggle_shuffle()
-{
+    return result;
 }
 
 void songlist_apply_filter()
