@@ -191,7 +191,8 @@ int songlist_comp_entry(void* left, void* right)
     for (int index = 0; index < sl.sortvec->length; index += 2)
     {
 	char* field = sl.sortvec->data[index];
-	int   dir   = atoi(sl.sortvec->data[index + 1]);
+
+	int dir = atoi(sl.sortvec->data[index + 1]);
 	if (dir == 0) dir = -1;
 
 	char* la = MGET(l, field);
