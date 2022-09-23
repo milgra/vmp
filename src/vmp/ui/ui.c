@@ -15,6 +15,9 @@ void ui_set_songs(vec_t* songs);
 void ui_show_progress(char* progress);
 void ui_update_palyer();
 void ui_update_songlist();
+void ui_play_next();
+void ui_play_prev();
+void ui_toggle_pause();
 
 #endif
 
@@ -81,35 +84,6 @@ struct _ui_t
     float       timestate;
 } ui;
 
-void ui_on_key_down(void* userdata, void* data)
-{
-    ev_t* ev = (ev_t*) data;
-    if (ev->keycode == SDLK_SPACE)
-    {
-	if (ui.ms)
-	{
-	    view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
-
-	    if (!ui.ms->paused)
-	    {
-		mp_pause(ui.ms);
-		if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_UP);
-	    }
-	    else
-	    {
-		mp_play(ui.ms);
-		if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
-	    }
-	}
-    }
-}
-
-void ui_content_size_cb(void* userdata, void* data)
-{
-    /* v2_t* r = (v2_t*) data; */
-    /* vh_cv_body_set_content_size(uiv.visubody, (int) r->x, (int) r->y); */
-}
-
 void ui_play_song(map_t* song)
 {
     /* close existing ms */
@@ -152,6 +126,47 @@ void ui_play_next()
     else next = songlist_get_song(1);
 
     ui_play_song(next);
+}
+
+void ui_play_prev()
+{
+    map_t* prev = NULL;
+
+    if (ui.shuffle == 0 && ui.played_song) prev = songlist_get_prev_song(ui.played_song);
+    else prev = songlist_get_song(1);
+
+    ui_play_song(prev);
+}
+
+void ui_toggle_pause()
+{
+    if (ui.ms)
+    {
+	view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
+
+	if (!ui.ms->paused)
+	{
+	    mp_pause(ui.ms);
+	    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_UP);
+	}
+	else
+	{
+	    mp_play(ui.ms);
+	    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
+	}
+    }
+}
+
+void ui_on_key_down(void* userdata, void* data)
+{
+    ev_t* ev = (ev_t*) data;
+    if (ev->keycode == SDLK_SPACE) ui_toggle_pause();
+}
+
+void ui_content_size_cb(void* userdata, void* data)
+{
+    /* v2_t* r = (v2_t*) data; */
+    /* vh_cv_body_set_content_size(uiv.visubody, (int) r->x, (int) r->y); */
 }
 
 void ui_on_btn_event(void* userdata, void* data)

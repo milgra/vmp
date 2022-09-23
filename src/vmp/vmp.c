@@ -3,6 +3,7 @@
 #include "evrecorder.c"
 #include "filemanager.c"
 #include "library.c"
+#include "remote.c"
 #include "songlist.c"
 #include "ui.c"
 #include "ui_compositor.c"
@@ -29,7 +30,8 @@ struct
     float       analyzer_ratio;
     analyzer_t* analyzer;
 
-    int frames;
+    int      frames;
+    remote_t remote;
 } mmfm = {0};
 
 void init(int width, int height)
@@ -50,6 +52,8 @@ void init(int width, int height)
     }
 
     ui_update_layout(width, height);
+
+    remote_listen(&mmfm.remote);
 }
 
 void post_render_init()
@@ -137,6 +141,16 @@ void update(ev_t ev)
 	/* check init */
 
 	if (mmfm.frames < 4) post_render_init();
+
+	/* check remote */
+
+	if (mmfm.remote.command > 0)
+	{
+	    if (mmfm.remote.command == 1) ui_toggle_pause();
+	    if (mmfm.remote.command == 2) ui_play_next();
+	    if (mmfm.remote.command == 3) ui_play_prev();
+	    mmfm.remote.command = 0;
+	}
 
 	/* check analyzer */
 
