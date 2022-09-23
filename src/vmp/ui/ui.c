@@ -23,7 +23,6 @@ void ui_update_songlist();
 #include "bm_rgba_util.c"
 #include "coder.c"
 #include "config.c"
-#include "database.c"
 #include "library.c"
 #include "mediaplayer.c"
 #include "songlist.c"
@@ -636,7 +635,7 @@ void ui_show_progress(char* progress)
 void ui_update_songlist()
 {
     vec_t* entries = VNEW();
-    db_get_entries(entries);
+    lib_get_entries(entries);
     songlist_set_songs(entries);
     ui_set_songs(songlist_get_visible_songs());
 }

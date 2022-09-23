@@ -1,122 +1,353 @@
 #ifndef lib_h
 #define lib_h
 
-#include "zc_channel.c"
 #include "zc_map.c"
 
-void lib_read_files(char* libpath, map_t* db);
-void lib_delete_file(char* libpath, map_t* entry);
-int  lib_rename_file(char* old, char* new, char* new_dirs);
+void lib_init();
+void lib_destroy();
+void lib_read(char* libpath);
+void lib_write(char* libpath);
+void lib_add_entries(vec_t* entries);
+void lib_add_entry(char* path, map_t* entry);
+void lib_remove_entry(map_t* entry);
+void lib_remove_non_existing(map_t* files);
+void lib_filter_existing(map_t* files);
+int  lib_organize_entry(char* libpath, map_t* db, map_t* entry);
+int  lib_organize(char* libpath, map_t* db);
+
+void lib_get_genres(vec_t* vec);
+void lib_get_artists(vec_t* vec);
+
+map_t*   lib_get_db();
+void     lib_get_entries(vec_t* entries);
+uint32_t lib_count();
+void     lib_reset();
+
+void lib_update_metadata(char* path, map_t* changed, vec_t* removed);
 
 #endif
 
 #if __INCLUDE_LEVEL__ == 0
 
-#define __USE_XOPEN_EXTENDED 1 // needed for linux
-#include <ftw.h>
-
-#include "coder.c"
 #include "filemanager.c"
+#include "kvlist.c"
 #include "zc_cstring.c"
 #include "zc_log.c"
 #include "zc_path.c"
-#include <SDL.h>
-#include <errno.h>
+#include "zc_vector.c"
+#include <ctype.h>
 #include <limits.h>
-#include <stdio.h>
-#include <time.h>
 
-static int lib_file_data_step(const char* fpath, const struct stat* sb, int tflag, struct FTW* ftwbuf);
-int        analyzer_thread(void* chptr);
+map_t* db;
 
-struct lib_t
+void lib_init()
 {
-    map_t* files;
-    vec_t* paths;
-    char   lock;
-    char*  path;
-} lib = {0};
-
-void lib_read_files(char* lib_path, map_t* files)
-{
-    assert(lib_path != NULL);
-
-    lib.files = files;
-    lib.path  = lib_path;
-
-    nftw(lib_path, lib_file_data_step, 20, FTW_PHYS);
-
-    zc_log_debug("lib : scanned, files : %i", files->count);
+    db = MNEW(); // REL 0
 }
 
-static int lib_file_data_step(const char* fpath, const struct stat* sb, int tflag, struct FTW* ftwbuf)
+void lib_destroy()
 {
-    /* printf("%-3s %2d %7jd   %-40s %d %s\n", */
-    /*        (tflag == FTW_D) ? "d" : (tflag == FTW_DNR) ? "dnr" : (tflag == FTW_DP) ? "dp" : (tflag == FTW_F) ? "f" : (tflag == FTW_NS) ? "ns" : (tflag == FTW_SL) ? "sl" : (tflag == FTW_SLN) ? "sln" : "???", */
-    /*        ftwbuf->level, */
-    /*        (intmax_t)sb->st_size, */
-    /*        fpath, */
-    /*        ftwbuf->base, */
-    /*        fpath + ftwbuf->base); */
+    // mem_describe(db, 0);
 
-    if (tflag == FTW_F)
+    REL(db); // REL 1
+}
+
+void lib_read(char* libpath)
+{
+    assert(libpath != NULL);
+
+    char* dbpath = path_new_append(libpath, "zenmusic.kvl"); // REL 0
+
+    zc_log_info("READING DB %s", dbpath);
+
+    kvlist_read(dbpath, db, "path");
+
+    zc_log_info("%i ENTRIES LOADED", db->count);
+
+    REL(dbpath); // REL 0
+}
+
+void lib_write(char* libpath)
+{
+    assert(libpath != NULL);
+
+    char* dbpath = cstr_new_format(PATH_MAX + NAME_MAX, "/%s/zenmusic.kvl", libpath); // REL 0
+
+    int res = kvlist_write(dbpath, db);
+
+    if (res < 0) zc_log_debug("ERROR lib_write cannot write database %s\n", dbpath);
+
+    zc_log_info("%i ENTRIED WRITTEN", db->count);
+
+    REL(dbpath); // REL 0
+}
+
+void lib_add_entry(char* path, map_t* entry)
+{
+    printf("adding entry %s\n", path);
+    MPUT(db, path, entry);
+}
+
+void lib_remove_entry(map_t* entry)
+{
+    char* path = MGET(entry, "path");
+    MDEL(db, path);
+}
+
+void lib_add_entries(vec_t* entries)
+{
+    for (int index = 0; index < entries->length; index++)
     {
-	map_t* song = MNEW();
+	map_t* entry = entries->data[index];
+	char*  path  = MGET(entry, "path");
+	if (path) lib_add_entry(path, entry);
+    }
+}
 
-	char* path = cstr_new_cstring((char*) fpath + strlen(lib.path) + 1);
-	char* size = cstr_new_format(20, "%li", sb->st_size); // REL 0
+void lib_reset()
+{
+    map_reset(db);
+}
 
-	// add file data
+map_t* lib_get_db()
+{
+    return db;
+}
 
-	MPUTR(song, "path", path);
-	MPUTR(song, "size", size);
-	MPUTR(song, "added", cstr_new_cstring("..."));
-	MPUTR(song, "played", cstr_new_cstring("..."));
-	MPUTR(song, "skipped", cstr_new_cstring("..."));
-	MPUTR(song, "plays", cstr_new_cstring("..."));
-	MPUTR(song, "skips", cstr_new_cstring("..."));
-	MPUTR(song, "artist", cstr_new_cstring("..."));
-	MPUTR(song, "album", cstr_new_cstring("..."));
-	MPUTR(song, "title", path_new_filename(path));
+void lib_get_entries(vec_t* entries)
+{
+    map_values(db, entries);
+}
 
-	MPUTR(lib.files, fpath + strlen(lib.path) + 1, song); // use relative path as path
+uint32_t lib_count()
+{
+    return db->count;
+}
 
-	/* char* size = cstr_new_format(20, "%li", sb->st_size); // REL 0 */
-	/* MPUT(lib.files, fpath + strlen(lib.path) + 1, size);  // use relative path as path */
-	/* REL(size);                                            // REL 0 */
+void lib_remove_non_existing(map_t* files)
+{
+    // first remove deleted files from db
+    vec_t* paths = VNEW(); // REL 0
+    map_keys(db, paths);
+
+    for (int index = 0; index < paths->length; index++)
+    {
+	char*  path = paths->data[index];
+	map_t* map  = MGET(files, path);
+	if (!map)
+	{
+	    // db path is missing from file path, file was removed
+	    MDEL(db, path);
+	    printf("LOG file is missing for path %s, song entry was removed from db\n", path);
+	}
     }
 
-    return 0; /* To tell nftw() to continue */
+    REL(paths);
 }
 
-void lib_delete_file(char* lib_path, map_t* entry)
+void lib_filter_existing(map_t* files)
 {
-    assert(lib_path != NULL);
+    vec_t* paths = VNEW(); // REL 0
+    map_keys(files, paths);
 
-    char* rel_path  = MGET(entry, "file/path");
-    char* file_path = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s", lib_path, rel_path); // REL 0
+    for (int index = 0; index < paths->length; index++)
+    {
+	char*  path = paths->data[index];
+	map_t* map  = MGET(db, path);
+	if (map)
+	{
+	    // path exist in db, removing entry from files
+	    MDEL(files, path);
+	}
+    }
 
-    int error = remove(file_path);
-    if (error)
-	zc_log_debug("lib : cannot remove file %s : %s", file_path, strerror(errno));
+    REL(paths); // REL 0
+}
+
+char* lib_replace_char(char* str, char find, char replace)
+{
+    char* current_pos = strchr(str, find);
+    while (current_pos)
+    {
+	*current_pos = replace;
+	current_pos  = strchr(current_pos + 1, find);
+    }
+    return str;
+}
+
+int lib_organize_entry(char* libpath, map_t* db, map_t* entry)
+{
+    assert(libpath != NULL);
+
+    int changed = 0;
+
+    char* path   = MGET(entry, "path");
+    char* artist = MGET(entry, "artist");
+    char* album  = MGET(entry, "album");
+    char* title  = MGET(entry, "title");
+    char* track  = MGET(entry, "track");
+
+    // remove slashes before directory creation
+
+    lib_replace_char(artist, '/', ' ');
+    lib_replace_char(title, '/', ' ');
+
+    // get extension
+
+    char* ext = path_new_extension(path); // REL -1
+
+    char* old_path     = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s", libpath, path);              // REL 0
+    char* new_dirs     = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s/%s/", libpath, artist, album); // REL 1
+    char* new_path     = NULL;
+    char* new_path_rel = NULL;
+
+    if (track)
+    {
+	int trackno  = atoi(track);
+	new_path     = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s/%s/%.3i %s.%s", libpath, artist, album, trackno, title, ext); // REL 2
+	new_path_rel = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s/%.3i %s.%s", artist, album, trackno, title, ext);             // REL 3
+    }
     else
-	zc_log_debug("lib : file %s removed.", file_path);
+    {
+	new_path     = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s/%s/%s.%s", libpath, artist, album, title, ext); // REL 2
+	new_path_rel = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s/%s.%s", artist, album, title, ext);             // REL 3
+    }
 
-    REL(file_path); // REL 0
+    if (strcmp(old_path, new_path) != 0)
+    {
+	int error = fm_rename_file(old_path, new_path, new_dirs);
+	if (error == 0)
+	{
+	    zc_log_debug("db : updating path");
+	    MPUT(entry, "path", new_path_rel);
+	    MPUT(db, new_path_rel, entry);
+	    MDEL(db, path);
+	    changed = 1;
+	}
+    }
+
+    REL(ext);          // REL -1
+    REL(old_path);     // REL 0
+    REL(new_dirs);     // REL 1
+    REL(new_path);     // REL 2
+    REL(new_path_rel); // REL 3
+
+    return 0;
 }
 
-int lib_rename_file(char* old_path, char* new_path, char* new_dirs)
+int lib_organize(char* libpath, map_t* db)
 {
-    zc_log_debug("lib : renaming %s to %s", old_path, new_path);
+    zc_log_debug("db : organizing database");
 
-    int error = fm_create(new_dirs, 0777);
+    // go through all db entries, check path, move if needed
 
-    if (error == 0)
+    int    changed = 0;
+    vec_t* paths   = VNEW(); // REL 0
+
+    map_keys(db, paths);
+
+    for (int index = 0; index < paths->length; index++)
     {
-	error = rename(old_path, new_path);
-	return error;
+	char*  path  = paths->data[index];
+	map_t* entry = MGET(db, path);
+
+	if (entry)
+	{
+	    changed |= lib_organize_entry(libpath, db, entry);
+	}
     }
-    return error;
+
+    REL(paths); // REL 0
+
+    return changed;
+}
+
+int lib_comp_text(void* left, void* right)
+{
+    char* la = left;
+    char* ra = right;
+
+    return strcmp(la, ra);
+}
+
+void lib_get_genres(vec_t* vec)
+{
+    int ei; // entry, genre index
+
+    vec_t* songs  = VNEW(); // REL 0
+    map_t* genres = MNEW(); // REL 1
+
+    map_values(db, songs);
+
+    for (ei = 0;
+	 ei < songs->length;
+	 ei++)
+    {
+	map_t* entry = songs->data[ei];
+	char*  genre = MGET(entry, "genre");
+
+	if (genre)
+	{
+	    MPUT(genres, genre, genre);
+	}
+    }
+
+    map_values(genres, vec);
+    vec_sort(vec, lib_comp_text);
+
+    REL(genres); // REL 1
+    REL(songs);  // REL 0
+}
+
+void lib_get_artists(vec_t* vec)
+{
+    int ei;
+
+    vec_t* songs   = VNEW(); // REL 0
+    map_t* artists = MNEW(); // REL 1
+
+    map_values(db, songs);
+
+    for (ei = 0;
+	 ei < songs->length;
+	 ei++)
+    {
+	map_t* entry  = songs->data[ei];
+	char*  artist = MGET(entry, "artist");
+
+	if (artist) MPUT(artists, artist, artist);
+    }
+
+    map_values(artists, vec);
+    vec_sort(vec, lib_comp_text);
+
+    REL(artists); // REL 1
+    REL(songs);   // REL 0
+}
+
+void lib_update_metadata(char* path, map_t* changed, vec_t* removed)
+{
+    map_t* song = MGET(db, path);
+    vec_t* keys = VNEW(); // REL 0
+    map_keys(changed, keys);
+
+    // update changed
+
+    for (int index = 0; index < keys->length; index++)
+    {
+	char* key = keys->data[index];
+	MPUT(song, key, MGET(changed, key));
+    }
+
+    // remove removed
+
+    for (int index = 0; index < removed->length; index++)
+    {
+	char* field = keys->data[index];
+	MDEL(song, field);
+    }
+
+    REL(keys); // REL 0
 }
 
 #endif

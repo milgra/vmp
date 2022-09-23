@@ -1,6 +1,5 @@
 #include "analyzer.c"
 #include "config.c"
-#include "database.c"
 #include "evrecorder.c"
 #include "filemanager.c"
 #include "library.c"
@@ -92,8 +91,8 @@ void post_render_init()
 	char* libpath = config_get("lib_path");
 
 	zc_time(NULL);
-	db_init();        // destroy 1
-	db_read(libpath); // read up database if exist
+	lib_init();        // destroy 1
+	lib_read(libpath); // read up database if exist
 	zc_time("parsing database");
 
 	/* load library */
@@ -101,23 +100,23 @@ void post_render_init()
 	map_t* files = MNEW(); // REL 0
 
 	zc_time(NULL);
-	lib_read_files(config_get("lib_path"), files); // read all files under library path
+	fm_read_files(config_get("lib_path"), files); // read all files under library path
 	zc_time("parsing library");
 
-	if (db_count() == 0)
+	if (lib_count() == 0)
 	{
 	    // add unanalyzed files to db to show something
 	    vec_t* songlist = VNEW();
 	    map_values(files, songlist);
-	    db_add_entries(songlist);
+	    lib_add_entries(songlist);
 	    // analyze all
 	    mmfm.analyzer = analyzer_run(songlist);
 	    REL(songlist);
 	}
 	else
 	{
-	    db_remove_non_existing(files);
-	    db_filter_existing(files);
+	    lib_remove_non_existing(files);
+	    lib_filter_existing(files);
 	    // analyze remaining
 	    vec_t* remaining = VNEW();
 	    map_values(files, remaining);
@@ -152,9 +151,9 @@ void update(ev_t ev)
 
 	    if (mmfm.analyzer->ratio == 1.0)
 	    {
-		db_add_entries(mmfm.analyzer->songs);
-		db_organize(config_get("lib_path"), db_get_db());
-		db_write(config_get("lib_path"));
+		lib_add_entries(mmfm.analyzer->songs);
+		lib_organize(config_get("lib_path"), lib_get_db());
+		lib_write(config_get("lib_path"));
 		ui_update_songlist();
 
 		REL(mmfm.analyzer);
