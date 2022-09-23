@@ -2,9 +2,8 @@
 
 Visual Music Player
 
-song end, play next
-seek/volume ring
-time/duration textfield
+viewer->mp
+filemanager, library egybe
 show current song in info field
 preferences popup
 donation popup

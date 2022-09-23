@@ -67,9 +67,17 @@ struct _ui_t
 
     map_t* played_song;
     int    shuffle;
+    float  volume;
+
+    view_t* seekknob;
+    view_t* volknob;
 
     view_t*     infotf;
     textstyle_t infots;
+
+    view_t*     timetf;
+    textstyle_t timets;
+    float       timestate;
 } ui;
 
 void ui_on_key_down(void* userdata, void* data)
@@ -102,6 +110,8 @@ void ui_play_next()
 	char* realpath = path_new_append(config_get("lib_path"), path);
 
 	ui.viewer = viewer_open(realpath, ui.sizecb);
+	viewer_set_volume(ui.viewer, ui.volume);
+
 	gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
 	uint32_t index = songlist_get_index(next);
 	if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
@@ -131,6 +141,7 @@ void ui_on_btn_event(void* userdata, void* data)
 		    char* realpath = path_new_append(config_get("lib_path"), path);
 
 		    ui.viewer = viewer_open(realpath, ui.sizecb);
+		    viewer_set_volume(ui.viewer, ui.volume);
 		    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
 
 		    uint32_t index = songlist_get_index(song);
@@ -172,6 +183,8 @@ void ui_on_btn_event(void* userdata, void* data)
 	    char* realpath = path_new_append(config_get("lib_path"), path);
 
 	    ui.viewer = viewer_open(realpath, ui.sizecb);
+	    viewer_set_volume(ui.viewer, ui.volume);
+
 	    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
 	    uint32_t index = songlist_get_index(prev);
 	    if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
@@ -196,6 +209,8 @@ void ui_on_btn_event(void* userdata, void* data)
 	    char* realpath = path_new_append(config_get("lib_path"), path);
 
 	    ui.viewer = viewer_open(realpath, ui.sizecb);
+	    viewer_set_volume(ui.viewer, ui.volume);
+
 	    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
 	    uint32_t index = songlist_get_index(next);
 	    if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
@@ -252,6 +267,8 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 
 	    if (ui.viewer) viewer_close(ui.viewer);
 	    ui.viewer = viewer_open(realpath, ui.sizecb);
+	    viewer_set_volume(ui.viewer, ui.volume);
+
 	    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
 
 	    view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
@@ -289,10 +306,34 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 
 void ui_pos_change(view_t* view, float angle)
 {
+    float ratio = 0.0;
+    if (angle > 0 && angle < 3.14 * 3 / 2)
+    {
+	ratio = angle / 6.28 + 0.25;
+    }
+    else if (angle > 3.14 * 3 / 2)
+    {
+	ratio = (angle - (3.14 * 3 / 2)) / 6.28;
+    }
+
+    ui.volume = ratio;
+    viewer_set_position(ui.viewer, ui.volume);
 }
 
 void ui_vol_change(view_t* view, float angle)
 {
+    float ratio = 0.0;
+    if (angle > 0 && angle < 3.14 * 3 / 2)
+    {
+	ratio = angle / 6.28 + 0.25;
+    }
+    else if (angle > 3.14 * 3 / 2)
+    {
+	ratio = (angle - (3.14 * 3 / 2)) / 6.28;
+    }
+
+    ui.volume = ratio;
+    viewer_set_volume(ui.viewer, ui.volume);
 }
 
 void ui_create_views(float width, float height)
@@ -325,7 +366,7 @@ void ui_init(float width, float height)
     ui_manager_init(width, height); // DESTROY 1
     ui_create_views(width, height);
 
-    // setup key events
+    /* setup key events */
 
     cb_t* key_cb = cb_new(ui_on_key_down, NULL);
     vh_key_add(ui.view_base, key_cb); // listen on ui.view_base for shortcuts
@@ -358,6 +399,14 @@ void ui_init(float width, float height)
     vh_button_add(mutebtn, VH_BUTTON_TOGGLE, btn_cb);
 
     REL(btn_cb);
+
+    ui.seekknob = seekknob;
+    ui.volknob  = volknob;
+
+    /* setup volume */
+
+    ui.volume = 0.8;
+    tg_knob_set_angle(ui.volknob, ui.volume * 6.28 - 3.14 / 2.0);
 
     /* buttons */
 
@@ -398,12 +447,11 @@ void ui_init(float width, float height)
     tg_text_add(filtertf);
     tg_text_set(filtertf, "This is the search textfield", filterts);
 
-    view_t* timetf = view_get_subview(ui.view_base, "timetf");
+    ui.timetf = view_get_subview(ui.view_base, "timetf");
+    ui.timets = ui_util_gen_textstyle(ui.timetf);
 
-    textstyle_t timets = ui_util_gen_textstyle(timetf);
-
-    tg_text_add(timetf);
-    tg_text_set(timetf, "05:23 / 08:33", timets);
+    tg_text_add(ui.timetf);
+    tg_text_set(ui.timetf, "00:00 / 08:00", ui.timets);
 
     /* songlist */
 
@@ -558,6 +606,31 @@ void ui_save_screenshot(uint32_t time, char hide_cursor)
     }
 }
 
+void ui_song_infos_update_time(double time, double left, double dur)
+{
+    /* char timebuff[20]; */
+
+    /* int tmin = (int) floor(time / 60.0); */
+    /* int tsec = (int) time % 60; */
+    /* int lmin = (int) floor(left / 60.0); */
+    /* int lsec = (int) left % 60; */
+    /* int dmin = (int) floor(dur / 60.0); */
+    /* int dsec = (int) dur % 60; */
+
+    /* uisi.textstyle.align        = TA_LEFT; */
+    /* uisi.textstyle.margin_right = 0; */
+    /* uisi.textstyle.margin_left  = 18; */
+
+    /* snprintf(timebuff, 20, "%.2i:%.2i", dmin, dsec); */
+    /* tg_text_set(uisi.song_length_view, timebuff, uisi.textstyle); */
+
+    /* snprintf(timebuff, 20, "%.2i:%.2i", tmin, tsec); */
+    /* tg_text_set(uisi.song_time_view, timebuff, uisi.textstyle); */
+
+    /* snprintf(timebuff, 20, "%.2i:%.2i", lmin, lsec); */
+    /* tg_text_set(uisi.song_remaining_view, timebuff, uisi.textstyle); */
+}
+
 void ui_update_palyer()
 {
     if (ui.viewer)
@@ -570,6 +643,25 @@ void ui_update_palyer()
 	ui.visR->texture.changed  = 1;
 
 	if (ui.viewer->finished) ui_play_next();
+
+	double time = roundf(viewer_get_master_clock(ui.viewer) * 10.0) / 10.0;
+
+	if (time != ui.timestate)
+	{
+	    ui.timestate = time;
+
+	    int tmin = (int) floor(time / 60.0);
+	    int tsec = (int) time % 60;
+	    int dmin = (int) floor(ui.viewer->duration / 60.0);
+	    int dsec = (int) ui.viewer->duration % 60;
+
+	    char timebuff[20];
+	    snprintf(timebuff, 20, "%.2i:%.2i / %.2i:%.2i", tmin, tsec, dmin, dsec);
+	    tg_text_set(ui.timetf, timebuff, ui.timets);
+
+	    double ratio = time / ui.viewer->duration;
+	    tg_knob_set_angle(ui.seekknob, ratio * 6.28 - 3.14 / 2.0);
+	}
     }
 }
 

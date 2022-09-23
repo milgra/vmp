@@ -38,7 +38,7 @@
 /* TODO: We assume that a decoded and resampled frame fits into this buffer */
 #define SAMPLE_ARRAY_SIZE (8 * 65536)
 
-enum
+enum av_sync_type_t
 {
     AV_SYNC_AUDIO_MASTER, /* default choice */
     AV_SYNC_VIDEO_MASTER,
@@ -56,12 +56,14 @@ typedef struct AudioParams
 
 typedef struct MediaState
 {
-    cb_t*            sizecb;
-    int              finished;             // playing reached end
-    char*            filename;             // filename, to use in functions and for format dumping
-    AVFormatContext* format;               // format context, used for aspect ratio, framerate, seek calcualtions
-    SDL_Thread*      read_thread;          // thread for reading packets
-    SDL_cond*        continue_read_thread; // conditional for read thread start/stop
+    cb_t*               sizecb;
+    float               duration;
+    int                 finished; // playing reached end
+    enum av_sync_type_t av_sync_type;
+    char*               filename;             // filename, to use in functions and for format dumping
+    AVFormatContext*    format;               // format context, used for aspect ratio, framerate, seek calcualtions
+    SDL_Thread*         read_thread;          // thread for reading packets
+    SDL_cond*           continue_read_thread; // conditional for read thread start/stop
 
     SDL_Thread* video_thread; // thread for video decoding
     SDL_Thread* audio_thread; // thread for video decoding
@@ -160,8 +162,11 @@ void        viewer_pause(MediaState* ms);
 void        viewer_close(MediaState* ms);
 void        viewer_mute(MediaState* ms);
 void        viewer_unmute(MediaState* ms);
+void        viewer_set_volume(MediaState* ms, float volume);
+void        viewer_set_position(MediaState* ms, float ratio);
 void        viewer_video_refresh(MediaState* opaque, double* remaining_time, bm_rgba_t* bm);
 void        viewer_audio_refresh(MediaState* opaque, bm_rgba_t* bml, bm_rgba_t* bmr);
+double      viewer_get_master_clock(MediaState* ms);
 
 #endif
 
@@ -203,12 +208,26 @@ static SDL_AudioDeviceID audio_dev;
 
 // timing related
 
-int viewer_get_master_sync_type(MediaState* ms)
+static int viewer_get_master_sync_type(MediaState* ms)
 {
-    if (ms->vidst)
-	return AV_SYNC_VIDEO_MASTER;
+    if (ms->av_sync_type == AV_SYNC_VIDEO_MASTER)
+    {
+	if (ms->vidst)
+	    return AV_SYNC_VIDEO_MASTER;
+	else
+	    return AV_SYNC_AUDIO_MASTER;
+    }
+    else if (ms->av_sync_type == AV_SYNC_AUDIO_MASTER)
+    {
+	if (ms->audst)
+	    return AV_SYNC_AUDIO_MASTER;
+	else
+	    return AV_SYNC_EXTERNAL_CLOCK;
+    }
     else
-	return AV_SYNC_AUDIO_MASTER;
+    {
+	return AV_SYNC_EXTERNAL_CLOCK;
+    }
 }
 
 double viewer_get_master_clock(MediaState* ms)
@@ -1054,6 +1073,8 @@ int viewer_read_thread(void* arg)
 		    /* get max frame duration for checking timestamp discontinuity */
 		    ms->max_frame_duration = (format->iformat->flags & AVFMT_TS_DISCONT) ? 10.0 : 3600.0;
 
+		    ms->duration = (float) format->duration / (float) AV_TIME_BASE;
+
 		    /* find video streaam */
 		    videost = av_find_best_stream(
 			format,
@@ -1276,6 +1297,9 @@ MediaState* viewer_open(char* path, cb_t* sizecb)
 		    clock_init(&ms->vidclk, &ms->vidpq.serial);
 		    clock_init(&ms->audclk, &ms->audpq.serial);
 		    clock_init(&ms->extclk, &ms->extclk.serial);
+		    printf("VIDCLK %zu\n", (size_t) &ms->vidclk);
+		    printf("AUDCLK %zu\n", (size_t) &ms->audclk);
+		    printf("EXTCLK %zu\n", (size_t) &ms->extclk);
 
 		    ms->sizecb       = RET(sizecb);
 		    ms->audio_volume = 100;
@@ -1344,6 +1368,21 @@ void viewer_mute(MediaState* ms)
 void viewer_unmute(MediaState* ms)
 {
     if (ms) ms->muted = 0;
+}
+
+void viewer_set_volume(MediaState* ms, float ratio)
+{
+    ms->audio_volume = (int) ((float) SDL_MIX_MAXVOLUME * ratio);
+}
+
+void viewer_set_position(MediaState* ms, float ratio)
+{
+    int newpos = (int) ms->duration * ratio;
+    int diff   = (int) viewer_get_master_clock(ms) - newpos;
+    /* printf("ratio %f\n", ratio); */
+    /* printf("duration %f\n", player_duration()); */
+    /* printf("newpos %i\n", newpos); */
+    viewer_stream_seek(ms, (int64_t) (newpos * AV_TIME_BASE), (int64_t) (diff * AV_TIME_BASE), 0);
 }
 
 // display related
