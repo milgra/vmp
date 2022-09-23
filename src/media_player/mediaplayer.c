@@ -1794,6 +1794,12 @@ void mp_audio_refresh(MediaState* ms, bm_rgba_t* bml, bm_rgba_t* bmr)
 		gfx_rect(bmr, ms->xpos + edge, h - edge - y, 1, 1, colorr, 1);
 	    }
 
+	    if (ms->xpos < width - 1)
+	    {
+		gfx_rect(bml, ms->xpos + edge + 1, 1, 1, height - 1, 0xFFFFFFFF, 1);
+		gfx_rect(bmr, ms->xpos + edge + 1, 1, 1, height - 1, 0xFFFFFFFF, 1);
+	    }
+
 	    if (!ms->paused)
 		ms->xpos++;
 	    if (ms->xpos >= width)
