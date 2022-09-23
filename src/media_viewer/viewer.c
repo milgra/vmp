@@ -12,22 +12,6 @@
 #ifndef viewer_h
 #define viewer_h
 
-#include "zc_bm_rgba.c"
-#include "zc_callback.c"
-
-void* viewer_open(char* path, cb_t* sizecb);
-void  viewer_play(void* ms);
-void  viewer_pause(void* ms);
-void  viewer_close(void* ms);
-void  viewer_mute(void* ms);
-void  viewer_unmute(void* ms);
-void  viewer_video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm);
-void  viewer_audio_refresh(void* opaque, bm_rgba_t* bml, bm_rgba_t* bmr);
-
-#endif
-
-#if __INCLUDE_LEVEL__ == 0
-
 #include "clock.c"
 #include "decoder.c"
 #include "framequeue.c"
@@ -41,50 +25,18 @@ void  viewer_audio_refresh(void* opaque, bm_rgba_t* bml, bm_rgba_t* bmr);
 #include "libswresample/swresample.h"
 #include "libswscale/swscale.h"
 #include "packetqueue.c"
+#include "zc_bm_rgba.c"
+#include "zc_callback.c"
 #include "zc_draw.c"
 #include "zc_log.c"
 #include "zc_vec2.c"
 #include <SDL.h>
 #include <SDL_thread.h>
 
-#define MAX_QUEUE_SIZE (15 * 1024 * 1024)
-#define VIDEO_PICTURE_QUEUE_SIZE 3
-#define SUBPICTURE_QUEUE_SIZE 16
-#define SAMPLE_QUEUE_SIZE 9
-#define MIN_FRAMES 25
-
-/* Minimum SDL audio buffer size, in samples. */
-#define SDL_AUDIO_MIN_BUFFER_SIZE 512
-/* Calculate actual buffer size keeping in mind not cause too frequent audio callbacks */
-#define SDL_AUDIO_MAX_CALLBACKS_PER_SEC 30
-/* Step size for volume control in dB */
-#define SDL_VOLUME_STEP (0.75)
-/* we use about AUDIO_DIFF_AVG_NB A-V differences to make the average */
-#define AUDIO_DIFF_AVG_NB 20
-/* maximum audio speed change to get correct sync */
-#define SAMPLE_CORRECTION_PERCENT_MAX 10
-
-/* no AV sync correction is done if below the minimum AV sync threshold */
-#define AV_SYNC_THRESHOLD_MIN 0.04
-/* AV sync correction is done if above the maximum AV sync threshold */
-#define AV_SYNC_THRESHOLD_MAX 0.1
-/* If a frame duration is longer than this, it will not be duplicated to compensate AV sync */
-#define AV_SYNC_FRAMEDUP_THRESHOLD 0.1
-/* no AV correction is done if too big error */
-#define AV_NOSYNC_THRESHOLD 10.0
-
 /* For Frequence/RDFT visualizer */
 /* NOTE: the size must be big enough to compensate the hardware audio buffersize size */
 /* TODO: We assume that a decoded and resampled frame fits into this buffer */
 #define SAMPLE_ARRAY_SIZE (8 * 65536)
-
-static int framedrop = -1; // drop frames on slow cpu
-
-double                   rdftspeed1 = 0.02;
-uint8_t*                 scaledpixels[1];
-int                      scaledw = 0;
-int                      scaledh = 0;
-static SDL_AudioDeviceID audio_dev;
 
 enum
 {
@@ -105,6 +57,7 @@ typedef struct AudioParams
 typedef struct MediaState
 {
     cb_t*            sizecb;
+    int              finished;             // playing reached end
     char*            filename;             // filename, to use in functions and for format dumping
     AVFormatContext* format;               // format context, used for aspect ratio, framerate, seek calcualtions
     SDL_Thread*      read_thread;          // thread for reading packets
@@ -200,6 +153,53 @@ typedef struct MediaState
     int xpos;
 
 } MediaState;
+
+MediaState* viewer_open(char* path, cb_t* sizecb);
+void        viewer_play(MediaState* ms);
+void        viewer_pause(MediaState* ms);
+void        viewer_close(MediaState* ms);
+void        viewer_mute(MediaState* ms);
+void        viewer_unmute(MediaState* ms);
+void        viewer_video_refresh(MediaState* opaque, double* remaining_time, bm_rgba_t* bm);
+void        viewer_audio_refresh(MediaState* opaque, bm_rgba_t* bml, bm_rgba_t* bmr);
+
+#endif
+
+#if __INCLUDE_LEVEL__ == 0
+
+#define MAX_QUEUE_SIZE (15 * 1024 * 1024)
+#define VIDEO_PICTURE_QUEUE_SIZE 3
+#define SUBPICTURE_QUEUE_SIZE 16
+#define SAMPLE_QUEUE_SIZE 9
+#define MIN_FRAMES 25
+
+/* Minimum SDL audio buffer size, in samples. */
+#define SDL_AUDIO_MIN_BUFFER_SIZE 512
+/* Calculate actual buffer size keeping in mind not cause too frequent audio callbacks */
+#define SDL_AUDIO_MAX_CALLBACKS_PER_SEC 30
+/* Step size for volume control in dB */
+#define SDL_VOLUME_STEP (0.75)
+/* we use about AUDIO_DIFF_AVG_NB A-V differences to make the average */
+#define AUDIO_DIFF_AVG_NB 20
+/* maximum audio speed change to get correct sync */
+#define SAMPLE_CORRECTION_PERCENT_MAX 10
+
+/* no AV sync correction is done if below the minimum AV sync threshold */
+#define AV_SYNC_THRESHOLD_MIN 0.04
+/* AV sync correction is done if above the maximum AV sync threshold */
+#define AV_SYNC_THRESHOLD_MAX 0.1
+/* If a frame duration is longer than this, it will not be duplicated to compensate AV sync */
+#define AV_SYNC_FRAMEDUP_THRESHOLD 0.1
+/* no AV correction is done if too big error */
+#define AV_NOSYNC_THRESHOLD 10.0
+
+static int framedrop = -1; // drop frames on slow cpu
+
+double                   rdftspeed1 = 0.02;
+uint8_t*                 scaledpixels[1];
+int                      scaledw = 0;
+int                      scaledh = 0;
+static SDL_AudioDeviceID audio_dev;
 
 // timing related
 
@@ -1179,6 +1179,7 @@ int viewer_read_thread(void* arg)
 			if (!paused && vidend && audend)
 			{
 			    viewer_stream_seek(ms, 0, 0, 0);
+			    ms->finished = 1;
 			}
 
 			/* read next packet */
@@ -1250,7 +1251,7 @@ int viewer_read_thread(void* arg)
 
 /* entry point, opens/plays media under path */
 
-void* viewer_open(char* path, cb_t* sizecb)
+MediaState* viewer_open(char* path, cb_t* sizecb)
 {
     zc_log_debug("viewer_open %s", path);
 
@@ -1297,10 +1298,8 @@ void* viewer_open(char* path, cb_t* sizecb)
 
 /* end playing */
 
-void viewer_close(void* msp)
+void viewer_close(MediaState* ms)
 {
-    MediaState* ms = msp;
-
     zc_log_debug("viewer_close %s", ms->filename);
 
     ms->abort_request = 1;
@@ -1327,27 +1326,23 @@ void viewer_close(void* msp)
     av_free(ms);
 }
 
-void viewer_play(void* p)
+void viewer_play(MediaState* ms)
 {
-    MediaState* ms = p;
     if (ms->paused) viewer_stream_toggle_pause(ms);
 }
 
-void viewer_pause(void* p)
+void viewer_pause(MediaState* ms)
 {
-    MediaState* ms = p;
     if (!ms->paused) viewer_stream_toggle_pause(ms);
 }
 
-void viewer_mute(void* p)
+void viewer_mute(MediaState* ms)
 {
-    MediaState* ms = p;
     if (ms) ms->muted = 1;
 }
 
-void viewer_unmute(void* p)
+void viewer_unmute(MediaState* ms)
 {
-    MediaState* ms = p;
     if (ms) ms->muted = 0;
 }
 
@@ -1478,10 +1473,9 @@ void video_display(MediaState* ms, bm_rgba_t* bm)
 }
 
 /* called to display each frame */
-void viewer_video_refresh(void* opaque, double* remaining_time, bm_rgba_t* bm)
+void viewer_video_refresh(MediaState* ms, double* remaining_time, bm_rgba_t* bm)
 {
-    MediaState* ms = opaque;
-    double      time;
+    double time;
 
     // Frame *sp, *sp2;
 
@@ -1568,10 +1562,8 @@ static inline int compute_mod(int a, int b)
     return a < 0 ? a % b + b : a % b;
 }
 
-void viewer_audio_refresh(void* opaque, bm_rgba_t* bml, bm_rgba_t* bmr)
+void viewer_audio_refresh(MediaState* ms, bm_rgba_t* bml, bm_rgba_t* bmr)
 {
-    MediaState* ms = opaque;
-
     int     i, i_start, x, y1, y2, y, ys, delay, n, nb_display_channels;
     int     ch, channels, h, h2;
     int64_t time_diff;

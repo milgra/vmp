@@ -2,9 +2,20 @@
 
 Visual Music Player
 
+song end, play next
+seek/volume ring
+time/duration textfield
+show current song in info field
+preferences popup
+donation popup
+genre selector
+filter textfield
+filter clear
+genre selector
+process popup
+
 **near future**
 
- - switch to freetype for speedup
  - metadata editor problems, doesn't jump to beginning after long edit
  - jump to current song misbehaves when column sort is set differently
  - full screen visualizer
@@ -12,7 +23,6 @@ Visual Music Player
 
 - CFG_PATH, RES_PATH legyen makefileba deklaralva os alapjan vagy legalabbis main.c tetejen makrokkal
 
- - highlight active row
  - column sort ui error on left scrolled songlist
  - invalid location in change library popup
  - mute state doesn't stay between songs
@@ -38,7 +48,6 @@ Visual Music Player
  - text style should come from css
  - remove non-standard css and html (type=button, blocks=true)
  - log should fill up from up to down, should show time
- - rdft visalizer should show left/right channels in left/right visu viewwer
  - modify rdft to show more lower range
  - full screen cover art/video playing
  - full screen visualizer

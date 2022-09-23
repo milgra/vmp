@@ -4,16 +4,17 @@
 #include "zc_map.c"
 #include "zc_vector.c"
 
-map_t* songlist_get_song(int shuffle);
-map_t* songlist_get_prev_song(map_t* song);
-map_t* songlist_get_next_song(map_t* song);
-void   songlist_set_songs(vec_t* songs);
-void   songlist_apply_filter();
-void   songlist_apply_sorting();
-void   songlist_set_filter(char* filter);
-void   songlist_set_sorting(char* sorting);
-void   songlist_set_fields(map_t* fields);
-vec_t* songlist_get_visible_songs();
+map_t*   songlist_get_song(int shuffle);
+map_t*   songlist_get_prev_song(map_t* song);
+map_t*   songlist_get_next_song(map_t* song);
+void     songlist_set_songs(vec_t* songs);
+uint32_t songlist_get_index(map_t* song);
+void     songlist_apply_filter();
+void     songlist_apply_sorting();
+void     songlist_set_filter(char* filter);
+void     songlist_set_sorting(char* sorting);
+void     songlist_set_fields(map_t* fields);
+vec_t*   songlist_get_visible_songs();
 
 #endif
 
@@ -55,11 +56,10 @@ map_t* songlist_get_prev_song(map_t* song)
     if (sl.visible_songs && sl.visible_songs->length > 0)
     {
 	uint32_t index = vec_index_of_data(sl.visible_songs, song);
-	printf("PREV SONG INDEX %i\n", index);
-	if (index < UINT32_MAX)
+	if (index < UINT32_MAX && index > 0)
 	{
 	    index -= 1;
-	    if (index > -1) result = sl.visible_songs->data[index];
+	    result = sl.visible_songs->data[index];
 	}
     }
     return result;
@@ -71,13 +71,18 @@ map_t* songlist_get_next_song(map_t* song)
     if (sl.visible_songs && sl.visible_songs->length > 0)
     {
 	uint32_t index = vec_index_of_data(sl.visible_songs, song);
-	printf("NEXT SONG INDEX %i\n", index);
-	if (index < UINT32_MAX)
+	if (index < UINT32_MAX && index < sl.visible_songs->length)
 	{
 	    index += 1;
-	    if (index < sl.visible_songs->length) result = sl.visible_songs->data[index];
+	    result = sl.visible_songs->data[index];
 	}
     }
+    return result;
+}
+
+uint32_t songlist_get_index(map_t* song)
+{
+    uint32_t result = vec_index_of_data(sl.visible_songs, song);
     return result;
 }
 
