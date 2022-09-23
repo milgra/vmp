@@ -1,7 +1,7 @@
 /*
-  Media Viewer namespace
+  Media Player namespace
 
-  viewer_open creates a read thread that reads up packets from the given media.
+  player_open creates a read thread that reads up packets from the given media.
   The read thread creates one or multiple decoder threads depending on the media streams. Decoders decode packets to frames.
   After the threads are started and reading/decoding is running a final frame can be requested with video_refresh, if there is
   a frame available, it gets copied to the given bitmap.
@@ -9,8 +9,8 @@
 
  */
 
-#ifndef viewer_h
-#define viewer_h
+#ifndef mediaplayer_h
+#define mediaplayer_h
 
 #include "clock.c"
 #include "decoder.c"
@@ -156,17 +156,17 @@ typedef struct MediaState
 
 } MediaState;
 
-MediaState* viewer_open(char* path, cb_t* sizecb);
-void        viewer_play(MediaState* ms);
-void        viewer_pause(MediaState* ms);
-void        viewer_close(MediaState* ms);
-void        viewer_mute(MediaState* ms);
-void        viewer_unmute(MediaState* ms);
-void        viewer_set_volume(MediaState* ms, float volume);
-void        viewer_set_position(MediaState* ms, float ratio);
-void        viewer_video_refresh(MediaState* opaque, double* remaining_time, bm_rgba_t* bm);
-void        viewer_audio_refresh(MediaState* opaque, bm_rgba_t* bml, bm_rgba_t* bmr);
-double      viewer_get_master_clock(MediaState* ms);
+MediaState* mp_open(char* path, cb_t* sizecb);
+void        mp_play(MediaState* ms);
+void        mp_pause(MediaState* ms);
+void        mp_close(MediaState* ms);
+void        mp_mute(MediaState* ms);
+void        mp_unmute(MediaState* ms);
+void        mp_set_volume(MediaState* ms, float volume);
+void        mp_set_position(MediaState* ms, float ratio);
+void        mp_video_refresh(MediaState* opaque, double* remaining_time, bm_rgba_t* bm);
+void        mp_audio_refresh(MediaState* opaque, bm_rgba_t* bml, bm_rgba_t* bmr);
+double      mp_get_master_clock(MediaState* ms);
 
 #endif
 
@@ -208,7 +208,7 @@ static SDL_AudioDeviceID audio_dev;
 
 // timing related
 
-static int viewer_get_master_sync_type(MediaState* ms)
+static int mp_get_master_sync_type(MediaState* ms)
 {
     if (ms->av_sync_type == AV_SYNC_VIDEO_MASTER)
     {
@@ -230,11 +230,11 @@ static int viewer_get_master_sync_type(MediaState* ms)
     }
 }
 
-double viewer_get_master_clock(MediaState* ms)
+double mp_get_master_clock(MediaState* ms)
 {
     double val;
 
-    switch (viewer_get_master_sync_type(ms))
+    switch (mp_get_master_sync_type(ms))
     {
 	case AV_SYNC_VIDEO_MASTER:
 	    val = clock_get(&ms->vidclk);
@@ -249,7 +249,7 @@ double viewer_get_master_clock(MediaState* ms)
     return val;
 }
 
-void viewer_sync_clock_to_slave(Clock* c, Clock* slave)
+void mp_sync_clock_to_slave(Clock* c, Clock* slave)
 {
     double clock       = clock_get(c);
     double slave_clock = clock_get(slave);
@@ -259,7 +259,7 @@ void viewer_sync_clock_to_slave(Clock* c, Clock* slave)
 
 // stream related
 
-void viewer_stream_seek(MediaState* ms, int64_t pos, int64_t rel, int by_bytes)
+void mp_stream_seek(MediaState* ms, int64_t pos, int64_t rel, int by_bytes)
 {
     if (!ms->seek_req)
     {
@@ -272,7 +272,7 @@ void viewer_stream_seek(MediaState* ms, int64_t pos, int64_t rel, int by_bytes)
     }
 }
 
-void viewer_stream_toggle_pause(MediaState* ms)
+void mp_stream_toggle_pause(MediaState* ms)
 {
     if (ms->paused)
     {
@@ -287,14 +287,14 @@ void viewer_stream_toggle_pause(MediaState* ms)
     ms->paused = ms->audclk.paused = ms->vidclk.paused = ms->extclk.paused = !ms->paused;
 }
 
-void viewer_step_to_next_frame(MediaState* ms)
+void mp_step_to_next_frame(MediaState* ms)
 {
     /* if the stream is paused unpause it, then step */
-    if (ms->paused) viewer_stream_toggle_pause(ms);
+    if (ms->paused) mp_stream_toggle_pause(ms);
     ms->step_frame = 1;
 }
 
-int viewer_video_decode_thread(void* arg)
+int mp_video_decode_thread(void* arg)
 {
     zc_log_debug("Video decoder thread started.");
 
@@ -322,11 +322,11 @@ int viewer_video_decode_thread(void* arg)
 	    {
 		double dpts = NAN;
 		if (frame->pts != AV_NOPTS_VALUE) dpts = av_q2d(ms->vidst->time_base) * frame->pts;
-		if (framedrop > 0 || (framedrop && viewer_get_master_sync_type(ms) != AV_SYNC_VIDEO_MASTER))
+		if (framedrop > 0 || (framedrop && mp_get_master_sync_type(ms) != AV_SYNC_VIDEO_MASTER))
 		{
 		    if (frame->pts != AV_NOPTS_VALUE)
 		    {
-			double diff = dpts - viewer_get_master_clock(ms);
+			double diff = dpts - mp_get_master_clock(ms);
 			if (!isnan(diff) && fabs(diff) < AV_NOSYNC_THRESHOLD &&
 			    ms->viddec.pkt_serial == ms->vidclk.serial &&
 			    ms->vidpq.nb_packets)
@@ -404,17 +404,17 @@ int viewer_video_decode_thread(void* arg)
 
 /* return the wanted number of samples to get better sync if sync_type is video
  * or external master clock */
-static int viewer_synchronize_audio(MediaState* is, int nb_samples)
+static int mp_synchronize_audio(MediaState* is, int nb_samples)
 {
     int wanted_nb_samples = nb_samples;
 
     /* if not master, then we try to remove or add samples to correct the clock */
-    if (viewer_get_master_sync_type(is) != AV_SYNC_AUDIO_MASTER)
+    if (mp_get_master_sync_type(is) != AV_SYNC_AUDIO_MASTER)
     {
 	double diff, avg_diff;
 	int    min_nb_samples, max_nb_samples;
 
-	diff = clock_get(&is->audclk) - viewer_get_master_clock(is);
+	diff = clock_get(&is->audclk) - mp_get_master_clock(is);
 
 	if (!isnan(diff) && fabs(diff) < AV_NOSYNC_THRESHOLD)
 	{
@@ -458,7 +458,7 @@ static int viewer_synchronize_audio(MediaState* is, int nb_samples)
  * stored in is->audio_buf, with size in bytes given by the return
  * value.
  */
-int viewer_audio_decode_frame(MediaState* is)
+int mp_audio_decode_frame(MediaState* is)
 {
     int              data_size, resampled_data_size;
     av_unused double audio_clock0;
@@ -476,7 +476,7 @@ int viewer_audio_decode_frame(MediaState* is)
 
     data_size = av_samples_get_buffer_size(NULL, af->frame->ch_layout.nb_channels, af->frame->nb_samples, af->frame->format, 1);
 
-    wanted_nb_samples = viewer_synchronize_audio(is, af->frame->nb_samples);
+    wanted_nb_samples = mp_synchronize_audio(is, af->frame->nb_samples);
 
     if (af->frame->format != is->audio_src.fmt ||
 	av_channel_layout_compare(&af->frame->ch_layout, &is->audio_src.ch_layout) ||
@@ -579,7 +579,7 @@ static void update_sample_display(MediaState* is, short* samples, int samples_si
 }
 
 /* prepare a new audio buffer */
-static void viewer_sdl_audio_callback(void* opaque, Uint8* stream, int len)
+static void mp_sdl_audio_callback(void* opaque, Uint8* stream, int len)
 {
     MediaState* ms = opaque;
     int         audio_size, len1;
@@ -590,7 +590,7 @@ static void viewer_sdl_audio_callback(void* opaque, Uint8* stream, int len)
     {
 	if (ms->audio_buf_index >= ms->audio_buf_size)
 	{
-	    audio_size = viewer_audio_decode_frame(ms);
+	    audio_size = mp_audio_decode_frame(ms);
 
 	    if (audio_size < 0)
 	    {
@@ -631,11 +631,11 @@ static void viewer_sdl_audio_callback(void* opaque, Uint8* stream, int len)
     if (!isnan(ms->audio_clock))
     {
 	clock_set_at(&ms->audclk, ms->audio_clock - (double) (2 * ms->audio_hw_buf_size + ms->audio_write_buf_size) / ms->audio_tgt.bytes_per_sec, ms->audio_clock_serial, ms->audio_callback_time / 1000000.0);
-	viewer_sync_clock_to_slave(&ms->extclk, &ms->audclk);
+	mp_sync_clock_to_slave(&ms->extclk, &ms->audclk);
     }
 }
 
-int viewer_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int wanted_sample_rate, struct AudioParams* audio_hw_params)
+int mp_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int wanted_sample_rate, struct AudioParams* audio_hw_params)
 {
     zc_log_debug("viewer audio open");
 
@@ -678,7 +678,7 @@ int viewer_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int 
     wanted_spec.format   = AUDIO_S16SYS;
     wanted_spec.silence  = 0;
     wanted_spec.samples  = FFMAX(SDL_AUDIO_MIN_BUFFER_SIZE, 2 << av_log2(wanted_spec.freq / SDL_AUDIO_MAX_CALLBACKS_PER_SEC));
-    wanted_spec.callback = viewer_sdl_audio_callback;
+    wanted_spec.callback = mp_sdl_audio_callback;
     wanted_spec.userdata = opaque;
 
     while (!(audio_dev = SDL_OpenAudioDevice(NULL, 0, &wanted_spec, &spec, SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE)))
@@ -735,7 +735,7 @@ int viewer_audio_open(void* opaque, AVChannelLayout* wanted_channel_layout, int 
     return spec.size;
 }
 
-int viewer_audio_decode_thread(void* arg)
+int mp_audio_decode_thread(void* arg)
 {
     zc_log_debug("Audio decoder thread started.");
 
@@ -784,7 +784,7 @@ int viewer_audio_decode_thread(void* arg)
     return ret;
 }
 
-int viewer_stream_open(MediaState* ms, int stream_index)
+int mp_stream_open(MediaState* ms, int stream_index)
 {
     zc_log_debug("Opening stream %i", stream_index);
 
@@ -838,7 +838,7 @@ int viewer_stream_open(MediaState* ms, int stream_index)
 				{
 				    decoder_start(&ms->viddec);
 
-				    ms->video_thread     = SDL_CreateThread(viewer_video_decode_thread, "video_decoder", ms);
+				    ms->video_thread     = SDL_CreateThread(mp_video_decode_thread, "video_decoder", ms);
 				    ms->check_attachment = 1;
 
 				    if (!ms->video_thread)
@@ -859,7 +859,7 @@ int viewer_stream_open(MediaState* ms, int stream_index)
 				if (ret >= 0)
 				{
 				    /* prepare audio output */
-				    ret = viewer_audio_open(ms, &ch_layout, sample_rate, &ms->audio_tgt);
+				    ret = mp_audio_open(ms, &ch_layout, sample_rate, &ms->audio_tgt);
 
 				    if (ret >= 0)
 				    {
@@ -891,7 +891,7 @@ int viewer_stream_open(MediaState* ms, int stream_index)
 
 					    decoder_start(&ms->auddec);
 
-					    ms->audio_thread = SDL_CreateThread(viewer_audio_decode_thread, "audio_decoder", ms);
+					    ms->audio_thread = SDL_CreateThread(mp_audio_decode_thread, "audio_decoder", ms);
 
 					    if (!ms->audio_thread)
 					    {
@@ -934,7 +934,7 @@ int viewer_stream_open(MediaState* ms, int stream_index)
     return ret;
 }
 
-void viewer_stream_close(MediaState* ms, int stream_index)
+void mp_stream_close(MediaState* ms, int stream_index)
 {
     AVFormatContext*   format = ms->format;
     AVCodecParameters* codecpar;
@@ -1001,13 +1001,13 @@ void viewer_stream_close(MediaState* ms, int stream_index)
     }
 }
 
-int viewer_decode_interrupt_cb(void* ctx)
+int mp_decode_interrupt_cb(void* ctx)
 {
     MediaState* ms = ctx;
     return ms->abort_request;
 }
 
-int viewer_stream_has_enough_packets(AVStream* st, int stream_id, PacketQueue* queue)
+int mp_stream_has_enough_packets(AVStream* st, int stream_id, PacketQueue* queue)
 {
     return stream_id < 0 ||
 	   queue->abort_request ||
@@ -1016,7 +1016,7 @@ int viewer_stream_has_enough_packets(AVStream* st, int stream_id, PacketQueue* q
 }
 
 /* this thread gets the stream from the disk or the network */
-int viewer_read_thread(void* arg)
+int mp_read_thread(void* arg)
 {
     zc_log_debug("Read thread started.");
 
@@ -1035,7 +1035,7 @@ int viewer_read_thread(void* arg)
 
 	    if (format)
 	    {
-		format->interrupt_callback.callback = viewer_decode_interrupt_cb;
+		format->interrupt_callback.callback = mp_decode_interrupt_cb;
 		format->interrupt_callback.opaque   = ms;
 
 		/* in case of mpeg-2 force scan all program mapping tables and combine them */
@@ -1097,14 +1097,14 @@ int viewer_read_thread(void* arg)
 		    int ret = -1;
 		    if (videost >= 0)
 		    {
-			ret = viewer_stream_open(ms, videost);
+			ret = mp_stream_open(ms, videost);
 			if (ret < 0) zc_log_error("Can't open video stream, errno %i", ret);
 		    }
 		    else zc_log_debug("No video stream.");
 
 		    if (audiost >= 0)
 		    {
-			ret = viewer_stream_open(ms, audiost);
+			ret = mp_stream_open(ms, audiost);
 			if (ret < 0) zc_log_error("Can't open audio stream, errno %i", ret);
 		    }
 		    else zc_log_debug("No audio stream.");
@@ -1159,7 +1159,7 @@ int viewer_read_thread(void* arg)
 			    ms->check_attachment = 1;
 			    ms->eof              = 0;
 
-			    if (ms->paused) viewer_step_to_next_frame(ms);
+			    if (ms->paused) mp_step_to_next_frame(ms);
 			}
 
 			/* put attachment */
@@ -1182,8 +1182,8 @@ int viewer_read_thread(void* arg)
 			/* skip packet reading if there are enough packets */
 
 			if ((ms->vidpq.size + ms->audpq.size > MAX_QUEUE_SIZE) ||
-			    (viewer_stream_has_enough_packets(ms->audst, ms->audst_index, &ms->audpq) &&
-			     viewer_stream_has_enough_packets(ms->vidst, ms->vidst_index, &ms->vidpq)))
+			    (mp_stream_has_enough_packets(ms->audst, ms->audst_index, &ms->audpq) &&
+			     mp_stream_has_enough_packets(ms->vidst, ms->vidst_index, &ms->vidpq)))
 			{
 			    SDL_LockMutex(wait_mutex);
 			    SDL_CondWaitTimeout(ms->continue_read_thread, wait_mutex, 10);
@@ -1199,7 +1199,7 @@ int viewer_read_thread(void* arg)
 
 			if (!paused && vidend && audend)
 			{
-			    viewer_stream_seek(ms, 0, 0, 0);
+			    mp_stream_seek(ms, 0, 0, 0);
 			    ms->finished = 1;
 			}
 
@@ -1272,9 +1272,9 @@ int viewer_read_thread(void* arg)
 
 /* entry point, opens/plays media under path */
 
-MediaState* viewer_open(char* path, cb_t* sizecb)
+MediaState* mp_open(char* path, cb_t* sizecb)
 {
-    zc_log_debug("viewer_open %s", path);
+    zc_log_debug("mp_open %s", path);
 
     MediaState* ms = av_mallocz(sizeof(MediaState));
 
@@ -1306,7 +1306,7 @@ MediaState* viewer_open(char* path, cb_t* sizecb)
 		    ms->vidst_index  = -1;
 		    ms->audst_index  = -1;
 		    ms->filename     = av_strdup(path);
-		    ms->read_thread  = SDL_CreateThread(viewer_read_thread, "read_thread", ms);
+		    ms->read_thread  = SDL_CreateThread(mp_read_thread, "read_thread", ms);
 
 		    if (!ms->read_thread) zc_log_error("Cannot create read thread : %s\n", SDL_GetError());
 		}
@@ -1322,16 +1322,16 @@ MediaState* viewer_open(char* path, cb_t* sizecb)
 
 /* end playing */
 
-void viewer_close(MediaState* ms)
+void mp_close(MediaState* ms)
 {
-    zc_log_debug("viewer_close %s", ms->filename);
+    zc_log_debug("mp_close %s", ms->filename);
 
     ms->abort_request = 1;
     SDL_WaitThread(ms->read_thread, NULL);
 
     /* close each stream */
-    if (ms->vidst_index >= 0) viewer_stream_close(ms, ms->vidst_index);
-    if (ms->audst_index >= 0) viewer_stream_close(ms, ms->audst_index);
+    if (ms->vidst_index >= 0) mp_stream_close(ms, ms->vidst_index);
+    if (ms->audst_index >= 0) mp_stream_close(ms, ms->audst_index);
 
     avformat_close_input(&ms->format);
 
@@ -1350,39 +1350,39 @@ void viewer_close(MediaState* ms)
     av_free(ms);
 }
 
-void viewer_play(MediaState* ms)
+void mp_play(MediaState* ms)
 {
-    if (ms->paused) viewer_stream_toggle_pause(ms);
+    if (ms->paused) mp_stream_toggle_pause(ms);
 }
 
-void viewer_pause(MediaState* ms)
+void mp_pause(MediaState* ms)
 {
-    if (!ms->paused) viewer_stream_toggle_pause(ms);
+    if (!ms->paused) mp_stream_toggle_pause(ms);
 }
 
-void viewer_mute(MediaState* ms)
+void mp_mute(MediaState* ms)
 {
     if (ms) ms->muted = 1;
 }
 
-void viewer_unmute(MediaState* ms)
+void mp_unmute(MediaState* ms)
 {
     if (ms) ms->muted = 0;
 }
 
-void viewer_set_volume(MediaState* ms, float ratio)
+void mp_set_volume(MediaState* ms, float ratio)
 {
     ms->audio_volume = (int) ((float) SDL_MIX_MAXVOLUME * ratio);
 }
 
-void viewer_set_position(MediaState* ms, float ratio)
+void mp_set_position(MediaState* ms, float ratio)
 {
     int newpos = (int) ms->duration * ratio;
-    int diff   = (int) viewer_get_master_clock(ms) - newpos;
+    int diff   = (int) mp_get_master_clock(ms) - newpos;
     /* printf("ratio %f\n", ratio); */
     /* printf("duration %f\n", player_duration()); */
     /* printf("newpos %i\n", newpos); */
-    viewer_stream_seek(ms, (int64_t) (newpos * AV_TIME_BASE), (int64_t) (diff * AV_TIME_BASE), 0);
+    mp_stream_seek(ms, (int64_t) (newpos * AV_TIME_BASE), (int64_t) (diff * AV_TIME_BASE), 0);
 }
 
 // display related
@@ -1391,18 +1391,18 @@ void update_video_pts(MediaState* ms, double pts, int64_t pos, int serial)
 {
     /* update current video pts */
     clock_set(&ms->vidclk, pts, serial);
-    viewer_sync_clock_to_slave(&ms->extclk, &ms->vidclk);
+    mp_sync_clock_to_slave(&ms->extclk, &ms->vidclk);
 }
 double compute_target_delay(double delay, MediaState* ms)
 {
     double sync_threshold, diff = 0;
 
     /* update delay to follow master synchronisation source */
-    if (viewer_get_master_sync_type(ms) != AV_SYNC_VIDEO_MASTER)
+    if (mp_get_master_sync_type(ms) != AV_SYNC_VIDEO_MASTER)
     {
 	/* if video is slave, we try to correct big delays by
 	   duplicating or deleting a frame */
-	diff = clock_get(&ms->vidclk) - viewer_get_master_clock(ms);
+	diff = clock_get(&ms->vidclk) - mp_get_master_clock(ms);
 
 	/* skip or repeat frame. We take into account the
 	   delay to compute the threshold. I still don't know
@@ -1512,7 +1512,7 @@ void video_display(MediaState* ms, bm_rgba_t* bm)
 }
 
 /* called to display each frame */
-void viewer_video_refresh(MediaState* ms, double* remaining_time, bm_rgba_t* bm)
+void mp_video_refresh(MediaState* ms, double* remaining_time, bm_rgba_t* bm)
 {
     double time;
 
@@ -1576,7 +1576,7 @@ void viewer_video_refresh(MediaState* ms, double* remaining_time, bm_rgba_t* bm)
 	    {
 		Frame* nextvp = frame_queue_peek_next(&ms->vidfq);
 		duration      = vp_duration(ms, vp, nextvp);
-		if (!ms->step_frame && (framedrop > 0 || (framedrop && viewer_get_master_sync_type(ms) != AV_SYNC_VIDEO_MASTER)) && time > ms->frame_timer + duration)
+		if (!ms->step_frame && (framedrop > 0 || (framedrop && mp_get_master_sync_type(ms) != AV_SYNC_VIDEO_MASTER)) && time > ms->frame_timer + duration)
 		{
 		    ms->viddec.frame_drops_late++;
 		    frame_queue_next(&ms->vidfq);
@@ -1587,7 +1587,7 @@ void viewer_video_refresh(MediaState* ms, double* remaining_time, bm_rgba_t* bm)
 	    frame_queue_next(&ms->vidfq);
 	    ms->force_refresh = 1;
 
-	    if (ms->step_frame && !ms->paused) viewer_stream_toggle_pause(ms);
+	    if (ms->step_frame && !ms->paused) mp_stream_toggle_pause(ms);
 	}
     display:
 	/* display picture */
@@ -1601,7 +1601,7 @@ static inline int compute_mod(int a, int b)
     return a < 0 ? a % b + b : a % b;
 }
 
-void viewer_audio_refresh(MediaState* ms, bm_rgba_t* bml, bm_rgba_t* bmr)
+void mp_audio_refresh(MediaState* ms, bm_rgba_t* bml, bm_rgba_t* bmr)
 {
     int     i, i_start, x, y1, y2, y, ys, delay, n, nb_display_channels;
     int     ch, channels, h, h2;
