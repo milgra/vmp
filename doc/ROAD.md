@@ -4,7 +4,6 @@ Visual Music Player
 
 viewer->mp
 filemanager, library egybe
-show current song in info field
 preferences popup
 donation popup
 genre selector

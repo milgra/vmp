@@ -91,31 +91,44 @@ void ui_content_size_cb(void* userdata, void* data)
     /* vh_cv_body_set_content_size(uiv.visubody, (int) r->x, (int) r->y); */
 }
 
-void ui_play_next()
+void ui_play_song(map_t* song)
 {
+    /* close existing viewer */
     if (ui.viewer) viewer_close(ui.viewer);
     ui.viewer = NULL;
 
+    /* update played song */
+    if (ui.played_song) REL(ui.played_song);
+    ui.played_song = RET(song);
+
+    /* create new viewer */
+    char* path     = MGET(song, "path");
+    char* realpath = path_new_append(config_get("lib_path"), path);
+
+    ui.viewer = viewer_open(realpath, ui.sizecb);
+    viewer_set_volume(ui.viewer, ui.volume);
+
+    /* clear cover view */
+    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
+
+    /* update song list table */
+    uint32_t index = songlist_get_index(song);
+    if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
+
+    /* update info text */
+    char info[200];
+    snprintf(info, 200, "%s / %s", (char*) MGET(song, "artist"), (char*) MGET(song, "title"));
+    tg_text_set(ui.infotf, info, ui.infots);
+}
+
+void ui_play_next()
+{
     map_t* next = NULL;
 
     if (ui.shuffle == 0 && ui.played_song) next = songlist_get_next_song(ui.played_song);
     else next = songlist_get_song(1);
 
-    if (next)
-    {
-	if (ui.played_song) REL(ui.played_song);
-	ui.played_song = RET(next);
-
-	char* path     = MGET(next, "path");
-	char* realpath = path_new_append(config_get("lib_path"), path);
-
-	ui.viewer = viewer_open(realpath, ui.sizecb);
-	viewer_set_volume(ui.viewer, ui.volume);
-
-	gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
-	uint32_t index = songlist_get_index(next);
-	if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
-    }
+    ui_play_song(next);
 }
 
 void ui_on_btn_event(void* userdata, void* data)
@@ -132,23 +145,7 @@ void ui_on_btn_event(void* userdata, void* data)
 	    else
 	    {
 		map_t* song = songlist_get_song(0);
-		if (song)
-		{
-		    if (ui.played_song) REL(ui.played_song);
-		    ui.played_song = RET(ui.played_song);
-
-		    char* path     = MGET(song, "path");
-		    char* realpath = path_new_append(config_get("lib_path"), path);
-
-		    ui.viewer = viewer_open(realpath, ui.sizecb);
-		    viewer_set_volume(ui.viewer, ui.volume);
-		    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
-
-		    uint32_t index = songlist_get_index(song);
-		    if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
-
-		    // TODO update songlisttable
-		}
+		if (song) ui_play_song(song);
 	    }
 	}
 	else
@@ -166,55 +163,21 @@ void ui_on_btn_event(void* userdata, void* data)
     };
     if (strcmp(btnview->id, "prevbtn") == 0)
     {
-	if (ui.viewer) viewer_close(ui.viewer);
-	ui.viewer = NULL;
-
 	map_t* prev = NULL;
 
 	if (ui.shuffle == 0 && ui.played_song) prev = songlist_get_prev_song(ui.played_song);
 	else prev = songlist_get_song(1);
 
-	if (prev)
-	{
-	    if (ui.played_song) REL(ui.played_song);
-	    ui.played_song = RET(prev);
-
-	    char* path     = MGET(prev, "path");
-	    char* realpath = path_new_append(config_get("lib_path"), path);
-
-	    ui.viewer = viewer_open(realpath, ui.sizecb);
-	    viewer_set_volume(ui.viewer, ui.volume);
-
-	    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
-	    uint32_t index = songlist_get_index(prev);
-	    if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
-	}
+	if (prev) ui_play_song(prev);
     };
     if (strcmp(btnview->id, "nextbtn") == 0)
     {
-	if (ui.viewer) viewer_close(ui.viewer);
-	ui.viewer = NULL;
-
 	map_t* next = NULL;
 
 	if (ui.shuffle == 0 && ui.played_song) next = songlist_get_next_song(ui.played_song);
 	else next = songlist_get_song(1);
 
-	if (next)
-	{
-	    if (ui.played_song) REL(ui.played_song);
-	    ui.played_song = RET(next);
-
-	    char* path     = MGET(next, "path");
-	    char* realpath = path_new_append(config_get("lib_path"), path);
-
-	    ui.viewer = viewer_open(realpath, ui.sizecb);
-	    viewer_set_volume(ui.viewer, ui.volume);
-
-	    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
-	    uint32_t index = songlist_get_index(next);
-	    if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
-	}
+	if (next) ui_play_song(next);
     };
     if (strcmp(btnview->id, "shufflebtn") == 0)
     {
@@ -259,22 +222,7 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	    vec_t* selected = userdata;
 	    map_t* info     = selected->data[0];
 
-	    if (ui.played_song) REL(ui.played_song);
-	    ui.played_song = RET(info);
-
-	    char* path     = MGET(info, "path");
-	    char* realpath = path_new_append(config_get("lib_path"), path);
-
-	    if (ui.viewer) viewer_close(ui.viewer);
-	    ui.viewer = viewer_open(realpath, ui.sizecb);
-	    viewer_set_volume(ui.viewer, ui.volume);
-
-	    gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
-
-	    view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
-	    vh_button_set_state(playbtn, VH_BUTTON_DOWN);
-
-	    REL(realpath);
+	    ui_play_song(info);
 	}
 	break;
 	case UI_TABLE_EVENT_DRAG:
@@ -642,11 +590,9 @@ void ui_update_palyer()
 	ui.visL->texture.changed  = 1;
 	ui.visR->texture.changed  = 1;
 
-	if (ui.viewer->finished) ui_play_next();
-
 	double time = roundf(viewer_get_master_clock(ui.viewer) * 10.0) / 10.0;
 
-	if (time != ui.timestate)
+	if (time != ui.timestate && !isnan(time))
 	{
 	    ui.timestate = time;
 
@@ -662,6 +608,8 @@ void ui_update_palyer()
 	    double ratio = time / ui.viewer->duration;
 	    tg_knob_set_angle(ui.seekknob, ratio * 6.28 - 3.14 / 2.0);
 	}
+
+	if (ui.viewer->finished) ui_play_next();
     }
 }
 
