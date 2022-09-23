@@ -5,6 +5,7 @@
 #include "zc_map.c"
 
 void fm_read_files(char* libpath, map_t* db);
+int  fm_create(char* file_path, mode_t mode);
 void fm_delete_file(char* libpath, map_t* entry);
 int  fm_rename_file(char* old, char* new, char* new_dirs);
 

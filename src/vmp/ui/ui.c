@@ -121,6 +121,9 @@ void ui_play_song(map_t* song)
     char info[200];
     snprintf(info, 200, "%s / %s", (char*) MGET(song, "artist"), (char*) MGET(song, "title"));
     tg_text_set(ui.infotf, info, ui.infots);
+
+    view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
+    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
 }
 
 void ui_play_next()

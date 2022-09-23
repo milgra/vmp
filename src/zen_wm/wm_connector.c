@@ -227,11 +227,7 @@ void wm_close()
 void wm_toggle_fullscreen()
 {
     int flags = SDL_GetWindowFlags(wm_window);
-
-    char fullscreen  = SDL_GetWindowFlags(wm_window) & SDL_WINDOW_FULLSCREEN;
-    char fullscreend = SDL_GetWindowFlags(wm_window) & SDL_WINDOW_FULLSCREEN_DESKTOP;
-    flags ^= SDL_WINDOW_FULLSCREEN;
-
+    flags ^= SDL_WINDOW_FULLSCREEN_DESKTOP;
     SDL_SetWindowFullscreen(wm_window, flags);
 }
 

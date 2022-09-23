@@ -1142,7 +1142,8 @@ int mp_read_thread(void* arg)
 			    }
 			    else
 			    {
-				/* reset packet queue  */
+				/* reset packet queues  */
+				if (ms->audst_index >= 0) packet_queue_flush(&ms->audpq);
 				if (ms->vidst_index >= 0) packet_queue_flush(&ms->vidpq);
 
 				/* set clocks */
