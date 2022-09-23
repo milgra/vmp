@@ -36,6 +36,7 @@ void ui_update_songlist();
 #include "vh_button.c"
 #include "vh_key.c"
 #include "vh_knob.c"
+#include "vh_touch.c"
 #include "viewgen_css.c"
 #include "viewgen_html.c"
 #include "viewgen_type.c"
@@ -55,7 +56,7 @@ struct _ui_t
     view_t* view_base;
     view_t* cursor; // replay cursor
 
-    MediaState* viewer;
+    MediaState* ms;
     cb_t*       sizecb;
 
     view_t* cover;
@@ -67,6 +68,7 @@ struct _ui_t
     map_t* played_song;
     int    shuffle;
     float  volume;
+    int    visutype; // 0 - waves 1 - rdft
 
     view_t* seekknob;
     view_t* volknob;
@@ -92,20 +94,21 @@ void ui_content_size_cb(void* userdata, void* data)
 
 void ui_play_song(map_t* song)
 {
-    /* close existing viewer */
-    if (ui.viewer) mp_close(ui.viewer);
-    ui.viewer = NULL;
+    /* close existing ms */
+    if (ui.ms) mp_close(ui.ms);
+    ui.ms = NULL;
 
     /* update played song */
     if (ui.played_song) REL(ui.played_song);
     ui.played_song = RET(song);
 
-    /* create new viewer */
+    /* create new ms */
     char* path     = MGET(song, "path");
     char* realpath = path_new_append(config_get("lib_path"), path);
 
-    ui.viewer = mp_open(realpath, ui.sizecb);
-    mp_set_volume(ui.viewer, ui.volume);
+    ui.ms = mp_open(realpath, ui.sizecb);
+    mp_set_volume(ui.ms, ui.volume);
+    mp_set_visutype(ui.ms, ui.visutype);
 
     /* clear cover view */
     gfx_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
@@ -140,7 +143,7 @@ void ui_on_btn_event(void* userdata, void* data)
     {
 	if (vh->state == VH_BUTTON_DOWN)
 	{
-	    if (ui.viewer) mp_play(ui.viewer);
+	    if (ui.ms) mp_play(ui.ms);
 	    else
 	    {
 		map_t* song = songlist_get_song(0);
@@ -149,15 +152,15 @@ void ui_on_btn_event(void* userdata, void* data)
 	}
 	else
 	{
-	    if (ui.viewer) mp_pause(ui.viewer);
+	    if (ui.ms) mp_pause(ui.ms);
 	}
     };
     if (strcmp(btnview->id, "mutebtn") == 0)
     {
-	if (ui.viewer)
+	if (ui.ms)
 	{
-	    if (vh->state == VH_BUTTON_DOWN) mp_mute(ui.viewer);
-	    else mp_unmute(ui.viewer);
+	    if (vh->state == VH_BUTTON_DOWN) mp_mute(ui.ms);
+	    else mp_unmute(ui.ms);
 	}
     };
     if (strcmp(btnview->id, "prevbtn") == 0)
@@ -200,6 +203,16 @@ void ui_on_btn_event(void* userdata, void* data)
     };
     if (strcmp(btnview->id, "exitbtn") == 0) wm_close();
     if (strcmp(btnview->id, "maxbtn") == 0) wm_toggle_fullscreen();
+    if (strcmp(btnview->id, "visL") == 0)
+    {
+	ui.visutype = 1 - ui.visutype;
+	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
+    }
+    if (strcmp(btnview->id, "visR") == 0)
+    {
+	ui.visutype = 1 - ui.visutype;
+	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
+    }
 }
 
 void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
@@ -264,7 +277,7 @@ void ui_pos_change(view_t* view, float angle)
     }
 
     ui.volume = ratio;
-    mp_set_position(ui.viewer, ui.volume);
+    mp_set_position(ui.ms, ui.volume);
 }
 
 void ui_vol_change(view_t* view, float angle)
@@ -280,7 +293,7 @@ void ui_vol_change(view_t* view, float angle)
     }
 
     ui.volume = ratio;
-    mp_set_volume(ui.viewer, ui.volume);
+    mp_set_volume(ui.ms, ui.volume);
 }
 
 void ui_create_views(float width, float height)
@@ -344,8 +357,6 @@ void ui_init(float width, float height)
 
     vh_button_add(playbtn, VH_BUTTON_TOGGLE, btn_cb);
     vh_button_add(mutebtn, VH_BUTTON_TOGGLE, btn_cb);
-
-    REL(btn_cb);
 
     ui.seekknob = seekknob;
     ui.volknob  = volknob;
@@ -474,6 +485,11 @@ void ui_init(float width, float height)
     ui.visL  = view_get_subview(ui.view_base, "visL");
     ui.visR  = view_get_subview(ui.view_base, "visR");
 
+    vh_touch_add(ui.visL, btn_cb);
+    vh_touch_add(ui.visR, btn_cb);
+
+    REL(btn_cb);
+
     // show texture map for debug
 
     /* view_t* texmap       = view_new("texmap", ((r2_t){0, 0, 150, 150})); */
@@ -580,16 +596,16 @@ void ui_song_infos_update_time(double time, double left, double dur)
 
 void ui_update_palyer()
 {
-    if (ui.viewer)
+    if (ui.ms)
     {
 	double rem;
-	mp_video_refresh(ui.viewer, &rem, ui.cover->texture.bitmap);
-	mp_audio_refresh(ui.viewer, ui.visL->texture.bitmap, ui.visR->texture.bitmap);
+	mp_video_refresh(ui.ms, &rem, ui.cover->texture.bitmap);
+	mp_audio_refresh(ui.ms, ui.visL->texture.bitmap, ui.visR->texture.bitmap);
 	ui.cover->texture.changed = 1;
 	ui.visL->texture.changed  = 1;
 	ui.visR->texture.changed  = 1;
 
-	double time = roundf(mp_get_master_clock(ui.viewer) * 10.0) / 10.0;
+	double time = roundf(mp_get_master_clock(ui.ms) * 10.0) / 10.0;
 
 	if (time != ui.timestate && !isnan(time))
 	{
@@ -597,18 +613,18 @@ void ui_update_palyer()
 
 	    int tmin = (int) floor(time / 60.0);
 	    int tsec = (int) time % 60;
-	    int dmin = (int) floor(ui.viewer->duration / 60.0);
-	    int dsec = (int) ui.viewer->duration % 60;
+	    int dmin = (int) floor(ui.ms->duration / 60.0);
+	    int dsec = (int) ui.ms->duration % 60;
 
 	    char timebuff[20];
 	    snprintf(timebuff, 20, "%.2i:%.2i / %.2i:%.2i", tmin, tsec, dmin, dsec);
 	    tg_text_set(ui.timetf, timebuff, ui.timets);
 
-	    double ratio = time / ui.viewer->duration;
+	    double ratio = time / ui.ms->duration;
 	    tg_knob_set_angle(ui.seekknob, ratio * 6.28 - 3.14 / 2.0);
 	}
 
-	if (ui.viewer->finished) ui_play_next();
+	if (ui.ms->finished) ui_play_next();
     }
 }
 

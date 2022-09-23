@@ -153,6 +153,7 @@ typedef struct MediaState
     FFTSample*   rdft_data;
 
     int xpos;
+    int visutype;
 
 } MediaState;
 
@@ -164,6 +165,7 @@ void        mp_mute(MediaState* ms);
 void        mp_unmute(MediaState* ms);
 void        mp_set_volume(MediaState* ms, float volume);
 void        mp_set_position(MediaState* ms, float ratio);
+void        mp_set_visutype(MediaState* ms, int visutype);
 void        mp_video_refresh(MediaState* opaque, double* remaining_time, bm_rgba_t* bm);
 void        mp_audio_refresh(MediaState* opaque, bm_rgba_t* bml, bm_rgba_t* bmr);
 double      mp_get_master_clock(MediaState* ms);
@@ -1385,6 +1387,11 @@ void mp_set_position(MediaState* ms, float ratio)
     mp_stream_seek(ms, (int64_t) (newpos * AV_TIME_BASE), (int64_t) (diff * AV_TIME_BASE), 0);
 }
 
+void mp_set_visutype(MediaState* ms, int visutype)
+{
+    ms->visutype = visutype;
+}
+
 // display related
 
 void update_video_pts(MediaState* ms, double pts, int64_t pos, int serial)
@@ -1625,11 +1632,9 @@ void mp_audio_refresh(MediaState* ms, bm_rgba_t* bml, bm_rgba_t* bmr)
 
     nb_display_channels = channels;
 
-    int show_mode = 1; // 0 - waves 1 - rdft
-
     if (!ms->paused)
     {
-	int data_used = show_mode == 0 ? width : (2 * nb_freq);
+	int data_used = ms->visutype == 0 ? width : (2 * nb_freq);
 	n             = 2 * channels;
 	delay         = ms->audio_write_buf_size;
 
@@ -1649,7 +1654,7 @@ void mp_audio_refresh(MediaState* ms, bm_rgba_t* bml, bm_rgba_t* bmr)
 
 	i_start = x = compute_mod(ms->sample_array_index - delay * channels, SAMPLE_ARRAY_SIZE);
 
-	if (show_mode == 0)
+	if (ms->visutype == 0)
 	{
 	    h = INT_MIN;
 	    for (i = 0; i < 1000; i += channels)
@@ -1679,7 +1684,7 @@ void mp_audio_refresh(MediaState* ms, bm_rgba_t* bml, bm_rgba_t* bmr)
     int ytop  = 0;
     int xleft = 0;
 
-    if (show_mode == 0) // frequency
+    if (ms->visutype == 0) // frequency
     {
 	gfx_rect(bml, edge, edge, width, height, 0x000000FF, 1);
 	gfx_rect(bmr, edge, edge, width, height, 0x000000FF, 1);

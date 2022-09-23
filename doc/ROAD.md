@@ -2,8 +2,6 @@
 
 Visual Music Player
 
-viewer->mp
-filemanager, library egybe
 preferences popup
 donation popup
 genre selector
