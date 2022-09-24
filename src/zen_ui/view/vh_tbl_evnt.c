@@ -97,9 +97,11 @@ void vh_tbl_evnt_evt(view_t* view, ev_t ev)
 		if (vh->tscrl_view && vh->scroll_visible) vh_tbl_scrl_update(vh->tscrl_view);
 	    }
 
-	    vh_tbl_scrl_t* svh = vh->tscrl_view->handler_data;
-
-	    if (svh->state > 0) vh_tbl_scrl_update(vh->tscrl_view);
+	    if (vh->tscrl_view)
+	    {
+		vh_tbl_scrl_t* svh = vh->tscrl_view->handler_data;
+		if (svh->state > 0) vh_tbl_scrl_update(vh->tscrl_view);
+	    }
 	}
     }
     else if (ev.type == EV_SCROLL)
@@ -117,17 +119,17 @@ void vh_tbl_evnt_evt(view_t* view, ev_t ev)
 	if (!vh->scroll_visible)
 	{
 	    vh->scroll_visible = 1;
-	    vh_tbl_scrl_show(vh->tscrl_view);
+	    if (vh->tscrl_view) vh_tbl_scrl_show(vh->tscrl_view);
 	}
 	if (vh->scroll_drag)
 	{
 	    if (ev.x > view->frame.global.x + view->frame.global.w - SCROLLBAR)
 	    {
-		vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - view->frame.global.y);
+		if (vh->tscrl_view) vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - view->frame.global.y);
 	    }
 	    if (ev.y > view->frame.global.y + view->frame.global.h - SCROLLBAR)
 	    {
-		vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - view->frame.global.x);
+		if (vh->tscrl_view) vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - view->frame.global.x);
 	    }
 	}
 	if (vh->selected_item && ev.drag)
@@ -143,7 +145,7 @@ void vh_tbl_evnt_evt(view_t* view, ev_t ev)
 	if (vh->scroll_visible)
 	{
 	    vh->scroll_visible = 0;
-	    vh_tbl_scrl_hide(vh->tscrl_view);
+	    if (vh->tscrl_view) vh_tbl_scrl_hide(vh->tscrl_view);
 	}
     }
     else if (ev.type == EV_MDOWN)
@@ -151,12 +153,12 @@ void vh_tbl_evnt_evt(view_t* view, ev_t ev)
 	if (ev.x > view->frame.global.x + view->frame.global.w - SCROLLBAR)
 	{
 	    vh->scroll_drag = 1;
-	    vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - view->frame.global.y);
+	    if (vh->tscrl_view) vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - view->frame.global.y);
 	}
 	if (ev.y > view->frame.global.y + view->frame.global.h - SCROLLBAR)
 	{
 	    vh->scroll_drag = 1;
-	    vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - view->frame.global.x);
+	    if (vh->tscrl_view) vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - view->frame.global.x);
 	}
 	if (ev.x < view->frame.global.x + view->frame.global.w - SCROLLBAR &&
 	    ev.y < view->frame.global.y + view->frame.global.h - SCROLLBAR)

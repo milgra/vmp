@@ -40,6 +40,7 @@ void ui_toggle_pause();
 #include "vh_key.c"
 #include "vh_knob.c"
 #include "vh_touch.c"
+#include "view_layout.c"
 #include "viewgen_css.c"
 #include "viewgen_html.c"
 #include "viewgen_type.c"
@@ -67,6 +68,7 @@ struct _ui_t
     view_t* visR;
 
     ui_table_t* songlisttable;
+    ui_table_t* aboutlisttable;
 
     map_t* played_song;
     int    shuffle;
@@ -82,6 +84,8 @@ struct _ui_t
     view_t*     timetf;
     textstyle_t timets;
     float       timestate;
+
+    view_t* aboutpopupcont;
 } ui;
 
 void ui_play_song(map_t* song)
@@ -228,6 +232,11 @@ void ui_on_btn_event(void* userdata, void* data)
     if (strcmp(btnview->id, "donatebtn") == 0)
     {
 	// show donate popup
+	if (!ui.aboutpopupcont->parent)
+	{
+	    view_add_subview(ui.view_base, ui.aboutpopupcont);
+	    view_layout(ui.view_base);
+	}
     };
     if (strcmp(btnview->id, "filterbtn") == 0)
     {
@@ -248,6 +257,10 @@ void ui_on_btn_event(void* userdata, void* data)
     {
 	ui.visutype = 1 - ui.visutype;
 	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
+    }
+    if (strcmp(btnview->id, "aboutclosebtn") == 0)
+    {
+	view_remove_from_parent(ui.aboutpopupcont);
     }
 }
 
@@ -297,6 +310,18 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	    zc_log_debug("drop %s", table->id);
 
 	    break;
+    }
+}
+
+void on_aboutlist_event(ui_table_t* table, ui_table_event event, void* userdata)
+{
+    switch (event)
+    {
+	case UI_TABLE_EVENT_SELECT:
+	{
+	    zc_log_debug("select %s", table->id);
+	}
+	break;
     }
 }
 
@@ -405,16 +430,17 @@ void ui_init(float width, float height)
 
     /* buttons */
 
-    view_t* prevbtn     = view_get_subview(ui.view_base, "prevbtn");
-    view_t* nextbtn     = view_get_subview(ui.view_base, "nextbtn");
-    view_t* shufflebtn  = view_get_subview(ui.view_base, "shufflebtn");
-    view_t* editbtn     = view_get_subview(ui.view_base, "editbtn");
-    view_t* settingsbtn = view_get_subview(ui.view_base, "settingsbtn");
-    view_t* donatebtn   = view_get_subview(ui.view_base, "donatebtn");
-    view_t* maxbtn      = view_get_subview(ui.view_base, "maxbtn");
-    view_t* exitbtn     = view_get_subview(ui.view_base, "exitbtn");
-    view_t* filterbtn   = view_get_subview(ui.view_base, "filterbtn");
-    view_t* clearbtn    = view_get_subview(ui.view_base, "clearbtn");
+    view_t* prevbtn       = view_get_subview(ui.view_base, "prevbtn");
+    view_t* nextbtn       = view_get_subview(ui.view_base, "nextbtn");
+    view_t* shufflebtn    = view_get_subview(ui.view_base, "shufflebtn");
+    view_t* editbtn       = view_get_subview(ui.view_base, "editbtn");
+    view_t* settingsbtn   = view_get_subview(ui.view_base, "settingsbtn");
+    view_t* donatebtn     = view_get_subview(ui.view_base, "donatebtn");
+    view_t* maxbtn        = view_get_subview(ui.view_base, "maxbtn");
+    view_t* exitbtn       = view_get_subview(ui.view_base, "exitbtn");
+    view_t* filterbtn     = view_get_subview(ui.view_base, "filterbtn");
+    view_t* clearbtn      = view_get_subview(ui.view_base, "clearbtn");
+    view_t* aboutclosebtn = view_get_subview(ui.view_base, "aboutclosebtn");
 
     vh_button_add(prevbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(nextbtn, VH_BUTTON_NORMAL, btn_cb);
@@ -426,6 +452,7 @@ void ui_init(float width, float height)
     vh_button_add(exitbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(filterbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(clearbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(aboutclosebtn, VH_BUTTON_NORMAL, btn_cb);
 
     /* textfields */
 
@@ -516,6 +543,53 @@ void ui_init(float width, float height)
 
     ui_manager_activate(songlistevt);
 
+    /* about list */
+
+    view_t* aboutpopupcont = view_get_subview(ui.view_base, "aboutpopupcont");
+    view_t* aboutpopup     = view_get_subview(ui.view_base, "aboutpopup");
+    view_t* aboutlist      = view_get_subview(ui.view_base, "aboutlisttable");
+    view_t* aboutlistevt   = view_get_subview(ui.view_base, "aboutlistevt");
+
+    aboutpopup->blocks_touch  = 1;
+    aboutpopup->blocks_scroll = 1;
+
+    ui.aboutpopupcont = RET(aboutpopupcont);
+
+    fields = VNEW();
+
+    VADDR(fields, cstr_new_cstring("value"));
+    VADDR(fields, num_new_int(510));
+
+    ui.aboutlisttable = ui_table_create(
+	"aboutlisttable",
+	aboutlist,
+	NULL,
+	aboutlistevt,
+	NULL,
+	fields,
+	on_aboutlist_event);
+
+    REL(fields);
+
+    vec_t* items = VNEW();
+
+    map_t* item1 = MNEW();
+    map_t* item2 = MNEW();
+    map_t* item3 = MNEW();
+
+    MPUTR(item1, "value", cstr_new_format(200, "Visual Music Player v%s beta by Milan Toth", VMP_VERSION));
+    MPUTR(item2, "value", cstr_new_format(200, "Free and Open Source Software"));
+    MPUTR(item3, "value", cstr_new_format(200, "Donate on Paypal"));
+
+    VADDR(items, item1);
+    VADDR(items, item2);
+    VADDR(items, item3);
+
+    ui_table_set_data(ui.aboutlisttable, items);
+    REL(items);
+
+    view_remove_from_parent(ui.aboutpopupcont);
+
     /* get visual views */
 
     ui.cover = view_get_subview(ui.view_base, "cover");
@@ -544,6 +618,8 @@ void ui_destroy()
     ui_manager_remove(ui.view_base);
 
     if (ui.played_song) REL(ui.played_song);
+
+    REL(ui.aboutpopupcont);
 
     REL(ui.sizecb);
     REL(ui.view_base);
@@ -604,31 +680,6 @@ void ui_save_screenshot(uint32_t time, char hide_cursor)
 
 	if (hide_cursor) ui_update_cursor(frame); // full screen cursor to indicate screenshot, next step will reset it
     }
-}
-
-void ui_song_infos_update_time(double time, double left, double dur)
-{
-    /* char timebuff[20]; */
-
-    /* int tmin = (int) floor(time / 60.0); */
-    /* int tsec = (int) time % 60; */
-    /* int lmin = (int) floor(left / 60.0); */
-    /* int lsec = (int) left % 60; */
-    /* int dmin = (int) floor(dur / 60.0); */
-    /* int dsec = (int) dur % 60; */
-
-    /* uisi.textstyle.align        = TA_LEFT; */
-    /* uisi.textstyle.margin_right = 0; */
-    /* uisi.textstyle.margin_left  = 18; */
-
-    /* snprintf(timebuff, 20, "%.2i:%.2i", dmin, dsec); */
-    /* tg_text_set(uisi.song_length_view, timebuff, uisi.textstyle); */
-
-    /* snprintf(timebuff, 20, "%.2i:%.2i", tmin, tsec); */
-    /* tg_text_set(uisi.song_time_view, timebuff, uisi.textstyle); */
-
-    /* snprintf(timebuff, 20, "%.2i:%.2i", lmin, lsec); */
-    /* tg_text_set(uisi.song_remaining_view, timebuff, uisi.textstyle); */
 }
 
 void ui_update_palyer()

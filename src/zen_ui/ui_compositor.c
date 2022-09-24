@@ -154,7 +154,7 @@ void ui_compositor_add(
     int   tex_w,
     int   tex_h)
 {
-    /* printf("ui_compositor_add %s %f %f %f %f masked %i\n", id, frame.x, frame.y, frame.w, frame.h, masked); */
+    printf("ui_compositor_add %s %f %f %f %f masked %i\n", id, frame.x, frame.y, frame.w, frame.h, masked);
 
     // fill up cache if needed
     if (uic.cache_ind + 1 > uic.cache->length)

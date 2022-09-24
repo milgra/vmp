@@ -48,6 +48,15 @@
     color: #DEDEDEFF;
     font-size: 16px;
     font-family: "Terminus (TTF):style=Bold";
+    line-height: 22>px;
+}
+
+.abouttablebody {
+    color: #DEDEDEFF;
+    text-align: center;
+    font-size: 16px;
+    line-height: 32px;
+    font-family: "Terminus (TTF):style=Bold";
 }
 
 .vertscroll {
@@ -112,6 +121,13 @@
 }
 
 .toolbtn {
+    width: 30px;
+    height: 30px;
+}
+
+.closebtn {
+    margin: auto;
+    top: 5px;
     width: 30px;
     height: 30px;
 }
@@ -450,4 +466,44 @@
     width: 150px;
     height: 150px;
     background-color: #353535FF;
+}
+
+#aboutpopup {
+    width: 520px;
+    height: 185px;
+    margin: auto;
+}
+
+#aboutlist {
+    width: 100%;
+    height: 100%;
+    margin-top: 20px;
+    margin-bottom: 60px;
+    overflow: hidden;
+    background-color: #151515FF;
+}
+
+#abouticon {
+    width: 30px;
+    height: 30px;
+    background-image: url("home.png");
+    blocks: no;
+}
+
+.popup_page {
+    width: 100%;
+    height: 100%;
+}
+
+.popupshadow {
+    width: 100%;
+    height: 100%;
+    margin: 5px;
+    border-radius: 15px;
+    background-color: #151515FF;
+    box-shadow: 40px #FFFFFF22;
+ }
+
+.popupcontainer {
+    align-items: center;
 }

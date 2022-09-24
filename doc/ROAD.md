@@ -12,6 +12,9 @@ process popup
 
 **near future**
 
+- about popup wanders down on resize
+- margin top and bottom 20 miswork
+
  - metadata editor problems, doesn't jump to beginning after long edit
  - jump to current song misbehaves when column sort is set differently
  - full screen visualizer
