@@ -85,6 +85,7 @@ com_sources = ['src/vmp/ui/ui.c',
 	       'src/vmp/utils/bm_rgba_util.c',
 	       'src/vmp/utils/cstr_util.c',
 	       'src/vmp/utils/str_util.c',
+	       'src/vmp/utils/map_util.c',
 
 	       'src/zen_core/zc_bm_rgba.c',
 	       'src/zen_core/zc_callback.c',

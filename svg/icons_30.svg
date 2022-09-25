@@ -7,7 +7,7 @@
    id="svg8"
    inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
    sodipodi:docname="icons_30.svg"
-   inkscape:export-filename="../res/img/closeblack.png"
+   inkscape:export-filename="../res/img/visu.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -35,10 +35,10 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="22.251767"
-     inkscape:cx="12.830442"
-     inkscape:cy="13.639366"
+     inkscape:cx="12.021517"
+     inkscape:cy="14.852753"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer5"
+     inkscape:current-layer="layer11"
      inkscape:document-rotation="0"
      showgrid="true"
      units="px"
@@ -268,7 +268,7 @@
      inkscape:groupmode="layer"
      id="layer5"
      inkscape:label="Close"
-     style="display:inline">
+     style="display:none">
     <rect
        style="fill:#000000;stroke-width:0.264583"
        id="rect315"
@@ -330,13 +330,13 @@
      inkscape:groupmode="layer"
      id="layer10"
      inkscape:label="Accept"
-     style="display:none">
+     style="display:none;fill:#ffffff">
     <path
        id="rect315-5"
-       style="display:inline;fill:#000000;stroke-width:0.264583"
+       style="display:inline;fill:#ffffff;stroke-width:0.264583"
        d="M 2.3557386,3.762273 C 2.2844076,3.756953 2.2150607,3.778877 2.1645359,3.829452 2.0634864,3.9306019 2.0769279,4.106797 2.1945079,4.2242601 L 3.1050468,5.1337656 C 3.1580897,5.0561051 3.2273737,5.0076749 3.304518,5.0076752 H 3.7091445 L 2.5593437,3.8589081 C 2.5005541,3.8001764 2.4270695,3.7675953 2.3557386,3.762273 Z" />
     <rect
-       style="display:inline;fill:#000000;stroke-width:0.264583"
+       style="display:inline;fill:#ffffff;stroke-width:0.264583"
        id="rect315-4-0"
        width="3.4274313"
        height="0.51616079"
@@ -345,5 +345,15 @@
        rx="0.30000046"
        ry="0.49034697"
        transform="matrix(0.70745768,-0.70675571,-0.70675571,-0.70745768,0,0)" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer11"
+     inkscape:label="Visualizer">
+    <path
+       style="opacity:1;fill:#ffffff;stroke-width:0.230161"
+       d="M 1.6684705,4.023169 3.1582633,2.6054 5.0226183,4.6268773 6.2613581,3.5228315 6.5725345,3.8816087 5.0479032,5.2798203 3.1296039,3.2874981 2.0370556,4.3432649 Z"
+       id="path427"
+       sodipodi:nodetypes="ccccccccc" />
   </g>
 </svg>

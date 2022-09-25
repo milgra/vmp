@@ -330,9 +330,9 @@ int main(int argc, char* argv[])
 
     config_init(); // DESTROY 0
 
-    config_set("dark_mode", "false");
     config_set("res_path", res_path);
     config_set("lib_path", lib_path);
+    config_set("lib_organize", "true");
 
     // read config, it overwrites defaults if exists
 
