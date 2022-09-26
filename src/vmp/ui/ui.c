@@ -92,6 +92,9 @@ struct _ui_t
     textstyle_t timets;
     float       timestate;
 
+    view_t*     filtertf;
+    textstyle_t filterts;
+
     view_t* settingspopupcont;
     view_t* filterpopupcont;
 } ui;
@@ -374,7 +377,17 @@ void on_genrelist_event(ui_table_t* table, ui_table_event event, void* userdata)
     {
 	case UI_TABLE_EVENT_SELECT:
 	{
-	    zc_log_debug("select %s", table->id);
+	    vec_t* selected = userdata;
+	    map_t* info     = selected->data[0];
+
+	    char* genre = MGET(info, "genre");
+	    char  filter[100];
+
+	    snprintf(filter, 100, "genre is %s", genre);
+	    songlist_set_filter(filter);
+	    ui_update_songlist();
+
+	    tg_text_set(ui.filtertf, filter, ui.filterts);
 	}
 	break;
     }
@@ -386,7 +399,17 @@ void on_artistlist_event(ui_table_t* table, ui_table_event event, void* userdata
     {
 	case UI_TABLE_EVENT_SELECT:
 	{
-	    zc_log_debug("select %s", table->id);
+	    vec_t* selected = userdata;
+	    map_t* info     = selected->data[0];
+
+	    char* artist = MGET(info, "artist");
+	    char  filter[100];
+
+	    snprintf(filter, 100, "artist is %s", artist);
+	    songlist_set_filter(filter);
+	    ui_update_songlist();
+
+	    tg_text_set(ui.filtertf, filter, ui.filterts);
 	}
 	break;
     }
@@ -532,12 +555,11 @@ void ui_init(float width, float height)
     tg_text_add(ui.infotf);
     tg_text_set(ui.infotf, "This is the info textfield", ui.infots);
 
-    view_t* filtertf = view_get_subview(ui.view_base, "filtertf");
+    ui.filtertf = view_get_subview(ui.view_base, "filtertf");
+    ui.filterts = ui_util_gen_textstyle(ui.filtertf);
 
-    textstyle_t filterts = ui_util_gen_textstyle(filtertf);
-
-    tg_text_add(filtertf);
-    tg_text_set(filtertf, "This is the search textfield", filterts);
+    tg_text_add(ui.filtertf);
+    tg_text_set(ui.filtertf, "This is the search textfield", ui.filterts);
 
     ui.timetf = view_get_subview(ui.view_base, "timetf");
     ui.timets = ui_util_gen_textstyle(ui.timetf);

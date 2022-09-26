@@ -15,6 +15,7 @@ process popup
 - about popup wanders down on resize
 - margin top and bottom 20 miswork
 remember song state
+genre list should filter artist list also
 
  - metadata editor problems, doesn't jump to beginning after long edit
  - jump to current song misbehaves when column sort is set differently
