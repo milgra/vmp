@@ -344,6 +344,9 @@ void ui_on_btn_event(void* userdata, void* data)
 	vh_textinput_set_text(ui.filtertf, "");
 	ui_manager_activate(ui.filtertf);
 	vh_textinput_activate(ui.filtertf, 1);
+
+	songlist_set_filter(NULL);
+	ui_update_songlist();
     };
     if (strcmp(btnview->id, "exitbtn") == 0) wm_close();
     if (strcmp(btnview->id, "maxbtn") == 0) wm_toggle_fullscreen();
@@ -448,7 +451,7 @@ void on_genrelist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	    songlist_set_filter(filter);
 	    ui_update_songlist();
 
-	    tg_text_set(ui.filtertf, filter, ui.filterts);
+	    vh_textinput_set_text(ui.filtertf, filter);
 	}
 	break;
     }
@@ -470,7 +473,7 @@ void on_artistlist_event(ui_table_t* table, ui_table_event event, void* userdata
 	    songlist_set_filter(filter);
 	    ui_update_songlist();
 
-	    tg_text_set(ui.filtertf, filter, ui.filterts);
+	    vh_textinput_set_text(ui.filtertf, filter);
 	}
 	break;
     }
@@ -848,6 +851,10 @@ void ui_init(float width, float height)
     ui.visuals     = RET(view_get_subview(ui.view_base, "visuals"));
     ui.songlisttop = RET(view_get_subview(ui.view_base, "songlisttop"));
 
+    view_gen_texture(ui.visL);
+    view_gen_texture(ui.visR);
+    view_gen_texture(ui.cover);
+
     vh_touch_add(ui.visL, btn_cb);
     vh_touch_add(ui.visR, btn_cb);
 
@@ -977,6 +984,13 @@ void ui_update_palyer()
 
 	if (ui.ms->finished) ui_play_next();
     }
+    else
+    {
+	gfx_rect(ui.visL->texture.bitmap, 0, ui.visL->texture.bitmap->h / 2, ui.visL->texture.bitmap->w, 1, 0xFFFFFFFF, 1);
+	ui.visL->texture.changed = 1;
+	gfx_rect(ui.visR->texture.bitmap, 0, ui.visR->texture.bitmap->h / 2, ui.visR->texture.bitmap->w, 1, 0xFFFFFFFF, 1);
+	ui.cover->texture.changed = 1;
+    }
 }
 
 void ui_update_layout(float w, float h)
@@ -1005,6 +1019,7 @@ void ui_update_songlist()
     lib_get_entries(entries);
     songlist_set_songs(entries);
     ui_set_songs(songlist_get_visible_songs());
+    REL(entries);
 }
 
 #endif
