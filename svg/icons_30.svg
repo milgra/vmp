@@ -7,7 +7,7 @@
    id="svg8"
    inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
    sodipodi:docname="icons_30.svg"
-   inkscape:export-filename="../res/img/settings.png"
+   inkscape:export-filename="../res/img/accept.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -35,8 +35,8 @@
      inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="22.251767"
-     inkscape:cx="12.021517"
-     inkscape:cy="14.852753"
+     inkscape:cx="1.3706777"
+     inkscape:cy="14.897693"
      inkscape:document-units="mm"
      inkscape:current-layer="layer11"
      inkscape:document-rotation="0"
@@ -188,7 +188,7 @@
      inkscape:groupmode="layer"
      id="layer1"
      inkscape:label="Settings"
-     style="display:inline;fill:#ffffff">
+     style="display:none;fill:#ffffff">
     <rect
        style="display:inline;fill:#ffffff;stroke-width:0.264582"
        id="rect120-8-3"
@@ -330,7 +330,7 @@
      inkscape:groupmode="layer"
      id="layer10"
      inkscape:label="Accept"
-     style="display:none;fill:#ffffff">
+     style="display:inline;fill:#ffffff">
     <path
        id="rect315-5"
        style="display:inline;fill:#ffffff;stroke-width:0.264583"

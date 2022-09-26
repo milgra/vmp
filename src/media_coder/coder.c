@@ -242,6 +242,7 @@ void coder_load_cover_into(const char* path, bm_rgba_t* bitmap)
 		}
 
 		sws_freeContext(img_convert_ctx); // FREE 3
+		free(scaledpixels[0]);
 	    }
 
 	    avcodec_free_context(&codecContext); // FREE 1

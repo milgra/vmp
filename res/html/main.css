@@ -148,6 +148,13 @@
     height: 30px;
 }
 
+.acceptbtn {
+    margin: auto;
+    bottom: 5px;
+    width: 30px;
+    height: 30px;
+}
+
 .closeicon {
     width: 30px;
     height: 30px;
@@ -252,6 +259,13 @@
     width: 30px;
     height: 30px;
     background-image: url("close.png");
+    blocks: no;
+}
+
+.accepticon {
+    width: 30px;
+    height: 30px;
+    background-image: url("accept.png");
     blocks: no;
 }
 
@@ -496,6 +510,12 @@
     margin: auto;
 }
 
+#metapopup {
+    width: 750px;
+    height: 440px;
+    margin: auto;
+}
+
 #genrelist {
     width: 150px;
     height: 100%;
@@ -512,6 +532,24 @@
     margin-bottom: 40px;
     overflow: hidden;
     background-color: #252525FF;
+}
+
+#infolist {
+    width: 100%;
+    height: 100%;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    overflow: hidden;
+    background-color: #353535FF;
+}
+
+#metalist {
+    width: 100%;
+    height: 100%;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    overflow: hidden;
+    background-color: #353535FF;
 }
 
 #settingslist {
@@ -538,7 +576,6 @@
 .popupshadow {
     width: 100%;
     height: 100%;
-    margin: 5px;
     border-radius: 15px;
     background-color: #151515FF;
     box-shadow: 40px #FFFFFF22;
@@ -546,4 +583,21 @@
 
 .popupcontainer {
     align-items: center;
+}
+
+#song_editor_list_back {
+    overflow: hidden;
+    width: 520px;
+    height: 410px;
+    top: 50px;
+    left: 10px;
+    border-radius: 10px;
+    background-color: #FFFFFFFF;
+}
+
+#metacover {
+    width: 100%;
+    height: 100%;
+    margin-top: 40px;
+    margin-bottom: 40px;
 }
