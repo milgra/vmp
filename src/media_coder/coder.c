@@ -216,8 +216,6 @@ void coder_load_cover_into(const char* path, bm_rgba_t* bitmap)
 	    avcodec_send_packet(codecContext, &pkt);
 	    avcodec_receive_frame(codecContext, frame);
 
-	    printf("received frame %i %i\n", frame->width, frame->height);
-
 	    static unsigned sws_flags = SWS_BICUBIC;
 
 	    struct SwsContext* img_convert_ctx = sws_getContext(frame->width, frame->height, frame->format, bitmap->w, bitmap->h, AV_PIX_FMT_RGBA, sws_flags, NULL, NULL,

@@ -40,6 +40,7 @@ void ui_toggle_pause();
 #include "vh_button.c"
 #include "vh_key.c"
 #include "vh_knob.c"
+#include "vh_textinput.c"
 #include "vh_touch.c"
 #include "view_layout.c"
 #include "viewgen_css.c"
@@ -340,7 +341,9 @@ void ui_on_btn_event(void* userdata, void* data)
     };
     if (strcmp(btnview->id, "clearbtn") == 0)
     {
-	// clear filter bar
+	vh_textinput_set_text(ui.filtertf, "");
+	ui_manager_activate(ui.filtertf);
+	vh_textinput_activate(ui.filtertf, 1);
     };
     if (strcmp(btnview->id, "exitbtn") == 0) wm_close();
     if (strcmp(btnview->id, "maxbtn") == 0) wm_toggle_fullscreen();
@@ -482,6 +485,17 @@ void on_metalist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	}
 	break;
     }
+}
+
+void ui_on_filter(view_t* view, void* userdata)
+{
+    str_t* text   = vh_textinput_get_text(view);
+    char*  filter = str_new_cstring(text); // REL 0
+
+    songlist_set_filter(filter);
+    ui_update_songlist();
+
+    REL(filter); // REL 0
 }
 
 void ui_pos_change(view_t* view, float angle)
@@ -629,8 +643,8 @@ void ui_init(float width, float height)
     ui.filtertf = view_get_subview(ui.view_base, "filtertf");
     ui.filterts = ui_util_gen_textstyle(ui.filtertf);
 
-    tg_text_add(ui.filtertf);
-    tg_text_set(ui.filtertf, "Filter", ui.filterts);
+    vh_textinput_add(ui.filtertf, "", "Filter", ui.filterts, NULL);
+    vh_textinput_set_on_text(ui.filtertf, ui_on_filter);
 
     ui.timetf = view_get_subview(ui.view_base, "timetf");
     ui.timets = ui_util_gen_textstyle(ui.timetf);

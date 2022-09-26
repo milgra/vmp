@@ -182,9 +182,6 @@ void songlist_set_filter(char* filter)
 
 	if (currentword) REL(currentword);
 	if (currentfield) REL(currentfield);
-
-	printf("FILTER:\n");
-	mem_describe(sl.filtermap, 0);
     }
 }
 
