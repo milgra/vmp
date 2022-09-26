@@ -73,6 +73,9 @@ struct _ui_t
     ui_table_t* songlisttable;
     ui_table_t* settingslisttable;
 
+    ui_table_t* genrelisttable;
+    ui_table_t* artistlisttable;
+
     map_t* played_song;
     int    shuffle;
     float  volume;
@@ -90,6 +93,7 @@ struct _ui_t
     float       timestate;
 
     view_t* settingspopupcont;
+    view_t* filterpopupcont;
 } ui;
 
 void ui_play_song(map_t* song)
@@ -240,21 +244,42 @@ void ui_on_btn_event(void* userdata, void* data)
     if (strcmp(btnview->id, "visubtn") == 0)
     {
 	ui.hide_visuals = 1 - ui.hide_visuals;
+
+	view_t* songs = view_get_subview(ui.view_base, "songs");
+
 	if (ui.hide_visuals)
 	{
 	    view_remove_from_parent(ui.visuals);
-	    ui.songlisttop->style.height = 1;
+	    view_remove_from_parent(ui.songlisttop);
 	}
 	else
 	{
+	    view_insert_subview(songs, ui.songlisttop, 0);
 	    view_add_subview(ui.view_base, ui.visuals);
-	    ui.songlisttop->style.height = 150;
 	}
 	view_layout(ui.view_base);
     };
     if (strcmp(btnview->id, "filterbtn") == 0)
     {
 	// show filter popup
+	if (!ui.filterpopupcont->parent)
+	{
+	    view_add_subview(ui.view_base, ui.filterpopupcont);
+
+	    vec_t* genres  = VNEW();
+	    vec_t* artists = VNEW();
+
+	    lib_get_genres(genres);
+	    lib_get_artists(artists);
+
+	    ui_table_set_data(ui.genrelisttable, genres);
+	    ui_table_set_data(ui.artistlisttable, artists);
+
+	    REL(genres);
+	    REL(artists);
+
+	    view_layout(ui.view_base);
+	}
     };
     if (strcmp(btnview->id, "clearbtn") == 0)
     {
@@ -275,6 +300,10 @@ void ui_on_btn_event(void* userdata, void* data)
     if (strcmp(btnview->id, "settingsclosebtn") == 0)
     {
 	view_remove_from_parent(ui.settingspopupcont);
+    }
+    if (strcmp(btnview->id, "filterclosebtn") == 0)
+    {
+	view_remove_from_parent(ui.filterpopupcont);
     }
 }
 
@@ -328,6 +357,30 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 }
 
 void on_settingslist_event(ui_table_t* table, ui_table_event event, void* userdata)
+{
+    switch (event)
+    {
+	case UI_TABLE_EVENT_SELECT:
+	{
+	    zc_log_debug("select %s", table->id);
+	}
+	break;
+    }
+}
+
+void on_genrelist_event(ui_table_t* table, ui_table_event event, void* userdata)
+{
+    switch (event)
+    {
+	case UI_TABLE_EVENT_SELECT:
+	{
+	    zc_log_debug("select %s", table->id);
+	}
+	break;
+    }
+}
+
+void on_artistlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 {
     switch (event)
     {
@@ -454,6 +507,7 @@ void ui_init(float width, float height)
     view_t* exitbtn          = view_get_subview(ui.view_base, "exitbtn");
     view_t* filterbtn        = view_get_subview(ui.view_base, "filterbtn");
     view_t* clearbtn         = view_get_subview(ui.view_base, "clearbtn");
+    view_t* filterclosebtn   = view_get_subview(ui.view_base, "filterclosebtn");
     view_t* settingsclosebtn = view_get_subview(ui.view_base, "settingsclosebtn");
 
     vh_button_add(prevbtn, VH_BUTTON_NORMAL, btn_cb);
@@ -466,6 +520,8 @@ void ui_init(float width, float height)
     vh_button_add(exitbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(filterbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(clearbtn, VH_BUTTON_NORMAL, btn_cb);
+
+    vh_button_add(filterclosebtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(settingsclosebtn, VH_BUTTON_NORMAL, btn_cb);
 
     /* textfields */
@@ -599,13 +655,59 @@ void ui_init(float width, float height)
 
     view_remove_from_parent(ui.settingspopupcont);
 
+    /* genre and artist lists */
+
+    view_t* filterpopupcont = view_get_subview(ui.view_base, "filterpopupcont");
+    view_t* filterpopup     = view_get_subview(ui.view_base, "filterpopup");
+    view_t* genrelist       = view_get_subview(ui.view_base, "genrelisttable");
+    view_t* genrelistevt    = view_get_subview(ui.view_base, "genrelistevt");
+    view_t* artistlist      = view_get_subview(ui.view_base, "artistlisttable");
+    view_t* artistlistevt   = view_get_subview(ui.view_base, "artistlistevt");
+
+    filterpopup->blocks_touch  = 1;
+    filterpopup->blocks_scroll = 1;
+
+    ui.filterpopupcont = RET(filterpopupcont);
+
+    vec_t* genrefields  = VNEW();
+    vec_t* artistfields = VNEW();
+
+    VADDR(genrefields, cstr_new_cstring("genre"));
+    VADDR(genrefields, num_new_int(150));
+
+    VADDR(artistfields, cstr_new_cstring("artist"));
+    VADDR(artistfields, num_new_int(350));
+
+    ui.genrelisttable = ui_table_create(
+	"genrelisttable",
+	genrelist,
+	NULL,
+	genrelistevt,
+	NULL,
+	genrefields,
+	on_genrelist_event);
+
+    ui.artistlisttable = ui_table_create(
+	"artistlisttable",
+	artistlist,
+	NULL,
+	artistlistevt,
+	NULL,
+	artistfields,
+	on_artistlist_event);
+
+    REL(genrefields);
+    REL(artistfields);
+
+    view_remove_from_parent(ui.filterpopupcont);
+
     /* get visual views */
 
     ui.cover       = view_get_subview(ui.view_base, "cover");
     ui.visL        = view_get_subview(ui.view_base, "visL");
     ui.visR        = view_get_subview(ui.view_base, "visR");
     ui.visuals     = RET(view_get_subview(ui.view_base, "visuals"));
-    ui.songlisttop = view_get_subview(ui.view_base, "songlisttop");
+    ui.songlisttop = RET(view_get_subview(ui.view_base, "songlisttop"));
 
     vh_touch_add(ui.visL, btn_cb);
     vh_touch_add(ui.visR, btn_cb);
@@ -632,6 +734,7 @@ void ui_destroy()
 
     REL(ui.visuals);
     REL(ui.settingspopupcont);
+    REL(ui.songlisttop);
 
     REL(ui.sizecb);
     REL(ui.view_base);

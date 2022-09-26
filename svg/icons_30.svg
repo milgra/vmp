@@ -7,7 +7,7 @@
    id="svg8"
    inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
    sodipodi:docname="icons_30.svg"
-   inkscape:export-filename="../res/img/visu.png"
+   inkscape:export-filename="../res/img/settings.png"
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -188,7 +188,7 @@
      inkscape:groupmode="layer"
      id="layer1"
      inkscape:label="Settings"
-     style="display:none;fill:#ffffff">
+     style="display:inline;fill:#ffffff">
     <rect
        style="display:inline;fill:#ffffff;stroke-width:0.264582"
        id="rect120-8-3"
@@ -349,7 +349,8 @@
   <g
      inkscape:groupmode="layer"
      id="layer11"
-     inkscape:label="Visualizer">
+     inkscape:label="Visualizer"
+     style="display:none">
     <path
        style="opacity:1;fill:#ffffff;stroke-width:0.230161"
        d="M 1.6684705,4.023169 3.1582633,2.6054 5.0226183,4.6268773 6.2613581,3.5228315 6.5725345,3.8816087 5.0479032,5.2798203 3.1296039,3.2874981 2.0370556,4.3432649 Z"

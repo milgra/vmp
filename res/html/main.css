@@ -59,18 +59,34 @@
     font-family: "Terminus (TTF):style=Bold";
 }
 
+.genretablebody {
+    color: #DEDEDEFF;
+    text-align: right;
+    font-size: 16px;
+    line-height: 32px;
+    font-family: "Terminus (TTF):style=Bold";
+}
+
+.artisttablebody {
+    color: #DEDEDEFF;
+    text-align: left;
+    font-size: 16px;
+    line-height: 32px;
+    font-family: "Terminus (TTF):style=Bold";
+}
+
 .vertscroll {
     width: 10px;
     height: 100px;
     right: 0px;
-    background-color: #ACACAC66;
+    background-color: #FFFFFF66;
 }
 
 .horiscroll {
     width: 100px;
     height: 10px;
     bottom: 0px;
-    background-color: #ACACAC66;
+    background-color: #FFFFFF66;
 }
 
 .vertgap {
@@ -472,6 +488,30 @@
     width: 520px;
     height: 280px;
     margin: auto;
+}
+
+#filterpopup {
+    width: 520px;
+    height: 480px;
+    margin: auto;
+}
+
+#genrelist {
+    width: 150px;
+    height: 100%;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    overflow: hidden;
+    background-color: #353535FF;
+}
+
+#artistlist {
+    width: 100%;
+    height: 100%;
+    margin-top: 40px;
+    margin-bottom: 40px;
+    overflow: hidden;
+    background-color: #252525FF;
 }
 
 #settingslist {

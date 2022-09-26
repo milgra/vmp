@@ -262,10 +262,18 @@ int lib_organize(char* libpath, map_t* db)
     return changed;
 }
 
-int lib_comp_text(void* left, void* right)
+int lib_comp_genre(void* left, void* right)
 {
-    char* la = left;
-    char* ra = right;
+    char* la = MGET(left, "genre");
+    char* ra = MGET(right, "genre");
+
+    return strcmp(la, ra);
+}
+
+int lib_comp_artist(void* left, void* right)
+{
+    char* la = MGET(left, "artist");
+    char* ra = MGET(right, "artist");
 
     return strcmp(la, ra);
 }
@@ -288,12 +296,12 @@ void lib_get_genres(vec_t* vec)
 
 	if (genre)
 	{
-	    MPUT(genres, genre, genre);
+	    MPUT(genres, genre, entry);
 	}
     }
 
     map_values(genres, vec);
-    vec_sort(vec, lib_comp_text);
+    vec_sort(vec, lib_comp_genre);
 
     REL(genres); // REL 1
     REL(songs);  // REL 0
@@ -315,11 +323,11 @@ void lib_get_artists(vec_t* vec)
 	map_t* entry  = songs->data[ei];
 	char*  artist = MGET(entry, "artist");
 
-	if (artist) MPUT(artists, artist, artist);
+	if (artist) MPUT(artists, artist, entry);
     }
 
     map_values(artists, vec);
-    vec_sort(vec, lib_comp_text);
+    vec_sort(vec, lib_comp_artist);
 
     REL(artists); // REL 1
     REL(songs);   // REL 0
