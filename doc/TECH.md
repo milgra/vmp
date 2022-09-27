@@ -1,9 +1,9 @@
-# Zen Music technical information
+# Visual Music Player technical information
 for contributors and developers
 
 ## 1. Overview ##
 
-Zen Music is a pure C project written in [headerless C](https://github.com/milgra/headerlessc).
+Visual Music Player is a pure C project written in [headerless C](https://github.com/milgra/headerlessc).
 It uses the ffmpeg library for media decoding/encoding/transcoding, SDL2 library for window and audio handling and OpenGL context creation.
 It uses a custom UI renderer called Zen UI, it is backed by OpenGL at the moment, Vulkan backend is on the roadmap.
 It uses the Zen Core library for memory management, map/vector/bitmap container implementations, utf8 string and math functions.
@@ -45,7 +45,7 @@ svg - media source files
 tst - recorded test sessions and test working directory
 ```
  
-## 4. Zen Music Logic ##
+## 4. Visual Music Player Logic ##
 
 ```
 callbacks.c - callback collector & invocator

@@ -185,7 +185,7 @@ void update(ev_t ev)
 		ui_manager_event(*recev);
 		ui_update_cursor((r2_t){recev->x, recev->y, 10, 10});
 
-		if (recev->type == EV_KDOWN && recev->keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time, mmfm.replay);
+		if (recev->type == EV_KDOWN && recev->keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time);
 	    }
 	}
     }
@@ -194,7 +194,7 @@ void update(ev_t ev)
 	if (mmfm.record)
 	{
 	    evrec_record(ev);
-	    if (ev.type == EV_KDOWN && ev.keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time, mmfm.replay);
+	    if (ev.type == EV_KDOWN && ev.keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time);
 	}
     }
 

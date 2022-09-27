@@ -56,7 +56,7 @@ void lib_read(char* libpath)
 {
     assert(libpath != NULL);
 
-    char* dbpath = path_new_append(libpath, "zenmusic.kvl"); // REL 0
+    char* dbpath = path_new_append(libpath, "vmp.kvl"); // REL 0
 
     zc_log_info("READING DB %s", dbpath);
 
@@ -71,7 +71,7 @@ void lib_write(char* libpath)
 {
     assert(libpath != NULL);
 
-    char* dbpath = cstr_new_format(PATH_MAX + NAME_MAX, "/%s/zenmusic.kvl", libpath); // REL 0
+    char* dbpath = cstr_new_format(PATH_MAX + NAME_MAX, "/%s/vmp.kvl", libpath); // REL 0
 
     int res = kvlist_write(dbpath, db);
 

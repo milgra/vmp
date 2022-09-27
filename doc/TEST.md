@@ -1,4 +1,4 @@
-# Zen Music test protocol
+# Visual Music Player test protocol
 
 Before creating a pull request first check for leaks around your modification first with the built-in leak checker ( automatically executed on exit in dev mode ) and with valgrind(freebsd) or valgrind/address sanitizer(linux)
 Then create a release build with gmake/make rel.

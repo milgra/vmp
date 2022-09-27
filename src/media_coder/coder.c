@@ -736,19 +736,16 @@ int coder_write_png(char* path, bm_rgba_t* bm)
 
 		av_image_fill_arrays(frame_in->data, frame_in->linesize, bm->data, AV_PIX_FMT_RGBA, bm->w, bm->h, 1);
 
-		AVPacket pkt;
-		pkt.data = NULL;
-		pkt.size = 0;
-		// av_init_packet(&pkt);
+		AVPacket* pkt = av_packet_alloc();
 
 		if (avcodec_send_frame(enc_ctx, frame_in) >= 0)
 		{
-		    if (avcodec_receive_packet(enc_ctx, &pkt) >= 0)
+		    if (avcodec_receive_packet(enc_ctx, pkt) >= 0)
 		    {
 			FILE* file = fopen(path, "wb");
-			fwrite(pkt.data, 1, pkt.size, file);
+			fwrite(pkt->data, 1, pkt->size, file);
 			fclose(file);
-			av_packet_unref(&pkt);
+			av_packet_free(&pkt);
 		    }
 		    else
 			printf("Error during encoding\n");

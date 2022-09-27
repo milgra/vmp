@@ -1,6 +1,6 @@
-# Zen Music User Guide
+# Visual Music Player User Guide
 
-Welcome to Zen Music player, visualizer and organizer! I put a lot of effort in the making of this application and I hope that using this application fills your heart with warmth, pride and childlike joy!
+Welcome to Visual Music Player player, visualizer and organizer! I put a lot of effort in the making of this application and I hope that using this application fills your heart with warmth, pride and childlike joy!
 
 ## Table of contents
 
@@ -36,11 +36,11 @@ The application will show you the library selector popup page.
 Click on the red button if you want to quit the application.  
 If you want to continue, enter the path to the folder on your machine where you store your music/music videos and click on the green button.  
 [note: in the near future a file browser popup will be added to this part]   
-Zen Music will parse your library and create a database from your songs. During parsing the parsed songs will be shown in the library browser.  
+Visual Music Player will parse your library and create a database from your songs. During parsing the parsed songs will be shown in the library browser.  
  
 ## 2. The Main Interface
 
-Zen Music's main user interface has four main parts :  
+Visual Music Player's main user interface has four main parts :  
 
 - The toolbar
 - The library browser
@@ -176,7 +176,7 @@ click on the clean search/filter field button
 
 ## 11. Supporting user interfaces
 
-Zen Music's supporting user interface are the following :
+Visual Music Player's supporting user interface are the following :
 
 - The metadata/tag editor
 - The settings viewer/editor
@@ -227,13 +227,13 @@ click on the main info display in the toolbar
 
 ## 16. Remote control
 
-It is possible to remote control Zen Music.
+It is possible to remote control Visual Music Player.
       
 **How to enable the feature**  
 In settings popup, click on Remote Control, click on accept.
 
 **How to use the feature**  
-Zen Music opens up an UDP port on 23723. ( The port is configurable in the config file )
+Visual Music Player opens up an UDP port on 23723. ( The port is configurable in the config file )
 Send 1 byte packets to this port, 0x00 to play/pause 0x01 to play previous song, 0x02 to play next song
 
 For example, my i3 config for remote control looks like this :
@@ -247,7 +247,7 @@ In KDE/GNOME you can also bind keys to commands.
 
 ## 17. Creating song collections
 
-Zen Music doesn't have playlists but you can do something similar. You can add tags to songs in the metadata editor, so if you want for example a playlist for monday, select all the songs you want to include at once or one-by-one and add "monday" to the tags field. Then if you search for "monday" in the search field it will show all songs with "monday" tag. Feel free to add more values to tags field using comma as separator.
+Visual Music Player doesn't have playlists but you can do something similar. You can add tags to songs in the metadata editor, so if you want for example a playlist for monday, select all the songs you want to include at once or one-by-one and add "monday" to the tags field. Then if you search for "monday" in the search field it will show all songs with "monday" tag. Feel free to add more values to tags field using comma as separator.
 
 ## 18. Command line arguments
 

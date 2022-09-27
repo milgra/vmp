@@ -12,7 +12,7 @@ void ui_toggle_pause();
 
 void ui_add_cursor();
 void ui_update_cursor(r2_t frame);
-void ui_screenshot(uint32_t time, char hide_cursor);
+void ui_screenshot(uint32_t time);
 
 void ui_update_player();
 void ui_update_songlist();
@@ -876,7 +876,7 @@ void ui_update_cursor(r2_t frame)
     view_set_frame(ui.cursor, frame);
 }
 
-void ui_screenshot(uint32_t time, char hide_cursor)
+void ui_screenshot(uint32_t time)
 {
     if (config_get("lib_path"))
     {
@@ -887,7 +887,7 @@ void ui_screenshot(uint32_t time, char hide_cursor)
 
 	// remove cursor for screenshot to remain identical
 
-	if (hide_cursor)
+	if (ui.cursor)
 	{
 	    ui_manager_remove(ui.cursor);
 	    ui_manager_render(time);
@@ -907,7 +907,7 @@ void ui_screenshot(uint32_t time, char hide_cursor)
 	REL(path);    // REL 1
 	REL(screen);  // REL 0
 
-	if (hide_cursor) ui_update_cursor(frame); // full screen cursor to indicate screenshot, next step will reset it
+	if (ui.cursor) ui_update_cursor(frame); // full screen cursor to indicate screenshot, next step will reset it
     }
 }
 

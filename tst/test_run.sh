@@ -16,15 +16,15 @@ cnt=0
 while true; do
     
     res_path="../res"
-    cfg_path="../tst/test/cfg"
     ses_path="../tst/session$cnt.rec"
+    lib_path="../tst/test"
     abs_path="tst/session$cnt.rec"
     frm_size="1000x900"
 
     ((cnt+=1))
 
     if test -f $abs_path; then
-	bin/zenmusic -r $res_path -c $cfg_path -p $ses_path -f $frm_size
+	build/vmp -r $res_path -p $ses_path -f $frm_size -l $lib_path
     else
 	break
     fi

@@ -20,13 +20,13 @@ res="y"
 while [ $res = "y" ]; do
 
     res_path="../res"
-    cfg_path="../tst/test/cfg"
     ses_path="../tst/session$cnt.rec"
+    lib_path="../tst/test"
     frm_size="1000x900"
     
     ((cnt+=1))
     
-    bin/zenmusic -r $res_path -c $cfg_path -s $ses_path -f $frm_size
+    build/vmp -r $res_path -s $ses_path -f $frm_size -l $lib_path
 
     echo "Record another session? y/n"
 
