@@ -165,7 +165,22 @@ pkg_datadir = join_paths(get_option('prefix'), get_option('datadir')) / 'vmp'
 install_data('res/html/main.html', install_dir : pkg_datadir / 'html' )
 install_data('res/html/main.css', install_dir : pkg_datadir / 'html' )
 install_data('res/img/close.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/accept.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/close.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/closeblack.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/donate.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/filter.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/max.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/meta.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/mute.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/next.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/pause.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/play.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/prev.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/settings.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/shuffle.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/unmute.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/visu.png', install_dir : pkg_datadir / 'img' )
 
 executable(
   'vmp',
