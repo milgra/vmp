@@ -18,6 +18,7 @@ remember song state
 genre list should filter artist list also
 str to cstr mindenhol
 text style kulon view-bol jojjon, ne interferaljon table css-sel
+clean info log level
 
  - metadata editor problems, doesn't jump to beginning after long edit
  - jump to current song misbehaves when column sort is set differently
