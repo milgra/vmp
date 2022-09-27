@@ -3,10 +3,6 @@
     width: 100%;
 }
 
-.black {
-    background-color: #000000FF;
-}
-
 .colflex {
     display: flex;
     flex-direction: column;
@@ -21,21 +17,16 @@
     height: 100%;
 }
 
-#songs {
-    display: flex;
-    flex-direction: column;
+.popupshadow {
     width: 100%;
     height: 100%;
-}
+    border-radius: 15px;
+    background-color: #151515FF;
+    box-shadow: 40px #FFFFFF22;
+ }
 
-#songlisttop {
-    height: 150px;
-    width: 100%;
-}
-
-#main_top {
-    height: 38px;
-    width: 100%;
+.popupcontainer {
+    align-items: center;
 }
 
 .tablehead {
@@ -51,28 +42,16 @@
     line-height: 22>px;
 }
 
-.settingstablebody {
-    color: #DEDEDEFF;
+.textaligncenter {
     text-align: center;
-    font-size: 16px;
-    line-height: 32px;
-    font-family: "Terminus (TTF):style=Bold";
 }
 
-.genretablebody {
-    color: #DEDEDEFF;
-    text-align: right;
-    font-size: 16px;
-    line-height: 32px;
-    font-family: "Terminus (TTF):style=Bold";
-}
-
-.artisttablebody {
-    color: #DEDEDEFF;
+.textalignleft {
     text-align: left;
-    font-size: 16px;
-    line-height: 32px;
-    font-family: "Terminus (TTF):style=Bold";
+}
+
+.textalignright {
+    text-align: right;
 }
 
 .vertscroll {
@@ -89,51 +68,12 @@
     background-color: #FFFFFF66;
 }
 
-.vertgap {
-    height: 5px;
-    width: 100%;
-}
-.horgap {
-    height: 100%;
-    width: 5px;
-}
-
 .gap {
     width: 5px;
 }
 
-.wth50 {
-    width: 50px;
-    height: 100%;
-    background-color: #00FF00FF;
-}
-
-.wth100 {
-    width: 100px;
-    height: 100%;
-    background-color: #FF0000FF;
-}
-
 .overflowhidden {
     overflow: hidden;
-}
-
-#headercol {
-    width: 100%;
-    height: 100px;
-}
-
-.headerrow {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    height: 30px;
-}
-
-#toolbarbodycol {
-    width: 100%;
-    height: 100%;
-    background-color: #454545FF;
 }
 
 .toolbtn {
@@ -169,6 +109,41 @@
     blocks: no;
 }
 
+.accepticon {
+    width: 30px;
+    height: 30px;
+    background-image: url("accept.png");
+    blocks: no;
+}
+
+.freq {
+    width: 100%;
+    height: 150px;
+    background-color: #151515FF;
+}
+
+.cover {
+    width: 150px;
+    height: 150px;
+    background-color: #353535FF;
+}
+
+.50px {
+    width: 50px;
+    height: 100%;
+}
+
+#songlisttop {
+    height: 150px;
+    width: 100%;
+}
+
+#toolbarcolor {
+    width: 100%;
+    height: 100%;
+    background-color: #454545FF;
+}
+
 #previcon {
     width: 30px;
     height: 30px;
@@ -190,22 +165,6 @@
     blocks: no;
 }
 
-#shuffleoff {
-    width: 30px;
-    height: 30px;
-}
-
-#shuffleon {
-    top: 4px;
-    left: 4px;
-    width: 22px;
-    height: 22px;
-    border-radius: 3px;
-    background-color: #ABABAB99;
-    blocks: no;
-    box-shadow: 5px #0000000A;
-}
-
 #shuffleicon {
     width: 30px;
     height: 30px;
@@ -213,7 +172,7 @@
     blocks: no;
 }
 
-#settingsicon1 {
+#settingsicon {
     width: 30px;
     height: 30px;
     background-image: url("settings.png");
@@ -262,35 +221,47 @@
     blocks: no;
 }
 
-.accepticon {
-    width: 30px;
-    height: 30px;
-    background-image: url("accept.png");
+#playicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("play.png");
     blocks: no;
 }
 
-#seekbar {
-    width: 100%;
-    height: 30px;
-    background-color: #454545FF;
-    border-radius: 4px;
-    box-shadow: 5px #0000000A;
+#pauseicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("pause.png");
+    blocks: no;
 }
 
-#volbar {
-    width: 100px;
-    height: 30px;
-    background-color: #454545FF;
-    border-radius: 4px;
-    box-shadow: 5px #0000000A;
+#muteicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("mute.png");
+    blocks: no;
 }
 
-#timebck {
+#unmuteicon {
+    width: 40px;
+    height: 40px;
+    background-image: url("unmute.png");
+    blocks: no;
+}
+
+#shuffleoff {
+    width: 30px;
+    height: 30px;
+}
+
+#shuffleon {
     top: 4px;
-    width: 100%;
+    left: 4px;
+    width: 22px;
     height: 22px;
-    background-color: #BBBBBBFF;
-    border-radius: 4px;
+    border-radius: 3px;
+    background-color: #ABABAB99;
+    blocks: no;
     box-shadow: 5px #0000000A;
 }
 
@@ -344,45 +315,11 @@
     flex-direction: row;
 }
 
-.dragger {
-    width: 15px;
-    height: 15px;
-    border-radius: 2px;
-    background-color: #00000099;
-}
-
-#header {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    height: 100px;
-}
-
 #seekknob {
     width: 100px;
     height: 100px;
     left: 0px;
     align-items: center;
-}
-
-#playbtn {
-    width: 40px;
-    height: 40px;
-    margin: auto;
-}
-
-#playicon {
-    width: 40px;
-    height: 40px;
-    background-image: url("play.png");
-    blocks: no;
-}
-
-#pauseicon {
-    width: 40px;
-    height: 40px;
-    background-image: url("pause.png");
-    blocks: no;
 }
 
 #volknob {
@@ -392,24 +329,26 @@
     align-items: center;
 }
 
+#playbtn {
+    width: 40px;
+    height: 40px;
+    margin: auto;
+}
+
 #mutebtn {
     width: 40px;
     height: 40px;
     margin: auto;
 }
 
-#muteicon {
-    width: 40px;
-    height: 40px;
-    background-image: url("mute.png");
-    blocks: no;
+#filterbtn {
+    width: 30px;
+    height: 30px;
 }
 
-#unmuteicon {
-    width: 40px;
-    height: 40px;
-    background-image: url("unmute.png");
-    blocks: no;
+#clearbtn {
+    width: 30px;
+    height: 30px;
 }
 
 #controls {
@@ -417,11 +356,6 @@
     height: 100px;
     margin: auto;
     bottom: 5px;
-}
-
-.50px {
-    width: 50px;
-    height: 100%;
 }
 
 #toolbar {
@@ -447,55 +381,9 @@
     flex-direction: row;
 }
 
-#filterbtn {
-    width: 30px;
-    height: 30px;
-}
-
-#clearbtn {
-    width: 30px;
-    height: 30px;
-}
-
-.if_clear_btn_back {
-    background-color: #FFFFFFFF;
-    right: 5px;
-    top: 5px;
-    width: 25px;
-    height: 25px;
-    border-radius: 5px;
-    box-shadow: 3px #00000022;
-}
-
-.if_clear_btn {
-    width: 100%;
-    height: 100%;
-}
-
-.if_clear_btn_icon {
-    left: -2px;
-    top: -2px;
-    width: 30px;
-    height: 30px;
-    background-image: url("close.png");
-    blocks: no;
-}
-
 #visuals {
     width: 100%;
     height: 150px;
-}
-
-.freq {
-    width: 100%;
-    height: 150px;
-    background-color: #151515FF;
-}
-
-.cover {
-    width: 150px;
-    height: 150px;
-    background-color: #353535FF;
 }
 
 #settingspopup {
@@ -559,40 +447,6 @@
     margin-bottom: 60px;
     overflow: hidden;
     background-color: #151515FF;
-}
-
-#settingsicon {
-    width: 30px;
-    height: 30px;
-    background-image: url("home.png");
-    blocks: no;
-}
-
-.popup_page {
-    width: 100%;
-    height: 100%;
-}
-
-.popupshadow {
-    width: 100%;
-    height: 100%;
-    border-radius: 15px;
-    background-color: #151515FF;
-    box-shadow: 40px #FFFFFF22;
- }
-
-.popupcontainer {
-    align-items: center;
-}
-
-#song_editor_list_back {
-    overflow: hidden;
-    width: 520px;
-    height: 410px;
-    top: 50px;
-    left: 10px;
-    border-radius: 10px;
-    background-color: #FFFFFFFF;
 }
 
 #metacover {
