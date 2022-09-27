@@ -116,10 +116,10 @@ void songlist_apply_filter()
 
 		    if (value != NULL)
 		    {
-			if (utf8casestr(filtervalue, value))
+			if (utf8casestr(value, filtervalue))
 			{
 			    VADD(filtered, entry);
-			    continue;
+			    break;
 			}
 		    }
 		}
@@ -170,8 +170,8 @@ void songlist_set_filter(char* filter)
 	    }
 	    else
 	    {
+		if (strlen(currentword) > 0) currentword = cstr_append(currentword, " ");
 		currentword = cstr_append(currentword, word);
-		currentword = cstr_append(currentword, " ");
 	    }
 	}
 

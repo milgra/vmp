@@ -59,47 +59,46 @@ void ui_toggle_pause();
 
 struct _ui_t
 {
-    view_t* view_base;
-    view_t* cursor; // replay cursor
-
     MediaState* ms;
-    cb_t*       sizecb;
 
-    view_t* cover;
+    ui_table_t* metalisttable;
+    ui_table_t* songlisttable;
+    ui_table_t* genrelisttable;
+    ui_table_t* artistlisttable;
+    ui_table_t* settingslisttable;
+
+    view_t* metapopupcont;
+    view_t* filterpopupcont;
+    view_t* settingspopupcont;
+
+    cb_t* sizecb;
+
+    view_t* cursor;
+    view_t* view_base;
+
     view_t* visL;
     view_t* visR;
+    view_t* cover;
     view_t* visuals;
     view_t* songlisttop;
 
-    ui_table_t* songlisttable;
-    ui_table_t* settingslisttable;
+    view_t* volknob;
+    view_t* seekknob;
 
-    ui_table_t* genrelisttable;
-    ui_table_t* artistlisttable;
-    ui_table_t* metalisttable;
+    view_t* infotf;
+    view_t* timetf;
+    view_t* filtertf;
+
+    textstyle_t infots;
+    textstyle_t timets;
+    textstyle_t filterts;
 
     map_t* played_song;
     int    shuffle;
     float  volume;
     int    visutype; // 0 - waves 1 - rdft
     int    hide_visuals;
-
-    view_t* seekknob;
-    view_t* volknob;
-
-    view_t*     infotf;
-    textstyle_t infots;
-
-    view_t*     timetf;
-    textstyle_t timets;
-    float       timestate;
-
-    view_t*     filtertf;
-    textstyle_t filterts;
-
-    view_t* settingspopupcont;
-    view_t* filterpopupcont;
-    view_t* metapopupcont;
+    float  timestate;
 } ui;
 
 void ui_play_song(map_t* song)
