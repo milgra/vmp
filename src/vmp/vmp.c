@@ -51,8 +51,6 @@ void init(int width, int height)
 	ui_add_cursor();
     }
 
-    ui_update_layout(width, height);
-
     remote_listen(&mmfm.remote);
 }
 
@@ -166,7 +164,7 @@ void update(ev_t ev)
 	    if (mmfm.analyzer->ratio == 1.0)
 	    {
 		lib_add_entries(mmfm.analyzer->songs);
-		lib_organize(config_get("lib_path"), lib_get_db());
+		if (config_get_bool("lib_organize")) lib_organize(config_get("lib_path"), lib_get_db());
 		lib_write(config_get("lib_path"));
 		ui_update_songlist();
 
@@ -176,7 +174,7 @@ void update(ev_t ev)
 	    }
 	}
 
-	ui_update_palyer();
+	ui_update_player();
 
 	if (mmfm.replay)
 	{
@@ -187,7 +185,7 @@ void update(ev_t ev)
 		ui_manager_event(*recev);
 		ui_update_cursor((r2_t){recev->x, recev->y, 10, 10});
 
-		if (recev->type == EV_KDOWN && recev->keycode == SDLK_PRINTSCREEN) ui_save_screenshot(ev.time, mmfm.replay);
+		if (recev->type == EV_KDOWN && recev->keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time, mmfm.replay);
 	    }
 	}
     }
@@ -196,22 +194,12 @@ void update(ev_t ev)
 	if (mmfm.record)
 	{
 	    evrec_record(ev);
-	    if (ev.type == EV_KDOWN && ev.keycode == SDLK_PRINTSCREEN) ui_save_screenshot(ev.time, mmfm.replay);
+	    if (ev.type == EV_KDOWN && ev.keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time, mmfm.replay);
 	}
-    }
-
-    if (ev.type == EV_RESIZE)
-    {
-	ui_update_layout(ev.w, ev.h);
     }
 
     // in case of replay only send time events
     if (!mmfm.replay || ev.type == EV_TIME) ui_manager_event(ev);
-
-    if (ev.type == EV_RESIZE)
-    {
-	// ui_describe();
-    }
 }
 
 void render(uint32_t time)
@@ -240,14 +228,15 @@ int main(int argc, char* argv[])
     const char* usage =
 	"Usage: vmp [options]\n"
 	"\n"
-	"  -h, --help                          Show help message and quit.\n"
-	"  -v                                  Increase verbosity of messages, defaults to errors and warnings only.\n"
-	"  -l --library= [library path] \t library path, ~/Music by default\n"
-	"  -c --config= [config file] \t use config file for session\n"
-	"  -r --resources= [resources folder] \t use resources dir for session\n"
-	"  -s --record= [recorder file] \t record session to file\n"
-	"  -p --replay= [recorder file] \t replay session from file\n"
-	"  -f --frame= [widthxheight] \t initial window dimension\n"
+	"  -h, --help                            Show help message and quit.\n"
+	"  -v, --verbose                         Increase verbosity of messages, defaults to errors and warnings only.\n"
+	"  -l --library= [library path]          Library path, ~/Music by default\n"
+	"  -o --organize                         Organize library, rename new songs to /artist/album/trackno title.ext\n"
+	/* "  -c --config= [config file]            Use config file for session\n" */
+	"  -r --resources= [resources folder]    Resources dir for current session\n"
+	"  -s --record= [recorder file]          Record session to file\n"
+	"  -p --replay= [recorder file]          Replay session from file\n"
+	"  -f --frame= [widthxheight]            Initial window dimension\n"
 	"\n";
 
     const struct option long_options[] =
@@ -255,6 +244,7 @@ int main(int argc, char* argv[])
 	    {"help", no_argument, NULL, 'h'},
 	    {"verbose", no_argument, NULL, 'v'},
 	    {"library", optional_argument, 0, 'l'},
+	    {"organize", optional_argument, 0, 'l'},
 	    {"resources", optional_argument, 0, 'r'},
 	    {"record", optional_argument, 0, 's'},
 	    {"replay", optional_argument, 0, 'p'},
@@ -266,19 +256,21 @@ int main(int argc, char* argv[])
     char* rec_par = NULL;
     char* rep_par = NULL;
     char* frm_par = NULL;
+    char* org_par = "false";
     char* lib_par = NULL;
 
     int verbose      = 0;
     int option       = 0;
     int option_index = 0;
 
-    while ((option = getopt_long(argc, argv, "vhr:s:p:c:f:l:", long_options, &option_index)) != -1)
+    while ((option = getopt_long(argc, argv, "vhr:s:p:c:f:l:o", long_options, &option_index)) != -1)
     {
 	switch (option)
 	{
 	    case '?': printf("parsing option %c value: %s\n", option, optarg); break;
 	    case 'c': cfg_par = cstr_new_cstring(optarg); break; // REL 0
 	    case 'l': lib_par = cstr_new_cstring(optarg); break; // REL 1
+	    case 'o': org_par = "true"; break;
 	    case 'r': res_par = cstr_new_cstring(optarg); break; // REL 1
 	    case 's': rec_par = cstr_new_cstring(optarg); break; // REL 2
 	    case 'p': rep_par = cstr_new_cstring(optarg); break; // REL 3
@@ -332,7 +324,7 @@ int main(int argc, char* argv[])
 
     config_set("res_path", res_path);
     config_set("lib_path", lib_path);
-    config_set("lib_organize", "true");
+    config_set("lib_organize", org_par);
 
     // read config, it overwrites defaults if exists
 

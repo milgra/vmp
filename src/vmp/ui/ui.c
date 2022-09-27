@@ -5,19 +5,18 @@
 
 void ui_init(float width, float height);
 void ui_destroy();
-void ui_add_cursor();
-void ui_update_cursor(r2_t frame);
-void ui_render_without_cursor(uint32_t time);
-void ui_save_screenshot(uint32_t time, char hide_cursor);
-void ui_update_layout(float w, float h);
-void ui_describe();
-void ui_set_songs(vec_t* songs);
-void ui_show_progress(char* progress);
-void ui_update_palyer();
-void ui_update_songlist();
+
 void ui_play_next();
 void ui_play_prev();
 void ui_toggle_pause();
+
+void ui_add_cursor();
+void ui_update_cursor(r2_t frame);
+void ui_screenshot(uint32_t time, char hide_cursor);
+
+void ui_update_player();
+void ui_update_songlist();
+void ui_show_progress(char* progress);
 
 #endif
 
@@ -61,17 +60,17 @@ struct _ui_t
 {
     MediaState* ms;
 
-    ui_table_t* metalisttable;
-    ui_table_t* songlisttable;
-    ui_table_t* genrelisttable;
-    ui_table_t* artistlisttable;
-    ui_table_t* settingslisttable;
+    ui_table_t* metatable;
+    ui_table_t* songtable;
+    ui_table_t* genretable;
+    ui_table_t* artisttable;
+    ui_table_t* settingstable;
 
     view_t* metapopupcont;
     view_t* filterpopupcont;
     view_t* settingspopupcont;
 
-    cb_t* sizecb;
+    cb_t* size_cb;
 
     view_t* cursor;
     view_t* view_base;
@@ -115,7 +114,7 @@ void ui_play_song(map_t* song)
     char* path     = MGET(song, "path");
     char* realpath = path_new_append(config_get("lib_path"), path);
 
-    ui.ms = mp_open(realpath, ui.sizecb);
+    ui.ms = mp_open(realpath, ui.size_cb);
     mp_set_volume(ui.ms, ui.volume);
     mp_set_visutype(ui.ms, ui.visutype);
 
@@ -124,7 +123,7 @@ void ui_play_song(map_t* song)
 
     /* update song list table */
     uint32_t index = songlist_get_index(song);
-    if (index < UINT32_MAX) ui_table_select(ui.songlisttable, index);
+    if (index < UINT32_MAX) ui_table_select(ui.songtable, index);
 
     /* update info text */
     char info[200];
@@ -135,45 +134,6 @@ void ui_play_song(map_t* song)
     if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
 }
 
-void ui_play_next()
-{
-    map_t* next = NULL;
-
-    if (ui.shuffle == 0 && ui.played_song) next = songlist_get_next_song(ui.played_song);
-    else next = songlist_get_song(1);
-
-    ui_play_song(next);
-}
-
-void ui_play_prev()
-{
-    map_t* prev = NULL;
-
-    if (ui.shuffle == 0 && ui.played_song) prev = songlist_get_prev_song(ui.played_song);
-    else prev = songlist_get_song(1);
-
-    ui_play_song(prev);
-}
-
-void ui_toggle_pause()
-{
-    if (ui.ms)
-    {
-	view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
-
-	if (!ui.ms->paused)
-	{
-	    mp_pause(ui.ms);
-	    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_UP);
-	}
-	else
-	{
-	    mp_play(ui.ms);
-	    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
-	}
-    }
-}
-
 void ui_on_key_down(void* userdata, void* data)
 {
     ev_t* ev = (ev_t*) data;
@@ -182,13 +142,12 @@ void ui_on_key_down(void* userdata, void* data)
 
 void ui_content_size_cb(void* userdata, void* data)
 {
+    /* handle aspect ratio of cover / video */
     /* v2_t* r = (v2_t*) data; */
-    /* vh_cv_body_set_content_size(uiv.visubody, (int) r->x, (int) r->y); */
 }
 
 void ui_on_btn_event(void* userdata, void* data)
 {
-    // ev_t* ev = (ev_t*) data;
     view_t*      btnview = data;
     vh_button_t* vh      = btnview->handler_data;
 
@@ -264,16 +223,15 @@ void ui_on_btn_event(void* userdata, void* data)
 	}
 	view_layout(ui.view_base);
     };
-    if (strcmp(btnview->id, "editbtn") == 0)
+    if (strcmp(btnview->id, "metabtn") == 0)
     {
-	// show filter popup
 	if (!ui.metapopupcont->parent)
 	{
 	    view_add_subview(ui.view_base, ui.metapopupcont);
 
-	    if (ui.songlisttable->selected->length > 0)
+	    if (ui.songtable->selected->length > 0)
 	    {
-		map_t* info = ui.songlisttable->selected->data[0];
+		map_t* info = ui.songtable->selected->data[0];
 
 		view_t* cover    = view_get_subview(ui.metapopupcont, "metacover");
 		char*   path     = MGET(info, "path");
@@ -297,28 +255,15 @@ void ui_on_btn_event(void* userdata, void* data)
 		    MPUT(map, "value", value);
 		    VADDR(pairs, map);
 		}
-		ui_table_set_data(ui.metalisttable, pairs);
+		ui_table_set_data(ui.metatable, pairs);
 		REL(pairs);
 
 		view_layout(ui.view_base);
 	    }
-
-	    /* vec_t* genres  = VNEW(); */
-	    /* vec_t* artists = VNEW(); */
-
-	    /* lib_get_genres(genres); */
-	    /* lib_get_artists(artists); */
-
-	    /* ui_table_set_data(ui.genrelisttable, genres); */
-	    /* ui_table_set_data(ui.artistlisttable, artists); */
-
-	    /* REL(genres); */
-	    /* REL(artists); */
 	}
     };
     if (strcmp(btnview->id, "filterbtn") == 0)
     {
-	// show filter popup
 	if (!ui.filterpopupcont->parent)
 	{
 	    view_add_subview(ui.view_base, ui.filterpopupcont);
@@ -329,8 +274,8 @@ void ui_on_btn_event(void* userdata, void* data)
 	    lib_get_genres(genres);
 	    lib_get_artists(artists);
 
-	    ui_table_set_data(ui.genrelisttable, genres);
-	    ui_table_set_data(ui.artistlisttable, artists);
+	    ui_table_set_data(ui.genretable, genres);
+	    ui_table_set_data(ui.artisttable, artists);
 
 	    REL(genres);
 	    REL(artists);
@@ -379,12 +324,10 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
     {
 	case UI_TABLE_EVENT_FIELDS_UPDATE:
 	{
-	    zc_log_debug("fields update %s", table->id);
 	}
 	break;
 	case UI_TABLE_EVENT_SELECT:
 	{
-	    zc_log_debug("select %s", table->id);
 	}
 	break;
 	case UI_TABLE_EVENT_OPEN:
@@ -397,12 +340,10 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	break;
 	case UI_TABLE_EVENT_DRAG:
 	{
-	    zc_log_debug("drag %s", table->id);
 	}
 	break;
 	case UI_TABLE_EVENT_KEY:
 	{
-	    zc_log_debug("key %s", table->id);
 	    ev_t ev = *((ev_t*) userdata);
 
 	    if (ev.keycode == SDLK_DOWN || ev.keycode == SDLK_UP)
@@ -416,8 +357,6 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	}
 	break;
 	case UI_TABLE_EVENT_DROP:
-	    zc_log_debug("drop %s", table->id);
-
 	    break;
     }
 }
@@ -428,7 +367,6 @@ void on_settingslist_event(ui_table_t* table, ui_table_event event, void* userda
     {
 	case UI_TABLE_EVENT_SELECT:
 	{
-	    zc_log_debug("select %s", table->id);
 	}
 	break;
     }
@@ -497,7 +435,7 @@ void ui_on_filter(view_t* view, void* userdata)
     songlist_set_filter(filter);
     ui_update_songlist();
 
-    REL(filter); // REL 0
+    REL(filter);
 }
 
 void ui_pos_change(view_t* view, float angle)
@@ -532,59 +470,54 @@ void ui_vol_change(view_t* view, float angle)
     mp_set_volume(ui.ms, ui.volume);
 }
 
-void ui_create_views(float width, float height)
+void ui_update_songlist()
 {
-    // generate views from descriptors
-
-    vec_t* view_list = viewgen_html_create(config_get("html_path"));
-    viewgen_css_apply(view_list, config_get("css_path"), config_get("res_path"));
-    viewgen_type_apply(view_list);
-    ui.view_base = RET(vec_head(view_list));
-    REL(view_list);
-
-    // initial layout of views
-
-    view_set_frame(ui.view_base, (r2_t){0.0, 0.0, (float) width, (float) height});
-    ui_manager_add(ui.view_base);
-}
-
-int ui_comp_text(void* left, void* right)
-{
-    char* la = left;
-    char* ra = right;
-
-    return strcmp(la, ra);
+    vec_t* entries = VNEW();
+    lib_get_entries(entries);
+    songlist_set_songs(entries);
+    ui_table_set_data(ui.songtable, songlist_get_visible_songs());
+    REL(entries);
 }
 
 void ui_init(float width, float height)
 {
     text_init();                    // DESTROY 0
     ui_manager_init(width, height); // DESTROY 1
-    ui_create_views(width, height);
 
-    /* setup key events */
+    /* generate views from descriptors */
 
-    cb_t* key_cb = cb_new(ui_on_key_down, NULL);
-    vh_key_add(ui.view_base, key_cb); // listen on ui.view_base for shortcuts
-    REL(key_cb);
+    vec_t* view_list = VNEW();
+
+    viewgen_html_parse(config_get("html_path"), view_list);
+    viewgen_css_apply(view_list, config_get("css_path"), config_get("res_path"));
+    viewgen_type_apply(view_list);
+
+    ui.view_base = RET(vec_head(view_list));
+
+    REL(view_list);
+
+    /* initial layout of views */
+
+    view_set_frame(ui.view_base, (r2_t){0.0, 0.0, (float) width, (float) height});
+    ui_manager_add(ui.view_base);
+
+    /* callbacks */
+
+    cb_t* btn_cb  = cb_new(ui_on_btn_event, NULL);
+    cb_t* key_cb  = cb_new(ui_on_key_down, NULL);
+    cb_t* size_cb = cb_new(ui_content_size_cb, NULL);
+
+    ui.size_cb = size_cb;
+
+    /* listen for keys and shortcuts */
+
+    vh_key_add(ui.view_base, key_cb);
     ui.view_base->needs_key = 1;
-
-    /* size callback */
-
-    cb_t* sizecb = cb_new(ui_content_size_cb, NULL);
-
-    ui.sizecb = sizecb;
-
-    /* app buttons */
-
-    cb_t* btn_cb = cb_new(ui_on_btn_event, NULL);
 
     /* knobs */
 
     view_t* seekknob = view_get_subview(ui.view_base, "seekknob");
-    view_t* playbtn  = view_get_subview(ui.view_base, "playbtn");
     view_t* volknob  = view_get_subview(ui.view_base, "volknob");
-    view_t* mutebtn  = view_get_subview(ui.view_base, "mutebtn");
 
     tg_knob_add(seekknob);
     vh_knob_add(seekknob, ui_pos_change);
@@ -592,11 +525,8 @@ void ui_init(float width, float height)
     tg_knob_add(volknob);
     vh_knob_add(volknob, ui_vol_change);
 
-    vh_button_add(playbtn, VH_BUTTON_TOGGLE, btn_cb);
-    vh_button_add(mutebtn, VH_BUTTON_TOGGLE, btn_cb);
-
-    ui.seekknob = seekknob;
     ui.volknob  = volknob;
+    ui.seekknob = seekknob;
 
     /* setup volume */
 
@@ -608,7 +538,7 @@ void ui_init(float width, float height)
     view_t* prevbtn          = view_get_subview(ui.view_base, "prevbtn");
     view_t* nextbtn          = view_get_subview(ui.view_base, "nextbtn");
     view_t* shufflebtn       = view_get_subview(ui.view_base, "shufflebtn");
-    view_t* editbtn          = view_get_subview(ui.view_base, "editbtn");
+    view_t* metabtn          = view_get_subview(ui.view_base, "metabtn");
     view_t* settingsbtn      = view_get_subview(ui.view_base, "settingsbtn");
     view_t* visubtn          = view_get_subview(ui.view_base, "visubtn");
     view_t* maxbtn           = view_get_subview(ui.view_base, "maxbtn");
@@ -618,18 +548,21 @@ void ui_init(float width, float height)
     view_t* filterclosebtn   = view_get_subview(ui.view_base, "filterclosebtn");
     view_t* settingsclosebtn = view_get_subview(ui.view_base, "settingsclosebtn");
     view_t* metaclosebtn     = view_get_subview(ui.view_base, "metaclosebtn");
+    view_t* playbtn          = view_get_subview(ui.view_base, "playbtn");
+    view_t* mutebtn          = view_get_subview(ui.view_base, "mutebtn");
 
     vh_button_add(prevbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(nextbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(shufflebtn, VH_BUTTON_TOGGLE, btn_cb);
-    vh_button_add(editbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(metabtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(settingsbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(visubtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(maxbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(exitbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(filterbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(clearbtn, VH_BUTTON_NORMAL, btn_cb);
-
+    vh_button_add(playbtn, VH_BUTTON_TOGGLE, btn_cb);
+    vh_button_add(mutebtn, VH_BUTTON_TOGGLE, btn_cb);
     vh_button_add(metaclosebtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(filterclosebtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(settingsclosebtn, VH_BUTTON_NORMAL, btn_cb);
@@ -695,22 +628,13 @@ void ui_init(float width, float height)
     VADDR(fields, cstr_new_cstring("container"));
     VADDR(fields, num_new_int(80));
 
-    view_t* songlist       = view_get_subview(ui.view_base, "songlisttable");
+    view_t* songlist       = view_get_subview(ui.view_base, "songtable");
     view_t* songlistscroll = view_get_subview(ui.view_base, "songlistscroll");
     view_t* songlistevt    = view_get_subview(ui.view_base, "songlistevt");
     view_t* songlisthead   = view_get_subview(ui.view_base, "songlisthead");
 
-    /* textstyle_t ts = ui_util_gen_textstyle(songlist); */
-
-    /* ts.align        = TA_CENTER; */
-    /* ts.margin_right = 0; */
-    /* ts.size         = 60.0; */
-    /* ts.textcolor    = 0x353535FF; */
-    /* ts.backcolor    = 0x252525FF; */
-    /* ts.multiline    = 0; */
-
-    ui.songlisttable = ui_table_create(
-	"songlisttable",
+    ui.songtable = ui_table_create(
+	"songtable",
 	songlist,
 	songlistscroll,
 	songlistevt,
@@ -726,7 +650,7 @@ void ui_init(float width, float height)
 
     view_t* settingspopupcont = view_get_subview(ui.view_base, "settingspopupcont");
     view_t* settingspopup     = view_get_subview(ui.view_base, "settingspopup");
-    view_t* settingslist      = view_get_subview(ui.view_base, "settingslisttable");
+    view_t* settingslist      = view_get_subview(ui.view_base, "settingstable");
     view_t* settingslistevt   = view_get_subview(ui.view_base, "settingslistevt");
 
     settingspopup->blocks_touch  = 1;
@@ -739,8 +663,8 @@ void ui_init(float width, float height)
     VADDR(fields, cstr_new_cstring("value"));
     VADDR(fields, num_new_int(510));
 
-    ui.settingslisttable = ui_table_create(
-	"settingslisttable",
+    ui.settingstable = ui_table_create(
+	"settingstable",
 	settingslist,
 	NULL,
 	settingslistevt,
@@ -759,7 +683,7 @@ void ui_init(float width, float height)
     VADDR(items, mapu_pair((mpair_t){"value", cstr_new_format(200, "Organize Library : %s", config_get("lib_organize"))}));
     VADDR(items, mapu_pair((mpair_t){"value", cstr_new_format(200, "Library Path : %s", config_get("lib_path"))}));
 
-    ui_table_set_data(ui.settingslisttable, items);
+    ui_table_set_data(ui.settingstable, items);
     REL(items);
 
     view_remove_from_parent(ui.settingspopupcont);
@@ -768,9 +692,9 @@ void ui_init(float width, float height)
 
     view_t* filterpopupcont = view_get_subview(ui.view_base, "filterpopupcont");
     view_t* filterpopup     = view_get_subview(ui.view_base, "filterpopup");
-    view_t* genrelist       = view_get_subview(ui.view_base, "genrelisttable");
+    view_t* genrelist       = view_get_subview(ui.view_base, "genretable");
     view_t* genrelistevt    = view_get_subview(ui.view_base, "genrelistevt");
-    view_t* artistlist      = view_get_subview(ui.view_base, "artistlisttable");
+    view_t* artistlist      = view_get_subview(ui.view_base, "artisttable");
     view_t* artistlistevt   = view_get_subview(ui.view_base, "artistlistevt");
 
     filterpopup->blocks_touch  = 1;
@@ -787,8 +711,8 @@ void ui_init(float width, float height)
     VADDR(artistfields, cstr_new_cstring("artist"));
     VADDR(artistfields, num_new_int(350));
 
-    ui.genrelisttable = ui_table_create(
-	"genrelisttable",
+    ui.genretable = ui_table_create(
+	"genretable",
 	genrelist,
 	NULL,
 	genrelistevt,
@@ -796,8 +720,8 @@ void ui_init(float width, float height)
 	genrefields,
 	on_genrelist_event);
 
-    ui.artistlisttable = ui_table_create(
-	"artistlisttable",
+    ui.artisttable = ui_table_create(
+	"artisttable",
 	artistlist,
 	NULL,
 	artistlistevt,
@@ -814,7 +738,7 @@ void ui_init(float width, float height)
 
     view_t* metapopupcont = view_get_subview(ui.view_base, "metapopupcont");
     view_t* metapopup     = view_get_subview(ui.view_base, "metapopup");
-    view_t* metalist      = view_get_subview(ui.view_base, "metalisttable");
+    view_t* metalist      = view_get_subview(ui.view_base, "metatable");
     view_t* metalistevt   = view_get_subview(ui.view_base, "metalistevt");
 
     metapopup->blocks_touch  = 1;
@@ -829,8 +753,8 @@ void ui_init(float width, float height)
     VADDR(metafields, cstr_new_cstring("value"));
     VADDR(metafields, num_new_int(150));
 
-    ui.metalisttable = ui_table_create(
-	"metalisttable",
+    ui.metatable = ui_table_create(
+	"metatable",
 	metalist,
 	NULL,
 	metalistevt,
@@ -858,6 +782,7 @@ void ui_init(float width, float height)
     vh_touch_add(ui.visR, btn_cb);
 
     REL(btn_cb);
+    REL(key_cb);
 
     // show texture map for debug
 
@@ -883,17 +808,57 @@ void ui_destroy()
     REL(ui.metapopupcont);
     REL(ui.filterpopupcont);
 
-    REL(ui.sizecb);
+    REL(ui.size_cb);
     REL(ui.view_base);
-    REL(ui.metalisttable);
-    REL(ui.songlisttable);
-    REL(ui.settingslisttable);
-    REL(ui.artistlisttable);
-    REL(ui.genrelisttable);
+
+    REL(ui.metatable);
+    REL(ui.songtable);
+    REL(ui.settingstable);
+    REL(ui.artisttable);
+    REL(ui.genretable);
 
     ui_manager_destroy(); // DESTROY 1
 
     text_destroy(); // DESTROY 0
+}
+
+void ui_play_next()
+{
+    map_t* next = NULL;
+
+    if (ui.shuffle == 0 && ui.played_song) next = songlist_get_next_song(ui.played_song);
+    else next = songlist_get_song(1);
+
+    ui_play_song(next);
+}
+
+void ui_play_prev()
+{
+    map_t* prev = NULL;
+
+    if (ui.shuffle == 0 && ui.played_song) prev = songlist_get_prev_song(ui.played_song);
+    else prev = songlist_get_song(1);
+
+    ui_play_song(prev);
+}
+
+void ui_toggle_pause()
+{
+    if (ui.ms)
+    {
+	view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
+
+	if (!ui.ms->paused)
+	{
+	    mp_pause(ui.ms);
+	    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_UP);
+	}
+	else
+	{
+	    mp_play(ui.ms);
+	    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
+	}
+    }
 }
 
 void ui_add_cursor()
@@ -911,14 +876,7 @@ void ui_update_cursor(r2_t frame)
     view_set_frame(ui.cursor, frame);
 }
 
-void ui_render_without_cursor(uint32_t time)
-{
-    ui_manager_remove(ui.cursor);
-    ui_manager_render(time);
-    ui_manager_add_to_top(ui.cursor);
-}
-
-void ui_save_screenshot(uint32_t time, char hide_cursor)
+void ui_screenshot(uint32_t time, char hide_cursor)
 {
     if (config_get("lib_path"))
     {
@@ -929,7 +887,12 @@ void ui_save_screenshot(uint32_t time, char hide_cursor)
 
 	// remove cursor for screenshot to remain identical
 
-	if (hide_cursor) ui_render_without_cursor(time);
+	if (hide_cursor)
+	{
+	    ui_manager_remove(ui.cursor);
+	    ui_manager_render(time);
+	    ui_manager_add_to_top(ui.cursor);
+	}
 
 	ui_compositor_render_to_bmp(screen);
 
@@ -948,7 +911,7 @@ void ui_save_screenshot(uint32_t time, char hide_cursor)
     }
 }
 
-void ui_update_palyer()
+void ui_update_player()
 {
     if (ui.ms)
     {
@@ -992,33 +955,9 @@ void ui_update_palyer()
     }
 }
 
-void ui_update_layout(float w, float h)
-{
-    /* view_layout(ui.view_base); */
-}
-
-void ui_describe()
-{
-    view_describe(ui.view_base, 0);
-}
-
-void ui_set_songs(vec_t* songs)
-{
-    ui_table_set_data(ui.songlisttable, songs);
-}
-
 void ui_show_progress(char* progress)
 {
     tg_text_set(ui.infotf, progress, ui.infots);
-}
-
-void ui_update_songlist()
-{
-    vec_t* entries = VNEW();
-    lib_get_entries(entries);
-    songlist_set_songs(entries);
-    ui_set_songs(songlist_get_visible_songs());
-    REL(entries);
 }
 
 #endif

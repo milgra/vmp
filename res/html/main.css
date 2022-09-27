@@ -227,10 +227,10 @@
     blocks: no;
 }
 
-#editicon {
+#metaicon {
     width: 30px;
     height: 30px;
-    background-image: url("edit.png");
+    background-image: url("meta.png");
     blocks: no;
 }
 
