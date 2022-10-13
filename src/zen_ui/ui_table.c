@@ -82,7 +82,7 @@ void ui_table_head_align(ui_table_t* uit, int fixed_index, int fixed_pos)
 	    frame.x          = ci == fixed_index ? (float) fixed_pos : wth;
 	    frame.w          = (float) sizep->intv;
 	    view_set_frame(cellview, frame);
-	    wth += frame.w;
+	    wth += frame.w + 2;
 	}
 
 	r2_t frame = rowview->frame.local;
@@ -236,10 +236,10 @@ view_t* ui_table_item_create(
 		    char*  field = uit->fields->data[i];
 		    num_t* size  = uit->fields->data[i + 1];
 		    // char*   value    = MGET(data, field);
-		    char*   cellid   = cstr_new_format(100, "%s_cell_%s", rowview->id, field);               // REL 2
-		    view_t* cellview = view_new(cellid, (r2_t){wth + 1, 0, size->intv - 2, ts.line_height}); // REL 3
+		    char*   cellid   = cstr_new_format(100, "%s_cell_%s", rowview->id, field);       // REL 2
+		    view_t* cellview = view_new(cellid, (r2_t){wth, 0, size->intv, ts.line_height}); // REL 3
 
-		    wth += size->intv;
+		    wth += size->intv + 2;
 
 		    tg_text_add(cellview);
 
@@ -250,7 +250,7 @@ view_t* ui_table_item_create(
 		}
 	    }
 
-	    rowview->style.background_color = index % 2 != 0 ? 0x35353588 : 0x45454588;
+	    rowview->style.background_color = 0x000000FF;
 
 	    if (uit->selected->length > 0)
 	    {
@@ -263,6 +263,8 @@ view_t* ui_table_item_create(
 	    }
 
 	    view_invalidate_texture(rowview);
+
+	    uint32_t color = index % 2 != 0 ? 0x35353588 : 0x45454588;
 
 	    int wth = 0;
 
@@ -278,7 +280,9 @@ view_t* ui_table_item_create(
 		frame.w = size->intv;
 		view_set_frame(cellview, frame);
 
-		wth += size->intv;
+		wth += size->intv + 2;
+
+		ts.backcolor = color;
 
 		if (value) tg_text_set(cellview, value, ts);
 		else tg_text_set(cellview, "", ts); // reset old value
@@ -323,7 +327,7 @@ void ui_table_evnt_event(view_t* view, view_t* rowview, vh_tbl_evnt_event_t type
 		    view_t* item = bvh->items->data[index];
 		    if (item->style.background_color == 0x006600FF)
 		    {
-			item->style.background_color = (bvh->head_index + index) % 2 != 0 ? (uint32_t) 0x353535388 : (uint32_t) 0x45454588;
+			item->style.background_color = 0x000000FF;
 			view_invalidate_texture(item);
 		    }
 		}
@@ -336,7 +340,7 @@ void ui_table_evnt_event(view_t* view, view_t* rowview, vh_tbl_evnt_event_t type
 	else
 	{
 	    VREM(uit->selected, data);
-	    rowview->style.background_color = index % 2 != 0 ? 0x35353588 : 0x45454588;
+	    rowview->style.background_color = 0x000000FF;
 	    view_invalidate_texture(rowview);
 	}
 
@@ -513,7 +517,7 @@ void ui_table_select(
 
 	if (item->style.background_color == 0x006600FF)
 	{
-	    item->style.background_color = realindex % 2 != 0 ? (uint32_t) 0x353535388 : (uint32_t) 0x45454588;
+	    item->style.background_color = 0x000000FF;
 	    view_invalidate_texture(item);
 	}
 

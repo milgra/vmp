@@ -25,6 +25,7 @@ void ui_show_progress(char* progress);
 #include "bm_rgba_util.c"
 #include "coder.c"
 #include "config.c"
+#include "cstr_util.c"
 #include "library.c"
 #include "map_util.c"
 #include "mediaplayer.c"
@@ -619,44 +620,20 @@ void ui_init(float width, float height)
 
     /* songlist */
 
-    vec_t* fields = VNEW();
+    char*  fieldconfig = "artist 200 album 200 title 350 date 60 genre 100 track 60 disc 60 duration 50 channels 40 bitrate 100 samplerate 80 plays 55 skips 55 added 150 type 80 container 80";
+    vec_t* words       = cstr_split(fieldconfig, " ");
+    vec_t* fields      = VNEW();
 
-    VADDR(fields, cstr_new_cstring("artist"));
-    VADDR(fields, num_new_int(200));
-    VADDR(fields, cstr_new_cstring("album"));
-    VADDR(fields, num_new_int(200));
-    VADDR(fields, cstr_new_cstring("title"));
-    VADDR(fields, num_new_int(350));
-    VADDR(fields, cstr_new_cstring("date"));
-    VADDR(fields, num_new_int(60));
-    VADDR(fields, cstr_new_cstring("genre"));
-    VADDR(fields, num_new_int(100));
-    VADDR(fields, cstr_new_cstring("track"));
-    VADDR(fields, num_new_int(60));
-    VADDR(fields, cstr_new_cstring("disc"));
-    VADDR(fields, num_new_int(60));
-    VADDR(fields, cstr_new_cstring("duration"));
-    VADDR(fields, num_new_int(50));
-    VADDR(fields, cstr_new_cstring("channels"));
-    VADDR(fields, num_new_int(40));
-    VADDR(fields, cstr_new_cstring("bitrate"));
-    VADDR(fields, num_new_int(100));
-    VADDR(fields, cstr_new_cstring("samplerate"));
-    VADDR(fields, num_new_int(80));
-    VADDR(fields, cstr_new_cstring("plays"));
-    VADDR(fields, num_new_int(55));
-    VADDR(fields, cstr_new_cstring("skips"));
-    VADDR(fields, num_new_int(55));
-    VADDR(fields, cstr_new_cstring("added"));
-    VADDR(fields, num_new_int(150));
-    VADDR(fields, cstr_new_cstring("played"));
-    VADDR(fields, num_new_int(155));
-    VADDR(fields, cstr_new_cstring("skipped"));
-    VADDR(fields, num_new_int(155));
-    VADDR(fields, cstr_new_cstring("type"));
-    VADDR(fields, num_new_int(80));
-    VADDR(fields, cstr_new_cstring("container"));
-    VADDR(fields, num_new_int(80));
+    for (int index = 0; index < words->length; index += 2)
+    {
+	char* field = words->data[index];
+	char* value = words->data[index + 1];
+
+	VADD(fields, field);
+	VADDR(fields, num_new_int(atoi(value)));
+    }
+
+    REL(words);
 
     view_t* songlist       = view_get_subview(ui.view_base, "songtable");
     view_t* songlistscroll = view_get_subview(ui.view_base, "songlistscroll");
