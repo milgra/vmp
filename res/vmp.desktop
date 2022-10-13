@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Exec=/usr/local/bin/vmp
+Name=Visual Music Player
+Comment=vmp
+Icon=/usr/local/share/vmp/vmp.png
