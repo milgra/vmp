@@ -326,6 +326,36 @@ void on_songlist_event(ui_table_t* table, ui_table_event event, void* userdata)
 	{
 	}
 	break;
+	case UI_TABLE_EVENT_FIELD_SELECT:
+	{
+	    char* field   = userdata;
+	    char* sorting = cstr_new_cstring(songlist_get_sorting());
+
+	    if (strstr(sorting, field) != NULL)
+	    {
+		char* part  = strstr(sorting, field);
+		char  value = part[strlen(field) + 1];
+
+		if (strcmp(field, "artist") == 0)
+		    sorting = cstr_new_format(100, "%s %c album 1 track 1", field, value == '0' ? '1' : '0');
+		else
+		    sorting = cstr_new_format(100, "%s %c", field, value == '0' ? '1' : '0');
+	    }
+	    else
+	    {
+		if (strcmp(field, "artist") == 0)
+		    sorting = cstr_new_format(100, "%s 1 album 1 track 1", field);
+		else
+		    sorting = cstr_new_format(100, "%s 1", field);
+	    }
+
+	    songlist_set_sorting(sorting);
+
+	    REL(sorting);
+
+	    ui_update_songlist();
+	}
+	break;
 	case UI_TABLE_EVENT_SELECT:
 	{
 	}
@@ -598,9 +628,9 @@ void ui_init(float width, float height)
     VADDR(fields, cstr_new_cstring("title"));
     VADDR(fields, num_new_int(350));
     VADDR(fields, cstr_new_cstring("date"));
-    VADDR(fields, num_new_int(70));
+    VADDR(fields, num_new_int(60));
     VADDR(fields, cstr_new_cstring("genre"));
-    VADDR(fields, num_new_int(150));
+    VADDR(fields, num_new_int(100));
     VADDR(fields, cstr_new_cstring("track"));
     VADDR(fields, num_new_int(60));
     VADDR(fields, cstr_new_cstring("disc"));

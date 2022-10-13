@@ -32,7 +32,7 @@ struct
 
     int      frames;
     remote_t remote;
-} mmfm = {0};
+} vmp = {0};
 
 void init(int width, int height)
 {
@@ -40,26 +40,26 @@ void init(int width, int height)
     ui_init(width, height); // DESTROY 3
     zc_time("ui init");
 
-    if (mmfm.record)
+    if (vmp.record)
     {
 	evrec_init_recorder(config_get("rec_path")); // DESTROY 4
     }
 
-    if (mmfm.replay)
+    if (vmp.replay)
     {
 	evrec_init_player(config_get("rep_path")); // DESTROY 5
 	ui_add_cursor();
     }
 
-    remote_listen(&mmfm.remote);
+    remote_listen(&vmp.remote);
 }
 
 void post_render_init()
 {
-    if (mmfm.frames < 3) mmfm.frames += 1;
-    else if (mmfm.frames == 3)
+    if (vmp.frames < 3) vmp.frames += 1;
+    else if (vmp.frames == 3)
     {
-	mmfm.frames = 4;
+	vmp.frames = 4;
 
 	map_t* fields = MNEW();
 
@@ -84,7 +84,7 @@ void post_render_init()
 
 	songlist_set_fields(fields);
 	songlist_set_filter(NULL);
-	songlist_set_sorting("artist 1 album 1 title 1");
+	songlist_set_sorting("artist 1 album 1 track 1");
 
 	REL(fields);
 
@@ -112,7 +112,7 @@ void post_render_init()
 	    map_values(files, songlist);
 	    lib_add_entries(songlist);
 	    // analyze all
-	    mmfm.analyzer = analyzer_run(songlist);
+	    vmp.analyzer = analyzer_run(songlist);
 	    REL(songlist);
 	}
 	else
@@ -122,7 +122,7 @@ void post_render_init()
 	    // analyze remaining
 	    vec_t* remaining = VNEW();
 	    map_values(files, remaining);
-	    mmfm.analyzer = analyzer_run(remaining);
+	    vmp.analyzer = analyzer_run(remaining);
 	    REL(remaining);
 	}
 
@@ -138,45 +138,45 @@ void update(ev_t ev)
     {
 	/* check init */
 
-	if (mmfm.frames < 4) post_render_init();
+	if (vmp.frames < 4) post_render_init();
 
 	/* check remote */
 
-	if (mmfm.remote.command > 0)
+	if (vmp.remote.command > 0)
 	{
-	    if (mmfm.remote.command == 1) ui_toggle_pause();
-	    if (mmfm.remote.command == 2) ui_play_next();
-	    if (mmfm.remote.command == 3) ui_play_prev();
-	    mmfm.remote.command = 0;
+	    if (vmp.remote.command == 1) ui_toggle_pause();
+	    if (vmp.remote.command == 2) ui_play_next();
+	    if (vmp.remote.command == 3) ui_play_prev();
+	    vmp.remote.command = 0;
 	}
 
 	/* check analyzer */
 
-	if (mmfm.analyzer)
+	if (vmp.analyzer)
 	{
-	    if (mmfm.analyzer_ratio < mmfm.analyzer->ratio)
+	    if (vmp.analyzer_ratio < vmp.analyzer->ratio)
 	    {
 		char text[100];
-		snprintf(text, 100, "Analyzing songs %.2i%%", (int) (mmfm.analyzer->ratio * 100.0));
+		snprintf(text, 100, "Analyzing songs %.2i%%", (int) (vmp.analyzer->ratio * 100.0));
 		ui_show_progress(text);
 	    }
 
-	    if (mmfm.analyzer->ratio == 1.0)
+	    if (vmp.analyzer->ratio == 1.0)
 	    {
-		lib_add_entries(mmfm.analyzer->songs);
+		lib_add_entries(vmp.analyzer->songs);
 		if (config_get_bool("lib_organize")) lib_organize(config_get("lib_path"), lib_get_db());
 		lib_write(config_get("lib_path"));
 		ui_update_songlist();
 
-		REL(mmfm.analyzer);
-		mmfm.analyzer       = NULL;
-		mmfm.analyzer_ratio = 0.0;
+		REL(vmp.analyzer);
+		vmp.analyzer       = NULL;
+		vmp.analyzer_ratio = 0.0;
 	    }
 	}
 
 	ui_update_player();
 
-	if (mmfm.replay)
+	if (vmp.replay)
 	{
 	    // get recorded events
 	    ev_t* recev = NULL;
@@ -191,7 +191,7 @@ void update(ev_t ev)
     }
     else
     {
-	if (mmfm.record)
+	if (vmp.record)
 	{
 	    evrec_record(ev);
 	    if (ev.type == EV_KDOWN && ev.keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time);
@@ -199,7 +199,7 @@ void update(ev_t ev)
     }
 
     // in case of replay only send time events
-    if (!mmfm.replay || ev.type == EV_TIME) ui_manager_event(ev);
+    if (!vmp.replay || ev.type == EV_TIME) ui_manager_event(ev);
 }
 
 void render(uint32_t time)
@@ -209,8 +209,8 @@ void render(uint32_t time)
 
 void destroy()
 {
-    if (mmfm.replay) evrec_destroy(); // DESTROY 5
-    if (mmfm.record) evrec_destroy(); // DESTROY 4
+    if (vmp.replay) evrec_destroy(); // DESTROY 5
+    if (vmp.record) evrec_destroy(); // DESTROY 4
 
     ui_destroy(); // DESTROY 3
 }
@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
     zc_time(NULL);
 
     printf("Visual Music Player v" VMP_VERSION " by Milan Toth ( www.milgra.com )\n");
-    printf("If you like this app try Multimedia File Manager (github.com/milgra/mmfm) or Sway Oveview ( github.com/milgra/sov )\n");
+    printf("If you like this app try Multimedia File Manager (github.com/milgra/vmp) or Sway Oveview ( github.com/milgra/sov )\n");
     printf("Or my games : Cortex ( github.com/milgra/cortex ), Termite (github.com/milgra/termite) or Brawl (github.com/milgra/brawl)\n\n");
 
     const char* usage =
@@ -280,8 +280,8 @@ int main(int argc, char* argv[])
 	}
     }
 
-    if (rec_par) mmfm.record = 1;
-    if (rep_par) mmfm.replay = 1;
+    if (rec_par) vmp.record = 1;
+    if (rep_par) vmp.replay = 1;
 
     srand((unsigned int) time(NULL));
 
@@ -293,14 +293,14 @@ int main(int argc, char* argv[])
     char* wrk_path = path_new_normalize(sdl_base, NULL); // REL 6
     SDL_free(sdl_base);
     char* lib_path    = lib_par ? path_new_normalize(lib_par, wrk_path) : path_new_normalize("~/Music", wrk_path);
-    char* res_path    = res_par ? path_new_normalize(res_par, wrk_path) : cstr_new_cstring(PKG_DATADIR);                        // REL 7
-    char* cfgdir_path = cfg_par ? path_new_normalize(cfg_par, wrk_path) : path_new_normalize("~/.config/mmfm", getenv("HOME")); // REL 8
-    char* css_path    = path_new_append(res_path, "html/main.css");                                                             // REL 9
-    char* html_path   = path_new_append(res_path, "html/main.html");                                                            // REL 10
-    char* cfg_path    = path_new_append(cfgdir_path, "config.kvl");                                                             // REL 12
-    char* per_path    = path_new_append(cfgdir_path, "state.kvl");                                                              // REL 13
-    char* rec_path    = rec_par ? path_new_normalize(rec_par, wrk_path) : NULL;                                                 // REL 14
-    char* rep_path    = rep_par ? path_new_normalize(rep_par, wrk_path) : NULL;                                                 // REL 15
+    char* res_path    = res_par ? path_new_normalize(res_par, wrk_path) : cstr_new_cstring(PKG_DATADIR);                       // REL 7
+    char* cfgdir_path = cfg_par ? path_new_normalize(cfg_par, wrk_path) : path_new_normalize("~/.config/vmp", getenv("HOME")); // REL 8
+    char* css_path    = path_new_append(res_path, "html/main.css");                                                            // REL 9
+    char* html_path   = path_new_append(res_path, "html/main.html");                                                           // REL 10
+    char* cfg_path    = path_new_append(cfgdir_path, "config.kvl");                                                            // REL 12
+    char* per_path    = path_new_append(cfgdir_path, "state.kvl");                                                             // REL 13
+    char* rec_path    = rec_par ? path_new_normalize(rec_par, wrk_path) : NULL;                                                // REL 14
+    char* rep_path    = rep_par ? path_new_normalize(rep_par, wrk_path) : NULL;                                                // REL 15
 
     // print path info to console
 

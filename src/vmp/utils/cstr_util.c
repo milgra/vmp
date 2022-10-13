@@ -217,10 +217,11 @@ char* cstr_new_alphanumeric(uint32_t length)
     return result;
 }
 
-vec_t* cstr_split(char* str, char* del)
+vec_t* cstr_split(char* astr, char* del)
 {
     char*  token;
     vec_t* result = VNEW();
+    char*  str    = strndup(astr, strlen(astr));
 
     token = strtok(str, del);
 
@@ -233,6 +234,8 @@ vec_t* cstr_split(char* str, char* del)
 
 	token = strtok(NULL, del);
     }
+
+    free(str);
 
     return result;
 }

@@ -14,6 +14,7 @@ void     songlist_apply_sorting();
 void     songlist_set_filter(char* filter);
 void     songlist_set_sorting(char* sorting);
 void     songlist_set_fields(map_t* fields);
+char*    songlist_get_sorting();
 vec_t*   songlist_get_visible_songs();
 
 #endif
@@ -195,26 +196,18 @@ int songlist_comp_entry(void* left, void* right)
 	char* field = sl.sortvec->data[index];
 
 	int dir = atoi(sl.sortvec->data[index + 1]);
+
 	if (dir == 0) dir = -1;
 
 	char* la = MGET(l, field);
 	char* ra = MGET(r, field);
 
-	if (la && ra)
-	{
-	    if (strcmp(la, ra) == 0) continue;
+	if (la == NULL) la = "";
+	if (ra == NULL) ra = "";
 
-	    return dir * strcmp(la, ra);
-	}
-	else
-	{
-	    if (la)
-		return dir;
-	    else if (ra)
-		return -1 * dir;
-	    else
-		return 0;
-	}
+	if (strcmp(la, ra) == 0) continue;
+
+	return dir * strcmp(la, ra);
     }
 
     return 0;
@@ -260,6 +253,11 @@ void songlist_set_fields(map_t* fields)
 vec_t* songlist_get_visible_songs()
 {
     return sl.visible_songs;
+}
+
+char* songlist_get_sorting()
+{
+    return sl.sorting;
 }
 
 #endif

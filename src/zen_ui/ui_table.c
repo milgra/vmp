@@ -13,7 +13,8 @@ typedef enum _ui_table_event
     UI_TABLE_EVENT_DRAG,
     UI_TABLE_EVENT_DROP,
     UI_TABLE_EVENT_KEY,
-    UI_TABLE_EVENT_FIELDS_UPDATE
+    UI_TABLE_EVENT_FIELDS_UPDATE,
+    UI_TABLE_EVENT_FIELD_SELECT
 } ui_table_event;
 
 typedef struct _ui_table_t ui_table_t;
@@ -118,36 +119,46 @@ void ui_table_head_reorder(view_t* hview, int ind1, int ind2, void* userdata)
 {
     ui_table_t* uit = (ui_table_t*) userdata;
 
-    char*  field1 = uit->fields->data[ind1 * 2];
-    num_t* size1  = uit->fields->data[ind1 * 2 + 1];
-    char*  field2 = uit->fields->data[ind2 * 2];
-    num_t* size2  = uit->fields->data[ind2 * 2 + 1];
-
-    uit->fields->data[ind1 * 2]     = field2;
-    uit->fields->data[ind1 * 2 + 1] = size2;
-
-    uit->fields->data[ind2 * 2]     = field1;
-    uit->fields->data[ind2 * 2 + 1] = size1;
-
-    for (int ri = 0; ri < uit->body_v->views->length; ri++)
+    if (ind1 == -1)
     {
-	view_t* rowview = uit->body_v->views->data[ri];
-
-	view_t* cell1 = RET(rowview->views->data[ind1]);
-	view_t* cell2 = RET(rowview->views->data[ind2]);
-
-	view_remove_subview(rowview, cell1);
-	view_insert_subview(rowview, cell1, ind2);
-	view_remove_subview(rowview, cell2);
-	view_insert_subview(rowview, cell2, ind1);
-
-	REL(cell1);
-	REL(cell2);
+	// self click, dispatch event
+	char* field = uit->fields->data[ind2 * 2];
+	(*uit->on_event)(uit, UI_TABLE_EVENT_FIELD_SELECT, field);
     }
+    else
+    {
 
-    ui_table_head_align(uit, -1, 0);
+	char*  field1 = uit->fields->data[ind1 * 2];
+	num_t* size1  = uit->fields->data[ind1 * 2 + 1];
+	char*  field2 = uit->fields->data[ind2 * 2];
+	num_t* size2  = uit->fields->data[ind2 * 2 + 1];
 
-    (*uit->on_event)(uit, UI_TABLE_EVENT_FIELDS_UPDATE, uit->fields);
+	uit->fields->data[ind1 * 2]     = field2;
+	uit->fields->data[ind1 * 2 + 1] = size2;
+
+	uit->fields->data[ind2 * 2]     = field1;
+	uit->fields->data[ind2 * 2 + 1] = size1;
+
+	for (int ri = 0; ri < uit->body_v->views->length; ri++)
+	{
+	    view_t* rowview = uit->body_v->views->data[ri];
+
+	    view_t* cell1 = RET(rowview->views->data[ind1]);
+	    view_t* cell2 = RET(rowview->views->data[ind2]);
+
+	    view_remove_subview(rowview, cell1);
+	    view_insert_subview(rowview, cell1, ind2);
+	    view_remove_subview(rowview, cell2);
+	    view_insert_subview(rowview, cell2, ind1);
+
+	    REL(cell1);
+	    REL(cell2);
+	}
+
+	ui_table_head_align(uit, -1, 0);
+
+	(*uit->on_event)(uit, UI_TABLE_EVENT_FIELDS_UPDATE, uit->fields);
+    }
 }
 
 view_t* ui_table_head_create(
@@ -167,10 +178,10 @@ view_t* ui_table_head_create(
     {
 	char*   field    = uit->fields->data[i];
 	num_t*  size     = uit->fields->data[i + 1];
-	char*   cellid   = cstr_new_format(100, "%s_cell_%s", headview->id, field);              // REL 2
-	view_t* cellview = view_new(cellid, (r2_t){wth + 1, 0, size->intv - 2, ts.line_height}); // REL 3
+	char*   cellid   = cstr_new_format(100, "%s_cell_%s", headview->id, field);      // REL 2
+	view_t* cellview = view_new(cellid, (r2_t){wth, 0, size->intv, ts.line_height}); // REL 3
 
-	wth += size->intv;
+	wth += size->intv + 2;
 
 	ts.backcolor = 0x454545FF;
 
@@ -270,6 +281,7 @@ view_t* ui_table_item_create(
 		wth += size->intv;
 
 		if (value) tg_text_set(cellview, value, ts);
+		else tg_text_set(cellview, "", ts); // reset old value
 	    }
 
 	    view_set_frame(rowview, (r2_t){0, 0, wth, ts.line_height});
@@ -453,6 +465,7 @@ void ui_table_set_data(
     if (uit->items) REL(uit->items);
     uit->items = RET(data);
 
+    vec_reset(uit->selected);
     if (uit->selected_index < uit->items->length)
     {
 	map_t* sel = uit->items->data[uit->selected_index];
