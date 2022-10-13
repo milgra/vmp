@@ -19,6 +19,8 @@ typedef struct _vh_textinput_t
     char        active;
     void*       userdata;
 
+    int mouse_out_deact;
+
     void (*on_text)(view_t* view, void* data);
     void (*on_return)(view_t* view);
     void (*on_activate)(view_t* view);
@@ -29,6 +31,7 @@ void vh_textinput_add(view_t* view, char* text, char* phtext, textstyle_t textst
 
 str_t* vh_textinput_get_text(view_t* view);
 void   vh_textinput_set_text(view_t* view, char* text);
+void   vh_textinput_set_deactivate_on_mouse_out(view_t* view, int flag);
 void   vh_textinput_activate(view_t* view, char state);
 void   vh_textinput_set_on_text(view_t* view, void (*event)(view_t*, void*));
 void   vh_textinput_set_on_return(view_t* view, void (*event)(view_t*));
@@ -275,15 +278,18 @@ void vh_textinput_evt(view_t* view, ev_t ev)
     }
     else if (ev.type == EV_MDOWN_OUT)
     {
-	r2_t frame = view->frame.global;
-
-	if (ev.x < frame.x ||
-	    ev.x > frame.x + frame.w ||
-	    ev.y < frame.y ||
-	    ev.y > frame.y + frame.h)
+	if (data->mouse_out_deact)
 	{
-	    vh_textinput_activate(view, 0);
-	    if (data->on_deactivate) (*data->on_deactivate)(view);
+	    r2_t frame = view->frame.global;
+
+	    if (ev.x < frame.x ||
+		ev.x > frame.x + frame.w ||
+		ev.y < frame.y ||
+		ev.y > frame.y + frame.h)
+	    {
+		vh_textinput_activate(view, 0);
+		if (data->on_deactivate) (*data->on_deactivate)(view);
+	    }
 	}
     }
     else if (ev.type == EV_TEXT)
@@ -379,6 +385,8 @@ void vh_textinput_add(view_t* view, char* text, char* phtext, textstyle_t textst
     data->userdata = userdata;
 
     data->frame_s = view->frame.local;
+
+    data->mouse_out_deact = 1;
 
     view->needs_key  = 1; // backspace event
     view->needs_text = 1; // unicode text event
@@ -537,6 +545,12 @@ void vh_textinput_set_on_deactivate(view_t* view, void (*event)(view_t*))
 {
     vh_textinput_t* data = view->handler_data;
     data->on_deactivate  = event;
+}
+
+void vh_textinput_set_deactivate_on_mouse_out(view_t* view, int flag)
+{
+    vh_textinput_t* data  = view->handler_data;
+    data->mouse_out_deact = flag;
 }
 
 #endif

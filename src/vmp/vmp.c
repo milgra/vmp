@@ -99,7 +99,7 @@ void post_render_init()
 	songlist_set_fields(fields);
 	songlist_set_numeric_fields(numfields);
 	songlist_set_filter(NULL);
-	songlist_set_sorting("artist 1 album 1 track 1");
+	songlist_set_sorting(config_get("sorting"));
 
 	REL(fields);
 	REL(numfields);
@@ -338,9 +338,10 @@ int main(int argc, char* argv[])
 
     config_init(); // DESTROY 0
 
-    config_set("res_path", res_path);
-    config_set("lib_path", lib_path);
-    config_set("lib_organize", org_par);
+    // set default values
+
+    config_set("fields", "artist 200 album 200 title 350 date 60 genre 100 track 60 disc 60 duration 50 channels 40 bitrate 100 samplerate 80 plays 55 skips 55 added 150 type 80 container 80");
+    config_set("sorting", "artist 1 album 1 track 1");
 
     // read config, it overwrites defaults if exists
 
@@ -348,10 +349,10 @@ int main(int argc, char* argv[])
 
     // init non-configurable defaults
 
-    config_set("top_path", top_path);
-    config_set("wrk_path", wrk_path);
     config_set("cfg_path", cfg_path);
-    config_set("per_path", per_path);
+    config_set("res_path", res_path);
+    config_set("lib_path", lib_path);
+    config_set("lib_organize", org_par);
     config_set("css_path", css_path);
     config_set("html_path", html_path);
 

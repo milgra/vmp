@@ -117,8 +117,6 @@ void vh_button_evt(view_t* view, ev_t ev)
 	{
 	    vh->state = VH_BUTTON_UP;
 
-	    zc_log_debug("ANIM %zu", (size_t) view);
-
 	    if (vh->event) (*vh->event->fp)(vh->event->userdata, view);
 	    /* if (vh->offview) vh_anim_alpha(vh->offview, 1.0, 0.0, 10, AT_LINEAR); */
 	    /* if (vh->onview) vh_anim_alpha(vh->onview, 0.0, 1.0, 10, AT_LINEAR); */
