@@ -510,6 +510,8 @@ void vh_textinput_set_text(view_t* view, char* text)
 	    REL(charstr);    // REL 0
 	    REL(glyph_view); // REL 1
 	}
+
+	vh_anim_alpha(data->holder_v, 1.0, 0.0, 10, AT_LINEAR);
     }
 
     vh_textinput_upd(view);

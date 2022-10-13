@@ -47,7 +47,6 @@ void vh_button_anim_end(view_t* view, void* userdata)
 
     if (vh->type == VH_BUTTON_NORMAL)
     {
-	zc_log_debug("anim end");
 	if (vh->offview->texture.alpha < 0.0001 && view == vh->offview)
 	{
 	    vh_anim_alpha(vh->offview, 0.0, 1.0, 10, AT_LINEAR);

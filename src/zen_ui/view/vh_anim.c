@@ -218,8 +218,6 @@ void vh_anim_alpha(view_t* view, float sa, float ea, int steps, animtype_t type)
 {
     vh_anim_t* vh = view->handler_data;
 
-    zc_log_debug("ANIM %zu %i", (size_t) view, sa);
-
     if (vh->astep == vh->asteps)
     {
 	vh->sa         = sa;
