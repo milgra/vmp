@@ -82,11 +82,27 @@ void post_render_init()
 	MPUTR(fields, "type", cstr_new_cstring("type"));
 	MPUTR(fields, "container", cstr_new_cstring("container"));
 
+	map_t* numfields = MNEW();
+
+	MPUTR(numfields, "track", cstr_new_cstring("track"));
+	MPUTR(numfields, "disc", cstr_new_cstring("disc"));
+	MPUTR(numfields, "duration", cstr_new_cstring("duration"));
+	MPUTR(numfields, "channels", cstr_new_cstring("channels"));
+	MPUTR(numfields, "bitrate", cstr_new_cstring("bitrate"));
+	MPUTR(numfields, "samplerate", cstr_new_cstring("samplerate"));
+	MPUTR(numfields, "plays", cstr_new_cstring("plays"));
+	MPUTR(numfields, "skips", cstr_new_cstring("skips"));
+	MPUTR(numfields, "added", cstr_new_cstring("added"));
+	MPUTR(numfields, "played", cstr_new_cstring("played"));
+	MPUTR(numfields, "skipped", cstr_new_cstring("skipped"));
+
 	songlist_set_fields(fields);
+	songlist_set_numeric_fields(numfields);
 	songlist_set_filter(NULL);
 	songlist_set_sorting("artist 1 album 1 track 1");
 
 	REL(fields);
+	REL(numfields);
 
 	/* load database */
 

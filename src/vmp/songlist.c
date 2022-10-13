@@ -14,6 +14,7 @@ void     songlist_apply_sorting();
 void     songlist_set_filter(char* filter);
 void     songlist_set_sorting(char* sorting);
 void     songlist_set_fields(map_t* fields);
+void     songlist_set_numeric_fields(map_t* fields);
 char*    songlist_get_sorting();
 vec_t*   songlist_get_visible_songs();
 
@@ -37,6 +38,7 @@ struct _songlist_t
     map_t* filtermap; // key - field,
     char*  sorting;   // 1 is ascending 0 is descending
     vec_t* sortvec;
+    map_t* numfields; // numeric fields
 } sl = {0};
 
 map_t* songlist_get_song(int shuffle)
@@ -202,12 +204,26 @@ int songlist_comp_entry(void* left, void* right)
 	char* la = MGET(l, field);
 	char* ra = MGET(r, field);
 
-	if (la == NULL) la = "";
-	if (ra == NULL) ra = "";
+	if (MGET(sl.numfields, field))
+	{
+	    int ln = la ? atoi(la) : 0;
+	    int rn = ra ? atoi(ra) : 0;
 
-	if (strcmp(la, ra) == 0) continue;
+	    if (ln == rn) continue;
 
-	return dir * strcmp(la, ra);
+	    if (ln < rn) return dir * -1;
+	    else return dir;
+	}
+	else
+	{
+
+	    if (la == NULL) la = "";
+	    if (ra == NULL) ra = "";
+
+	    if (strcmp(la, ra) == 0) continue;
+
+	    return dir * strcmp(la, ra);
+	}
     }
 
     return 0;
@@ -248,6 +264,13 @@ void songlist_set_fields(map_t* fields)
     if (sl.fields) REL(sl.fields);
     sl.fields = NULL;
     if (fields) sl.fields = RET(fields);
+}
+
+void songlist_set_numeric_fields(map_t* fields)
+{
+    if (sl.numfields) REL(sl.numfields);
+    sl.numfields = NULL;
+    if (fields) sl.numfields = RET(fields);
 }
 
 vec_t* songlist_get_visible_songs()
