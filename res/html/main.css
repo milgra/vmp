@@ -176,6 +176,13 @@
     blocks: no;
 }
 
+#metacovericon {
+    width: 30px;
+    height: 30px;
+    background-image: url("upload.png");
+    blocks: no;
+}
+
 #visuicon {
     width: 30px;
     height: 30px;
@@ -208,6 +215,13 @@
     width: 30px;
     height: 30px;
     background-image: url("filter.png");
+    blocks: no;
+}
+
+#sortingicon {
+    width: 30px;
+    height: 30px;
+    background-image: url("sorting.png");
     blocks: no;
 }
 
@@ -366,6 +380,11 @@
     height: 30px;
 }
 
+#sortingbtn {
+    width: 30px;
+    height: 30px;
+}
+
 #clearbtn {
     width: 30px;
     height: 30px;
@@ -373,6 +392,13 @@
 #inputclearbtn {
     width: 30px;
     height: 30px;
+}
+
+#metacoverbtn {
+    width: 40px;
+    height: 40px;
+    right: 0px;
+    top: 0px;
 }
 
 #controls {
@@ -493,5 +519,4 @@
     overflow: hidden;
     margin-top: 40px;
     margin-bottom: 40px;
-    background-color: #151515FF;
 }

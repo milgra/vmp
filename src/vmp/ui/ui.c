@@ -58,6 +58,14 @@ void ui_show_progress(char* progress);
 #include "zc_text.c"
 #include "zc_time.c"
 
+typedef enum _ui_inputmode ui_inputmode;
+enum _ui_inputmode
+{
+    UI_IM_SORTING,
+    UI_IM_EDITING,
+    UI_IM_COVERART
+};
+
 struct _ui_t
 {
     MediaState* ms;
@@ -104,6 +112,9 @@ struct _ui_t
 
     map_t* edited_song;
     char*  edited_key;
+    char*  edited_cover;
+    map_t* edited_changed;
+    vec_t* edited_deleted;
 
     map_t* played_song;
     int    shuffle;
@@ -111,6 +122,8 @@ struct _ui_t
     int    visutype; // 0 - waves 1 - rdft
     int    hide_visuals;
     float  timestate;
+
+    ui_inputmode inputmode;
 } ui;
 
 int ui_comp_value(void* left, void* right)
@@ -170,39 +183,93 @@ void ui_on_cancel_inputtf(view_t* view)
 
 void ui_on_return_inputtf(view_t* view)
 {
-    // save value of inputtf
-
-    view_add_subview(ui.metashadow, ui.metaacceptbtn);
-    ui_cancel_input();
-
-    str_t* val  = vh_textinput_get_text(view);
-    char*  sval = str_new_cstring(val);
-
-    MPUT(ui.edited_song, ui.edited_key, sval);
-    mem_describe(ui.edited_song, 0);
-
-    vec_t* pairs = VNEW();
-    vec_t* keys  = VNEW();
-    map_keys(ui.edited_song, keys);
-
-    for (int index = 0; index < keys->length; index++)
+    if (ui.inputmode == UI_IM_EDITING)
     {
-	char*  key   = keys->data[index];
-	char*  value = MGET(ui.edited_song, key);
-	map_t* map   = MNEW();
-	MPUT(map, "key", key);
-	MPUT(map, "value", value);
-	VADDR(pairs, map);
+	// save value of inputtf
+
+	view_add_subview(ui.metashadow, ui.metaacceptbtn);
+	ui_cancel_input();
+
+	str_t* val  = vh_textinput_get_text(view);
+	char*  sval = str_new_cstring(val);
+
+	MPUT(ui.edited_song, ui.edited_key, sval);
+	mem_describe(ui.edited_song, 0);
+
+	MPUT(ui.edited_changed, ui.edited_key, sval);
+
+	vec_t* pairs = VNEW();
+	vec_t* keys  = VNEW();
+	map_keys(ui.edited_song, keys);
+
+	for (int index = 0; index < keys->length; index++)
+	{
+	    char*  key   = keys->data[index];
+	    char*  value = MGET(ui.edited_song, key);
+	    map_t* map   = MNEW();
+	    MPUT(map, "key", key);
+	    MPUT(map, "value", value);
+	    VADDR(pairs, map);
+	}
+
+	vec_sort(pairs, ui_comp_value);
+
+	ui_table_set_data(ui.metatable, pairs);
+
+	REL(sval);
     }
+    else if (ui.inputmode == UI_IM_SORTING)
+    {
+	str_t* val     = vh_textinput_get_text(view);
+	char*  sorting = str_new_cstring(val);
 
-    vec_sort(pairs, ui_comp_value);
+	// check if sorting string is valid
 
-    ui_table_set_data(ui.metatable, pairs);
+	vec_t* words = cstr_split(sorting, " ");
 
-    // ui.edited_song
-    // ui.edited_key
+	if (words->length % 2 == 0)
+	{
+	    songlist_set_sorting(sorting);
 
-    REL(sval);
+	    config_set("sorting", sorting);
+	    config_write(config_get("cfg_path"));
+
+	    ui_update_songlist();
+	}
+
+	REL(sorting);
+	REL(words);
+    }
+    else if (ui.inputmode == UI_IM_COVERART)
+    {
+	str_t* val        = vh_textinput_get_text(view);
+	char*  path_cs    = str_new_cstring(val);
+	char*  path_final = path_new_normalize(path_cs, config_get("wrk_path")); // REL 1
+	// check if image is valid
+	bm_rgba_t* image = coder_load_image(path_final);
+
+	printf("PATH %s\n", path_final);
+
+	if (image)
+	{
+	    printf("loading image\n");
+	    view_t* cover = view_get_subview(ui.metapopupcont, "metacover");
+
+	    if (!cover->texture.bitmap) view_gen_texture(cover);
+
+	    coder_load_image_into(path_final, cover->texture.bitmap);
+
+	    cover->texture.changed = 1;
+
+	    view_add_subview(ui.metashadow, ui.metaacceptbtn);
+	    ui_cancel_input();
+
+	    ui.edited_cover = RET(path_final);
+	}
+
+	REL(path_cs);    // REL 0
+	REL(path_final); // REL 1
+    }
 }
 
 void ui_on_key_down(void* userdata, void* data)
@@ -217,7 +284,6 @@ void ui_on_touch(void* userdata, void* data)
 
     if (strcmp(view->id, "inputarea") == 0)
     {
-	printf("ONTOUCH\n");
 	ui_cancel_input();
     }
 }
@@ -309,6 +375,9 @@ void ui_on_btn_event(void* userdata, void* data)
     {
 	if (!ui.metapopupcont->parent)
 	{
+	    map_reset(ui.edited_changed);
+	    vec_reset(ui.edited_deleted);
+
 	    view_add_subview(ui.view_base, ui.metapopupcont);
 
 	    if (ui.songtable->selected_items->length > 0)
@@ -371,6 +440,25 @@ void ui_on_btn_event(void* userdata, void* data)
 	    view_layout(ui.view_base);
 	}
     };
+    if (strcmp(btnview->id, "sortingbtn") == 0)
+    {
+	// show inputfield with sorting options
+	r2_t rframe = ui.view_base->frame.global;
+	r2_t iframe = ui.inputbck->frame.global;
+	iframe.x    = rframe.w / 2 - iframe.w / 2;
+	iframe.y    = rframe.h / 2 - iframe.h / 2;
+
+	view_set_frame(ui.inputbck, iframe);
+	view_add_subview(ui.view_base, ui.inputarea);
+	view_layout(ui.view_base);
+
+	ui_manager_activate(ui.inputtf);
+	vh_textinput_activate(ui.inputtf, 1);
+
+	vh_textinput_set_text(ui.inputtf, config_get("sorting"));
+
+	ui.inputmode = UI_IM_SORTING;
+    };
     if (strcmp(btnview->id, "clearbtn") == 0)
     {
 	vh_textinput_set_text(ui.filtertf, "");
@@ -409,6 +497,44 @@ void ui_on_btn_event(void* userdata, void* data)
     if (strcmp(btnview->id, "metaclosebtn") == 0)
     {
 	view_remove_from_parent(ui.metapopupcont);
+    }
+    if (strcmp(btnview->id, "metaacceptbtn") == 0)
+    {
+	printf("CAHNEGED\n");
+
+	mem_describe(ui.edited_changed, 0);
+
+	char* path   = MGET(ui.edited_song, "path");
+	int   result = coder_write_metadata(config_get("lib_path"), path, ui.edited_cover, ui.edited_changed, ui.edited_deleted);
+	if (result >= 0)
+	{
+	    printf("metadata upadted\n");
+	    // modify song in db also if metadata is successfully written into file
+	    // db_update_metadata(path, ep.changed, ep.removed);
+	}
+
+	view_remove_from_parent(ui.metapopupcont);
+	lib_write(config_get("lib_path"));
+	ui_update_songlist();
+    }
+    if (strcmp(btnview->id, "metacoverbtn") == 0)
+    {
+	// show inputfield with sorting options
+	r2_t rframe = ui.view_base->frame.global;
+	r2_t iframe = ui.inputbck->frame.global;
+	iframe.x    = rframe.w / 2 - iframe.w / 2;
+	iframe.y    = rframe.h / 2 - iframe.h / 2;
+
+	view_set_frame(ui.inputbck, iframe);
+	view_add_subview(ui.view_base, ui.inputarea);
+	view_layout(ui.view_base);
+
+	ui_manager_activate(ui.inputtf);
+	vh_textinput_activate(ui.inputtf, 1);
+
+	vh_textinput_set_text(ui.inputtf, "/home/path_to_image/image.png");
+
+	ui.inputmode = UI_IM_COVERART;
     }
 }
 
@@ -578,6 +704,8 @@ void on_metalist_event(ui_table_event event)
 		    strcmp(key, "title") == 0 ||
 		    strcmp(key, "genre") == 0)
 		{
+		    ui.inputmode = UI_IM_EDITING;
+
 		    view_t* valueview = event.rowview->views->data[1];
 		    r2_t    rframe    = valueview->frame.global;
 		    r2_t    iframe    = ui.inputbck->frame.global;
@@ -663,6 +791,9 @@ void ui_update_songlist()
 
 void ui_init(float width, float height)
 {
+    ui.edited_changed = MNEW();
+    ui.edited_deleted = VNEW();
+
     text_init();                    // DESTROY 0
     ui_manager_init(width, height); // DESTROY 1
 
@@ -726,6 +857,7 @@ void ui_init(float width, float height)
     view_t* visubtn          = view_get_subview(ui.view_base, "visubtn");
     view_t* maxbtn           = view_get_subview(ui.view_base, "maxbtn");
     view_t* exitbtn          = view_get_subview(ui.view_base, "exitbtn");
+    view_t* sortingbtn       = view_get_subview(ui.view_base, "sortingbtn");
     view_t* filterbtn        = view_get_subview(ui.view_base, "filterbtn");
     view_t* clearbtn         = view_get_subview(ui.view_base, "clearbtn");
     view_t* inputclearbtn    = view_get_subview(ui.view_base, "inputclearbtn");
@@ -742,6 +874,7 @@ void ui_init(float width, float height)
     vh_button_add(visubtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(maxbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(exitbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(sortingbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(filterbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(clearbtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(inputclearbtn, VH_BUTTON_NORMAL, btn_cb);
@@ -787,6 +920,13 @@ void ui_init(float width, float height)
     vh_touch_add(ui.inputarea, touch_cb);
 
     view_remove_from_parent(ui.inputarea);
+
+    textstyle_t ts = ui.inputts;
+    ts.size        = 40;
+    ts.align       = TA_CENTER;
+    view_t* cover  = view_get_subview(ui.view_base, "metacover");
+    tg_text_add(cover);
+    tg_text_set(cover, "COVER ART", ts);
 
     /* songlist */
 
@@ -920,9 +1060,11 @@ void ui_init(float width, float height)
 
     view_t* metaclosebtn  = view_get_subview(ui.view_base, "metaclosebtn");
     view_t* metaacceptbtn = view_get_subview(ui.view_base, "metaacceptbtn");
+    view_t* metacoverbtn  = view_get_subview(ui.view_base, "metacoverbtn");
 
     vh_button_add(metaclosebtn, VH_BUTTON_NORMAL, btn_cb);
     vh_button_add(metaacceptbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(metacoverbtn, VH_BUTTON_NORMAL, btn_cb);
 
     ui.metashadow    = view_get_subview(ui.view_base, "metashadow");
     ui.metaacceptbtn = RET(metaacceptbtn);

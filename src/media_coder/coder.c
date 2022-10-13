@@ -236,7 +236,7 @@ void coder_load_cover_into(const char* path, bm_rgba_t* bitmap)
 
 		if (bitmap)
 		{
-		    gfx_insert_rgb(bitmap, scaledpixels[0], bitmap->w, bitmap->h, 0, 0);
+		    gfx_insert_rgba(bitmap, scaledpixels[0], bitmap->w, bitmap->h, 0, 0);
 		}
 
 		sws_freeContext(img_convert_ctx); // FREE 3
@@ -384,7 +384,7 @@ int coder_load_metadata_into(const char* path, map_t* map)
     return retv;
 }
 
-int coder_write_metadata(char* libpath, char* path, char* cover_path, map_t* data, vec_t* drop)
+int coder_write_metadata(char* libpath, char* path, char* cover_path, map_t* changed, vec_t* drop)
 {
     zc_log_info("coder_write_metadata for %s cover %s\n", path, cover_path);
 
@@ -552,14 +552,14 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, map_t* dat
 			printf("Existing tags:\n");
 			while ((tag = av_dict_get(enc_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) printf("%s : %s\n", tag->key, tag->value);
 
-			map_keys(data, fields);
+			map_keys(changed, fields);
 
 			for (int fi = 0; fi < fields->length; fi++)
 			{
 			    char* field = fields->data[fi];
-			    char* value = MGET(data, field);
-			    av_dict_set(&enc_ctx->metadata, field + 5, value, 0);
-			    printf("added/updated %s to %s\n", field + 5, value);
+			    char* value = MGET(changed, field);
+			    av_dict_set(&enc_ctx->metadata, field, value, 0);
+			    printf("added/updated %s to %s\n", field, value);
 			}
 
 			REL(fields);
@@ -567,8 +567,8 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, map_t* dat
 			for (int fi = 0; fi < drop->length; fi++)
 			{
 			    char* field = drop->data[fi];
-			    av_dict_set(&enc_ctx->metadata, field + 5, NULL, 0);
-			    printf("removed %s\n", field + 5);
+			    av_dict_set(&enc_ctx->metadata, field, NULL, 0);
+			    printf("removed %s\n", field);
 			}
 
 			if (avformat_init_output(enc_ctx, NULL) > 0)
