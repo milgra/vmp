@@ -75,6 +75,7 @@ struct _ui_t
     ui_table_t* genretable;
     ui_table_t* artisttable;
     ui_table_t* settingstable;
+    ui_table_t* contexttable;
 
     view_t* metapopupcont;
     view_t* filterpopupcont;
@@ -637,6 +638,17 @@ void on_settingslist_event(ui_table_event event)
     }
 }
 
+void on_contextlist_event(ui_table_event event)
+{
+    switch (event.id)
+    {
+	case UI_TABLE_EVENT_SELECT:
+	{
+	}
+	break;
+    }
+}
+
 void on_genrelist_event(ui_table_event event)
 {
     switch (event.id)
@@ -1095,6 +1107,42 @@ void ui_init(float width, float height)
     REL(metafields);
 
     view_remove_from_parent(ui.metapopupcont);
+
+    /* context list */
+
+    /* view_t* contextpopup     = view_get_subview(ui.view_base, "contextpopup"); */
+    view_t* contextlist    = view_get_subview(ui.view_base, "contexttable");
+    view_t* contextlistevt = view_get_subview(ui.view_base, "contextlistevt");
+
+    contextlist->blocks_touch  = 1;
+    contextlist->blocks_scroll = 1;
+
+    /* ui.contextpopupcont = RET(contextpopupcont); */
+
+    fields = VNEW();
+
+    VADDR(fields, cstr_new_cstring("value"));
+    VADDR(fields, num_new_int(200));
+
+    ui.contexttable = ui_table_create(
+	"contexttable",
+	contextlist,
+	NULL,
+	contextlistevt,
+	NULL,
+	fields,
+	on_contextlist_event);
+
+    REL(fields);
+
+    items = VNEW();
+
+    VADDR(items, mapu_pair((mpair_t){"value", cstr_new_format(50, "Edit song")}));
+    VADDR(items, mapu_pair((mpair_t){"value", cstr_new_format(50, "Delete song")}));
+    VADDR(items, mapu_pair((mpair_t){"value", cstr_new_format(50, "Go to current")}));
+
+    ui_table_set_data(ui.contexttable, items);
+    REL(items);
 
     /* get visual views */
 
