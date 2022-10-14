@@ -263,13 +263,12 @@ void ui_on_return_inputtf(view_t* view)
 	view_add_subview(ui.metashadow, ui.metaacceptbtn);
 	ui_cancel_input();
 
-	str_t* val  = vh_textinput_get_text(view);
-	char*  sval = str_new_cstring(val);
+	char* val = vh_textinput_get_text(view);
 
-	MPUT(ui.edited_song, ui.edited_key, sval);
+	MPUT(ui.edited_song, ui.edited_key, val);
 	mem_describe(ui.edited_song, 0);
 
-	MPUT(ui.edited_changed, ui.edited_key, sval);
+	MPUT(ui.edited_changed, ui.edited_key, val);
 
 	vec_t* pairs = VNEW();
 	vec_t* keys  = VNEW();
@@ -288,13 +287,10 @@ void ui_on_return_inputtf(view_t* view)
 	vec_sort(pairs, ui_comp_value);
 
 	ui_table_set_data(ui.metatable, pairs);
-
-	REL(sval);
     }
     else if (ui.inputmode == UI_IM_SORTING)
     {
-	str_t* val     = vh_textinput_get_text(view);
-	char*  sorting = str_new_cstring(val);
+	char* sorting = vh_textinput_get_text(view);
 
 	// check if sorting string is valid
 
@@ -310,14 +306,12 @@ void ui_on_return_inputtf(view_t* view)
 	    ui_update_songlist();
 	}
 
-	REL(sorting);
 	REL(words);
     }
     else if (ui.inputmode == UI_IM_COVERART)
     {
-	str_t* val        = vh_textinput_get_text(view);
-	char*  path_cs    = str_new_cstring(val);
-	char*  path_final = path_new_normalize(path_cs, config_get("wrk_path")); // REL 1
+	char* path_cs    = vh_textinput_get_text(view);
+	char* path_final = path_new_normalize(path_cs, config_get("wrk_path")); // REL 1
 	// check if image is valid
 	bm_rgba_t* image = coder_load_image(path_final);
 
@@ -340,7 +334,6 @@ void ui_on_return_inputtf(view_t* view)
 	    ui.edited_cover = RET(path_final);
 	}
 
-	REL(path_cs);    // REL 0
 	REL(path_final); // REL 1
     }
 }
@@ -814,13 +807,10 @@ void on_metalist_event(ui_table_event event)
 
 void ui_on_filter(view_t* view, void* userdata)
 {
-    str_t* text   = vh_textinput_get_text(view);
-    char*  filter = str_new_cstring(text); // REL 0
+    char* filter = vh_textinput_get_text(view);
 
     songlist_set_filter(filter);
     ui_update_songlist();
-
-    REL(filter);
 }
 
 void ui_pos_change(view_t* view, float angle)
@@ -1001,7 +991,7 @@ void ui_init(float width, float height)
     ts.align       = TA_CENTER;
     view_t* cover  = view_get_subview(ui.view_base, "metacover");
     tg_text_add(cover);
-    tg_text_set(cover, "NO COVER ART", ts);
+    tg_text_set(cover, "NO COVER ÁRT", ts);
 
     /* songlist */
 
