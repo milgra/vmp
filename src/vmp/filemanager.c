@@ -115,7 +115,7 @@ void fm_delete_file(char* fm_path, map_t* entry)
 {
     assert(fm_path != NULL);
 
-    char* rel_path  = MGET(entry, "file/path");
+    char* rel_path  = MGET(entry, "path");
     char* file_path = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s", fm_path, rel_path); // REL 0
 
     int error = remove(file_path);

@@ -26,6 +26,7 @@ void ui_show_progress(char* progress);
 #include "coder.c"
 #include "config.c"
 #include "cstr_util.c"
+#include "filemanager.c"
 #include "library.c"
 #include "map_util.c"
 #include "mediaplayer.c"
@@ -141,6 +142,23 @@ int ui_comp_value(void* left, void* right)
 
 void ui_play_song(map_t* song)
 {
+    /* increase play/skip counter */
+    if (ui.played_song)
+    {
+	if (ui.ms->finished)
+	{
+	    int plays = atoi(MGET(ui.played_song, "plays"));
+	    MPUTR(ui.played_song, "plays", cstr_new_format(10, "%i", ++plays));
+	}
+	else
+	{
+	    int skips = atoi(MGET(ui.played_song, "skips"));
+	    MPUTR(ui.played_song, "skips", cstr_new_format(10, "%i", ++skips));
+	}
+	ui_update_songlist();
+	lib_write(config_get("lib_path"));
+    }
+
     /* close existing ms */
     if (ui.ms) mp_close(ui.ms);
     ui.ms = NULL;
@@ -667,11 +685,30 @@ void on_contextlist_event(ui_table_event event)
     {
 	case UI_TABLE_EVENT_SELECT:
 	{
-	    printf("SELECT %i\n", event.selected_index);
 	    if (event.selected_index == 0) ui_open_metadata_editor();
+	    if (event.selected_index == 1)
+	    {
+		if (ui.songtable->selected_items->length > 0)
+		{
+		    map_t* song = ui.songtable->selected_items->data[0];
+		    lib_remove_entry(song);
+		    fm_delete_file(config_get("lib_path"), song);
+		    lib_write(config_get("lib_path"));
+		    ui_update_songlist();
+		}
+	    }
+	    if (event.selected_index == 2)
+	    {
+		if (ui.songtable->selected_items->length > 0)
+		{
+		    map_t*   song  = ui.songtable->selected_items->data[0];
+		    uint32_t index = songlist_get_index(song);
+		    if (index < UINT32_MAX) ui_table_select(ui.songtable, index);
+		}
+	    }
 	    view_remove_from_parent(ui.contextpopupcont);
+	    break;
 	}
-	break;
     }
 }
 
