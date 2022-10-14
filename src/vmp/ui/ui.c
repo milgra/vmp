@@ -80,6 +80,7 @@ struct _ui_t
     view_t* metapopupcont;
     view_t* filterpopupcont;
     view_t* settingspopupcont;
+    view_t* contextpopupcont;
 
     cb_t* size_cb;
 
@@ -170,6 +171,59 @@ void ui_play_song(map_t* song)
 
     view_t* playbtn = view_get_subview(ui.view_base, "playbtn");
     if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
+}
+
+void ui_open_metadata_editor()
+{
+    if (!ui.metapopupcont->parent)
+    {
+	map_reset(ui.edited_changed);
+	vec_reset(ui.edited_deleted);
+
+	view_add_subview(ui.view_base, ui.metapopupcont);
+
+	if (ui.songtable->selected_items->length > 0)
+	{
+	    map_t* info = ui.songtable->selected_items->data[0];
+
+	    view_t* cover    = view_get_subview(ui.metapopupcont, "metacover");
+	    char*   path     = MGET(info, "path");
+	    char*   realpath = path_new_append(config_get("lib_path"), path);
+
+	    if (!cover->texture.bitmap) view_gen_texture(cover);
+
+	    int success = coder_load_cover_into(realpath, cover->texture.bitmap);
+
+	    if (!success) view_gen_texture(cover);
+
+	    cover->texture.changed = 1;
+
+	    REL(realpath);
+
+	    vec_t* pairs = VNEW();
+	    vec_t* keys  = VNEW();
+	    map_keys(info, keys);
+	    for (int index = 0; index < keys->length; index++)
+	    {
+		char*  key   = keys->data[index];
+		char*  value = MGET(info, key);
+		map_t* map   = MNEW();
+		MPUT(map, "key", key);
+		MPUT(map, "value", value);
+		VADDR(pairs, map);
+	    }
+
+	    vec_sort(pairs, ui_comp_value);
+
+	    ui_table_set_data(ui.metatable, pairs);
+	    REL(pairs);
+	    REL(keys);
+
+	    view_layout(ui.view_base);
+
+	    ui.edited_song = info;
+	}
+    }
 }
 
 void ui_cancel_input()
@@ -374,51 +428,7 @@ void ui_on_btn_event(void* userdata, void* data)
     };
     if (strcmp(btnview->id, "metabtn") == 0)
     {
-	if (!ui.metapopupcont->parent)
-	{
-	    map_reset(ui.edited_changed);
-	    vec_reset(ui.edited_deleted);
-
-	    view_add_subview(ui.view_base, ui.metapopupcont);
-
-	    if (ui.songtable->selected_items->length > 0)
-	    {
-		map_t* info = ui.songtable->selected_items->data[0];
-
-		view_t* cover    = view_get_subview(ui.metapopupcont, "metacover");
-		char*   path     = MGET(info, "path");
-		char*   realpath = path_new_append(config_get("lib_path"), path);
-
-		if (!cover->texture.bitmap) view_gen_texture(cover);
-
-		coder_load_cover_into(realpath, cover->texture.bitmap);
-		REL(realpath);
-		cover->texture.changed = 1;
-
-		vec_t* pairs = VNEW();
-		vec_t* keys  = VNEW();
-		map_keys(info, keys);
-		for (int index = 0; index < keys->length; index++)
-		{
-		    char*  key   = keys->data[index];
-		    char*  value = MGET(info, key);
-		    map_t* map   = MNEW();
-		    MPUT(map, "key", key);
-		    MPUT(map, "value", value);
-		    VADDR(pairs, map);
-		}
-
-		vec_sort(pairs, ui_comp_value);
-
-		ui_table_set_data(ui.metatable, pairs);
-		REL(pairs);
-		REL(keys);
-
-		view_layout(ui.view_base);
-
-		ui.edited_song = info;
-	    }
-	}
+	ui_open_metadata_editor();
     };
     if (strcmp(btnview->id, "filterbtn") == 0)
     {
@@ -537,6 +547,10 @@ void ui_on_btn_event(void* userdata, void* data)
 
 	ui.inputmode = UI_IM_COVERART;
     }
+    if (strcmp(btnview->id, "contextpopupcont") == 0)
+    {
+	view_remove_from_parent(ui.contextpopupcont);
+    }
 }
 
 void on_songlist_event(ui_table_event event)
@@ -596,6 +610,15 @@ void on_songlist_event(ui_table_event event)
 	{
 	}
 	break;
+	case UI_TABLE_EVENT_CONTEXT:
+	{
+	    if (ui.contextpopupcont->parent == NULL)
+	    {
+		view_add_subview(ui.view_base, ui.contextpopupcont);
+		view_layout(ui.view_base);
+	    }
+	}
+	break;
 	case UI_TABLE_EVENT_OPEN:
 	{
 	    vec_t* selected = event.selected_items;
@@ -644,6 +667,9 @@ void on_contextlist_event(ui_table_event event)
     {
 	case UI_TABLE_EVENT_SELECT:
 	{
+	    printf("SELECT %i\n", event.selected_index);
+	    if (event.selected_index == 0) ui_open_metadata_editor();
+	    view_remove_from_parent(ui.contextpopupcont);
 	}
 	break;
     }
@@ -938,7 +964,7 @@ void ui_init(float width, float height)
     ts.align       = TA_CENTER;
     view_t* cover  = view_get_subview(ui.view_base, "metacover");
     tg_text_add(cover);
-    tg_text_set(cover, "COVER ART", ts);
+    tg_text_set(cover, "NO COVER ART", ts);
 
     /* songlist */
 
@@ -1110,14 +1136,15 @@ void ui_init(float width, float height)
 
     /* context list */
 
-    /* view_t* contextpopup     = view_get_subview(ui.view_base, "contextpopup"); */
-    view_t* contextlist    = view_get_subview(ui.view_base, "contexttable");
-    view_t* contextlistevt = view_get_subview(ui.view_base, "contextlistevt");
+    view_t* contextpopupcont = view_get_subview(ui.view_base, "contextpopupcont");
+    view_t* contextpopup     = view_get_subview(ui.view_base, "contextpopup");
+    view_t* contextlist      = view_get_subview(ui.view_base, "contexttable");
+    view_t* contextlistevt   = view_get_subview(ui.view_base, "contextlistevt");
 
-    contextlist->blocks_touch  = 1;
-    contextlist->blocks_scroll = 1;
+    contextpopup->blocks_touch  = 1;
+    contextpopup->blocks_scroll = 1;
 
-    /* ui.contextpopupcont = RET(contextpopupcont); */
+    ui.contextpopupcont = RET(contextpopupcont);
 
     fields = VNEW();
 
@@ -1143,6 +1170,10 @@ void ui_init(float width, float height)
 
     ui_table_set_data(ui.contexttable, items);
     REL(items);
+
+    vh_touch_add(ui.contextpopupcont, btn_cb);
+
+    view_remove_from_parent(ui.contextpopupcont);
 
     /* get visual views */
 
@@ -1185,6 +1216,7 @@ void ui_destroy()
     REL(ui.songlisttop);
     REL(ui.metapopupcont);
     REL(ui.filterpopupcont);
+    REL(ui.contextpopupcont);
 
     REL(ui.size_cb);
     REL(ui.view_base);

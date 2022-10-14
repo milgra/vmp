@@ -7,7 +7,7 @@
 
 bm_rgba_t* coder_load_image(const char* path);
 void       coder_load_image_into(const char* path, bm_rgba_t* bitmap);
-void       coder_load_cover_into(const char* path, bm_rgba_t* bitmap);
+int        coder_load_cover_into(const char* path, bm_rgba_t* bitmap);
 int        coder_load_metadata_into(const char* path, map_t* map);
 int        coder_write_metadata(char* libpath, char* path, char* cover_path, map_t* data, vec_t* drop);
 int        coder_write_png(char* path, bm_rgba_t* bm);
@@ -173,14 +173,14 @@ void coder_load_image_into(const char* path, bm_rgba_t* bitmap)
     avformat_free_context(src_ctx); // FREE 0
 }
 
-void coder_load_cover_into(const char* path, bm_rgba_t* bitmap)
+int coder_load_cover_into(const char* path, bm_rgba_t* bitmap)
 {
     assert(path != NULL);
 
     printf("coder_get_album %s %i %i\n", path, bitmap->w, bitmap->h);
 
-    int i = 0;
-    // int ret = 0;
+    int i   = 0;
+    int ret = 0;
 
     AVFormatContext* src_ctx = avformat_alloc_context(); // FREE 0
 
@@ -241,6 +241,8 @@ void coder_load_cover_into(const char* path, bm_rgba_t* bitmap)
 
 		sws_freeContext(img_convert_ctx); // FREE 3
 		free(scaledpixels[0]);
+
+		ret = 1;
 	    }
 
 	    avcodec_free_context(&codecContext); // FREE 1
@@ -250,6 +252,8 @@ void coder_load_cover_into(const char* path, bm_rgba_t* bitmap)
     }
 
     avformat_free_context(src_ctx); // FREE 0
+
+    return ret;
 }
 
 int coder_load_metadata_into(const char* path, map_t* map)

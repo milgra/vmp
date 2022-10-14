@@ -9,6 +9,7 @@
 
 typedef enum _vh_tbl_evnt_event_t
 {
+    VH_TBL_EVENT_CONTEXT,
     VH_TBL_EVENT_SELECT,
     VH_TBL_EVENT_OPEN,
     VH_TBL_EVENT_DRAG,
@@ -178,7 +179,10 @@ void vh_tbl_evnt_evt(view_t* view, ev_t ev)
 
 		    if (!ev.dclick)
 		    {
-			(*vh->on_event)(view, vh->selected_item, VH_TBL_EVENT_SELECT, bvh->head_index + index, vh->userdata, ev);
+			if (ev.button == 1)
+			    (*vh->on_event)(view, vh->selected_item, VH_TBL_EVENT_SELECT, bvh->head_index + index, vh->userdata, ev);
+			else if (ev.button == 3)
+			    (*vh->on_event)(view, vh->selected_item, VH_TBL_EVENT_CONTEXT, bvh->head_index + index, vh->userdata, ev);
 		    }
 		    else
 		    {
