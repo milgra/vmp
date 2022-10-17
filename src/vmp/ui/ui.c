@@ -176,6 +176,9 @@ void ui_play_song(map_t* song)
     char* realpath = path_new_append(config_get("lib_path"), path);
 
     ui.ms = mp_open(realpath, ui_on_media_player_event);
+
+    REL(realpath);
+
     mp_set_volume(ui.ms, ui.volume);
     mp_set_visutype(ui.ms, ui.visutype);
 
