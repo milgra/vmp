@@ -322,20 +322,20 @@ void ui_table_item_recycle(
     VADD(uit->cache, item_v);
 }
 
-void ui_table_evnt_event(view_t* view, view_t* rowview, vh_tbl_evnt_event_t type, int index, void* userdata, ev_t ev)
+void ui_table_evnt_event(vh_tbl_evnt_event event)
 {
-    ui_table_t* uit = (ui_table_t*) userdata;
+    ui_table_t* uit = (ui_table_t*) event.userdata;
 
-    if (type == VH_TBL_EVENT_SELECT)
+    if (event.id == VH_TBL_EVENT_SELECT)
     {
-	map_t* data = uit->items->data[index];
+	map_t* data = uit->items->data[event.index];
 
 	uint32_t pos = vec_index_of_data(uit->selected_items, data);
 
 	if (pos == UINT32_MAX)
 	{
 	    // reset selected if control is not down
-	    if (!ev.ctrl_down)
+	    if (!event.ev.ctrl_down)
 	    {
 		vec_reset(uit->selected_items);
 		vh_tbl_body_t* bvh = uit->body_v->handler_data;
@@ -352,43 +352,43 @@ void ui_table_evnt_event(view_t* view, view_t* rowview, vh_tbl_evnt_event_t type
 	    }
 
 	    VADD(uit->selected_items, data);
-	    rowview->style.background_color = 0x006600FF;
-	    view_invalidate_texture(rowview);
+	    event.rowview->style.background_color = 0x006600FF;
+	    view_invalidate_texture(event.rowview);
 	}
 	else
 	{
 	    VREM(uit->selected_items, data);
-	    rowview->style.background_color = 0x000000FF;
-	    view_invalidate_texture(rowview);
+	    event.rowview->style.background_color = 0x000000FF;
+	    view_invalidate_texture(event.rowview);
 	}
 
-	ui_table_event event = {.table = uit, .id = UI_TABLE_EVENT_SELECT, .selected_items = uit->selected_items, .selected_index = index, .rowview = rowview};
-	(*uit->on_event)(event);
+	ui_table_event tevent = {.table = uit, .id = UI_TABLE_EVENT_SELECT, .selected_items = uit->selected_items, .selected_index = event.index, .rowview = event.rowview};
+	(*uit->on_event)(tevent);
     }
-    if (type == VH_TBL_EVENT_CONTEXT)
+    if (event.id == VH_TBL_EVENT_CONTEXT)
     {
-	ui_table_event event = {.table = uit, .id = UI_TABLE_EVENT_CONTEXT, .selected_items = uit->selected_items, .selected_index = index, .rowview = rowview};
-	(*uit->on_event)(event);
+	ui_table_event tevent = {.table = uit, .id = UI_TABLE_EVENT_CONTEXT, .selected_items = uit->selected_items, .selected_index = event.index, .rowview = event.rowview};
+	(*uit->on_event)(tevent);
     }
-    if (type == VH_TBL_EVENT_OPEN)
+    if (event.id == VH_TBL_EVENT_OPEN)
     {
-	ui_table_event event = {.table = uit, .id = UI_TABLE_EVENT_OPEN, .selected_items = uit->selected_items, .selected_index = index, .rowview = rowview};
-	(*uit->on_event)(event);
+	ui_table_event tevent = {.table = uit, .id = UI_TABLE_EVENT_OPEN, .selected_items = uit->selected_items, .selected_index = event.index, .rowview = event.rowview};
+	(*uit->on_event)(tevent);
     }
-    if (type == VH_TBL_EVENT_DRAG)
+    if (event.id == VH_TBL_EVENT_DRAG)
     {
-	ui_table_event event = {.table = uit, .id = UI_TABLE_EVENT_DRAG, .selected_items = uit->selected_items, .selected_index = index, .rowview = rowview};
-	(*uit->on_event)(event);
+	ui_table_event tevent = {.table = uit, .id = UI_TABLE_EVENT_DRAG, .selected_items = uit->selected_items, .selected_index = event.index, .rowview = event.rowview};
+	(*uit->on_event)(tevent);
     }
-    if (type == VH_TBL_EVENT_DROP)
+    if (event.id == VH_TBL_EVENT_DROP)
     {
-	ui_table_event event = {.table = uit, .id = UI_TABLE_EVENT_DROP, .selected_items = uit->selected_items, .selected_index = index, .rowview = rowview};
-	(*uit->on_event)(event);
+	ui_table_event tevent = {.table = uit, .id = UI_TABLE_EVENT_DROP, .selected_items = uit->selected_items, .selected_index = event.index, .rowview = event.rowview};
+	(*uit->on_event)(tevent);
     }
-    if (type == VH_TBL_EVENT_KEY)
+    if (event.id == VH_TBL_EVENT_KEY)
     {
-	ui_table_event event = {.table = uit, .id = UI_TABLE_EVENT_DROP, .selected_items = uit->selected_items, .selected_index = index, .rowview = rowview, .event = ev};
-	(*uit->on_event)(event);
+	ui_table_event tevent = {.table = uit, .id = UI_TABLE_EVENT_DROP, .selected_items = uit->selected_items, .selected_index = event.index, .rowview = event.rowview, .event = event.ev};
+	(*uit->on_event)(tevent);
     }
 }
 
