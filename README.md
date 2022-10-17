@@ -1,7 +1,7 @@
 # vmp
 Visual music player
 
-Visuam Music Play is a music player, visualizer and organizer inspired by the 2000's era iTunes and the tracker music players of the early 90's. VMP was made for SwayOS.
+Visuam Music Player is a music player, visualizer and organizer inspired by the 2000's era iTunes and the tracker music players of the early 90's. VMP was made for SwayOS.
 
 ![alt text](screenshot.png)
 
