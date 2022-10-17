@@ -50,7 +50,6 @@ void ui_show_progress(char* progress);
 #include "views.c"
 #include "wm_connector.c"
 #include "zc_bm_rgba.c"
-#include "zc_callback.c"
 #include "zc_cstring.c"
 #include "zc_draw.c"
 #include "zc_log.c"
@@ -256,10 +255,9 @@ void ui_cancel_input()
     view_remove_subview(ui.view_base, ui.inputarea);
 }
 
-void ui_on_key_down(void* userdata, void* data)
+void ui_on_key_down(vh_key_event event)
 {
-    ev_t* ev = (ev_t*) data;
-    if (ev->keycode == SDLK_SPACE) ui_toggle_pause();
+    if (event.ev.keycode == SDLK_SPACE) ui_toggle_pause();
 }
 
 void ui_on_touch(vh_touch_event event)
@@ -473,242 +471,205 @@ void ui_on_btn_event(vh_button_event event)
 
 void on_songlist_event(ui_table_event event)
 {
-    switch (event.id)
+    if (event.id == UI_TABLE_EVENT_FIELDS_UPDATE)
     {
-	case UI_TABLE_EVENT_FIELDS_UPDATE:
+	vec_t* fields   = event.fields;
+	char*  fieldstr = cstr_new_cstring("");
+	for (int index = 0; index < fields->length; index += 2)
 	{
-	    vec_t* fields   = event.fields;
-	    char*  fieldstr = cstr_new_cstring("");
-	    for (int index = 0; index < fields->length; index += 2)
-	    {
-		char*  field = fields->data[index];
-		num_t* value = fields->data[index + 1];
-		char*  pair  = cstr_new_format(100, "%s %i ", field, value->intv);
-		fieldstr     = cstr_append(fieldstr, pair);
-		REL(pair);
-	    }
-	    config_set("fields", fieldstr);
-	    config_write(config_get("cfg_path"));
+	    char*  field = fields->data[index];
+	    num_t* value = fields->data[index + 1];
+	    char*  pair  = cstr_new_format(100, "%s %i ", field, value->intv);
+	    fieldstr     = cstr_append(fieldstr, pair);
+	    REL(pair);
 	}
-	break;
-	case UI_TABLE_EVENT_FIELD_SELECT:
+	config_set("fields", fieldstr);
+	config_write(config_get("cfg_path"));
+    }
+    else if (event.id == UI_TABLE_EVENT_FIELD_SELECT)
+    {
+	char* field   = event.field;
+	char* sorting = cstr_new_cstring(songlist_get_sorting());
+
+	if (strstr(sorting, field) != NULL)
 	{
-	    char* field   = event.field;
-	    char* sorting = cstr_new_cstring(songlist_get_sorting());
+	    char* part  = strstr(sorting, field);
+	    char  value = part[strlen(field) + 1];
 
-	    if (strstr(sorting, field) != NULL)
-	    {
-		char* part  = strstr(sorting, field);
-		char  value = part[strlen(field) + 1];
-
-		if (strcmp(field, "artist") == 0)
-		    sorting = cstr_new_format(100, "%s %c album 1 track 1", field, value == '0' ? '1' : '0');
-		else
-		    sorting = cstr_new_format(100, "%s %c", field, value == '0' ? '1' : '0');
-	    }
+	    if (strcmp(field, "artist") == 0)
+		sorting = cstr_new_format(100, "%s %c album 1 track 1", field, value == '0' ? '1' : '0');
 	    else
-	    {
-		if (strcmp(field, "artist") == 0)
-		    sorting = cstr_new_format(100, "%s 1 album 1 track 1", field);
-		else
-		    sorting = cstr_new_format(100, "%s 1", field);
-	    }
-
-	    songlist_set_sorting(sorting);
-
-	    REL(sorting);
-
-	    config_set("sorting", sorting);
-	    config_write(config_get("cfg_path"));
-
-	    ui_update_songlist();
+		sorting = cstr_new_format(100, "%s %c", field, value == '0' ? '1' : '0');
 	}
-	break;
-	case UI_TABLE_EVENT_SELECT:
+	else
 	{
+	    if (strcmp(field, "artist") == 0)
+		sorting = cstr_new_format(100, "%s 1 album 1 track 1", field);
+	    else
+		sorting = cstr_new_format(100, "%s 1", field);
 	}
-	break;
-	case UI_TABLE_EVENT_CONTEXT:
-	{
-	    if (ui.contextpopupcont->parent == NULL)
-	    {
-		view_add_subview(ui.view_base, ui.contextpopupcont);
-		view_layout(ui.view_base);
-	    }
-	}
-	break;
-	case UI_TABLE_EVENT_OPEN:
-	{
-	    vec_t* selected = event.selected_items;
-	    map_t* info     = selected->data[0];
 
-	    ui_play_song(info);
-	}
-	break;
-	case UI_TABLE_EVENT_DRAG:
-	{
-	}
-	break;
-	case UI_TABLE_EVENT_KEY:
-	{
-	    ev_t ev = event.event;
+	songlist_set_sorting(sorting);
 
-	    if (ev.keycode == SDLK_DOWN || ev.keycode == SDLK_UP)
-	    {
-		int32_t index = event.table->selected_index;
+	REL(sorting);
 
-		if (ev.keycode == SDLK_DOWN) index += 1;
-		if (ev.keycode == SDLK_UP) index -= 1;
-		ui_table_select(event.table, index);
-	    }
+	config_set("sorting", sorting);
+	config_write(config_get("cfg_path"));
+
+	ui_update_songlist();
+    }
+    else if (event.id == UI_TABLE_EVENT_SELECT)
+    {
+    }
+    else if (event.id == UI_TABLE_EVENT_CONTEXT)
+    {
+	if (ui.contextpopupcont->parent == NULL)
+	{
+	    view_add_subview(ui.view_base, ui.contextpopupcont);
+	    view_layout(ui.view_base);
 	}
-	break;
-	case UI_TABLE_EVENT_DROP:
-	    break;
+    }
+    else if (event.id == UI_TABLE_EVENT_OPEN)
+    {
+	vec_t* selected = event.selected_items;
+	map_t* info     = selected->data[0];
+
+	ui_play_song(info);
+    }
+    else if (event.id == UI_TABLE_EVENT_DRAG)
+    {
+    }
+    else if (event.id == UI_TABLE_EVENT_KEY)
+    {
+	ev_t ev = event.event;
+
+	if (ev.keycode == SDLK_DOWN || ev.keycode == SDLK_UP)
+	{
+	    int32_t index = event.table->selected_index;
+
+	    if (ev.keycode == SDLK_DOWN) index += 1;
+	    if (ev.keycode == SDLK_UP) index -= 1;
+	    ui_table_select(event.table, index);
+	}
+    }
+    else if (event.id == UI_TABLE_EVENT_DROP)
+    {
     }
 }
 
 void on_settingslist_event(ui_table_event event)
 {
-    switch (event.id)
-    {
-	case UI_TABLE_EVENT_SELECT:
-	{
-	}
-	break;
-    }
 }
 
 void on_contextlist_event(ui_table_event event)
 {
-    switch (event.id)
+    if (event.id == UI_TABLE_EVENT_SELECT)
     {
-	case UI_TABLE_EVENT_SELECT:
+	if (event.selected_index == 0) ui_open_metadata_editor();
+	if (event.selected_index == 1)
 	{
-	    if (event.selected_index == 0) ui_open_metadata_editor();
-	    if (event.selected_index == 1)
+	    if (ui.songtable->selected_items->length > 0)
 	    {
-		if (ui.songtable->selected_items->length > 0)
-		{
-		    map_t* song = ui.songtable->selected_items->data[0];
-		    lib_remove_entry(song);
-		    fm_delete_file(config_get("lib_path"), song);
-		    lib_write(config_get("lib_path"));
-		    ui_update_songlist();
-		}
+		map_t* song = ui.songtable->selected_items->data[0];
+		lib_remove_entry(song);
+		fm_delete_file(config_get("lib_path"), song);
+		lib_write(config_get("lib_path"));
+		ui_update_songlist();
 	    }
-	    if (event.selected_index == 2)
-	    {
-		if (ui.songtable->selected_items->length > 0)
-		{
-		    map_t*   song  = ui.songtable->selected_items->data[0];
-		    uint32_t index = songlist_get_index(song);
-		    if (index < UINT32_MAX) ui_table_select(ui.songtable, index);
-		}
-	    }
-	    view_remove_from_parent(ui.contextpopupcont);
-	    break;
 	}
+	if (event.selected_index == 2)
+	{
+	    if (ui.songtable->selected_items->length > 0)
+	    {
+		map_t*   song  = ui.songtable->selected_items->data[0];
+		uint32_t index = songlist_get_index(song);
+		if (index < UINT32_MAX) ui_table_select(ui.songtable, index);
+	    }
+	}
+	view_remove_from_parent(ui.contextpopupcont);
     }
 }
 
 void on_genrelist_event(ui_table_event event)
 {
-    switch (event.id)
+    if (event.id == UI_TABLE_EVENT_SELECT)
     {
-	case UI_TABLE_EVENT_SELECT:
-	{
-	    vec_t* selected = event.selected_items;
-	    map_t* info     = selected->data[0];
+	vec_t* selected = event.selected_items;
+	map_t* info     = selected->data[0];
 
-	    char* genre = MGET(info, "genre");
-	    char  filter[100];
+	char* genre = MGET(info, "genre");
+	char  filter[100];
 
-	    snprintf(filter, 100, "genre is %s", genre);
-	    songlist_set_filter(filter);
-	    ui_update_songlist();
+	snprintf(filter, 100, "genre is %s", genre);
+	songlist_set_filter(filter);
+	ui_update_songlist();
 
-	    vh_textinput_set_text(ui.filtertf, filter);
-	}
-	break;
+	vh_textinput_set_text(ui.filtertf, filter);
     }
 }
 
 void on_artistlist_event(ui_table_event event)
 {
-    switch (event.id)
+    if (event.id == UI_TABLE_EVENT_SELECT)
     {
-	case UI_TABLE_EVENT_SELECT:
-	{
-	    vec_t* selected = event.selected_items;
-	    map_t* info     = selected->data[0];
+	vec_t* selected = event.selected_items;
+	map_t* info     = selected->data[0];
 
-	    char* artist = MGET(info, "artist");
-	    char  filter[100];
+	char* artist = MGET(info, "artist");
+	char  filter[100];
 
-	    snprintf(filter, 100, "artist is %s", artist);
-	    songlist_set_filter(filter);
-	    ui_update_songlist();
+	snprintf(filter, 100, "artist is %s", artist);
+	songlist_set_filter(filter);
+	ui_update_songlist();
 
-	    vh_textinput_set_text(ui.filtertf, filter);
-	}
-	break;
+	vh_textinput_set_text(ui.filtertf, filter);
     }
 }
 
 void on_metalist_event(ui_table_event event)
 {
-    switch (event.id)
+    if (event.id == UI_TABLE_EVENT_OPEN)
     {
-	case UI_TABLE_EVENT_SELECT:
-	{
-	    break;
-	}
-	case UI_TABLE_EVENT_OPEN:
-	{
-	    // show input textfield above rowwiew
+	// show input textfield above rowwiew
 
-	    if (event.rowview)
+	if (event.rowview)
+	{
+	    // show value in input textfield
+	    map_t* info = event.selected_items->data[0];
+	    char*  key  = MGET(info, "key");
+
+	    if (strcmp(key, "artist") == 0 ||
+		strcmp(key, "album") == 0 ||
+		strcmp(key, "title") == 0 ||
+		strcmp(key, "genre") == 0)
 	    {
-		// show value in input textfield
-		map_t* info = event.selected_items->data[0];
-		char*  key  = MGET(info, "key");
+		ui.inputmode = UI_IM_EDITING;
 
-		if (strcmp(key, "artist") == 0 ||
-		    strcmp(key, "album") == 0 ||
-		    strcmp(key, "title") == 0 ||
-		    strcmp(key, "genre") == 0)
+		view_t* valueview = event.rowview->views->data[1];
+		r2_t    rframe    = valueview->frame.global;
+		r2_t    iframe    = ui.inputbck->frame.global;
+		iframe.x          = rframe.x;
+		iframe.y          = rframe.y - 5;
+		view_set_frame(ui.inputbck, iframe);
+
+		view_add_subview(ui.view_base, ui.inputarea);
+
+		view_layout(ui.view_base);
+
+		ui_manager_activate(ui.inputtf);
+		vh_textinput_activate(ui.inputtf, 1);
+
+		char* value = MGET(info, "value");
+		if (!value) value = "";
+
+		if (value)
 		{
-		    ui.inputmode = UI_IM_EDITING;
+		    vh_textinput_set_text(ui.inputtf, value);
 
-		    view_t* valueview = event.rowview->views->data[1];
-		    r2_t    rframe    = valueview->frame.global;
-		    r2_t    iframe    = ui.inputbck->frame.global;
-		    iframe.x          = rframe.x;
-		    iframe.y          = rframe.y - 5;
-		    view_set_frame(ui.inputbck, iframe);
-
-		    view_add_subview(ui.view_base, ui.inputarea);
-
-		    view_layout(ui.view_base);
-
-		    ui_manager_activate(ui.inputtf);
-		    vh_textinput_activate(ui.inputtf, 1);
-
-		    char* value = MGET(info, "value");
-		    if (!value) value = "";
-
-		    if (value)
-		    {
-			vh_textinput_set_text(ui.inputtf, value);
-
-			ui.edited_key = MGET(info, "key");
-		    }
+		    ui.edited_key = MGET(info, "key");
 		}
 	    }
-	    break;
 	}
-	break;
     }
 }
 
@@ -866,13 +827,9 @@ void ui_init(float width, float height)
     view_set_frame(ui.view_base, (r2_t){0.0, 0.0, (float) width, (float) height});
     ui_manager_add(ui.view_base);
 
-    /* callbacks */
-
-    cb_t* key_cb = cb_new(ui_on_key_down, NULL);
-
     /* listen for keys and shortcuts */
 
-    vh_key_add(ui.view_base, key_cb);
+    vh_key_add(ui.view_base, ui_on_key_down);
     ui.view_base->needs_key = 1;
 
     /* knobs */
@@ -1194,8 +1151,6 @@ void ui_init(float width, float height)
 
     vh_touch_add(ui.visL, ui_on_touch);
     vh_touch_add(ui.visR, ui_on_touch);
-
-    REL(key_cb);
 
     // show texture map for debug
 

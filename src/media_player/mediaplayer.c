@@ -26,7 +26,6 @@
 #include "libswscale/swscale.h"
 #include "packetqueue.c"
 #include "zc_bm_rgba.c"
-#include "zc_callback.c"
 #include "zc_draw.c"
 #include "zc_log.c"
 #include "zc_vec2.c"

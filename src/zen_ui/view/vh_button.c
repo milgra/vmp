@@ -2,7 +2,6 @@
 #define vh_button_h
 
 #include "view.c"
-#include "zc_callback.c"
 
 typedef enum _vh_button_type_t
 {
@@ -51,16 +50,16 @@ void vh_button_set_state(view_t* view, vh_button_state_t state);
 #include "vh_anim.c"
 #include "zc_log.c"
 
-void vh_button_anim_end(view_t* view, void* userdata)
+void vh_button_on_anim(vh_anim_event event)
 {
-    view_t*      btnview = (view_t*) userdata;
+    view_t*      btnview = (view_t*) event.userdata;
     vh_button_t* vh      = btnview->handler_data;
 
     // if offview alpha is 0 and state is released
 
     if (vh->type == VH_BUTTON_NORMAL)
     {
-	if (vh->offview->texture.alpha < 0.0001 && view == vh->offview)
+	if (vh->offview->texture.alpha < 0.0001 && event.view == vh->offview)
 	{
 	    vh_anim_alpha(vh->offview, 0.0, 1.0, 10, AT_LINEAR);
 	}
@@ -78,14 +77,12 @@ void vh_button_evt(view_t* view, ev_t ev)
 	    if (view->views->length > 0)
 	    {
 		vh->offview = view->views->data[0];
-		vh_anim_add(vh->offview);
-		vh_anim_set_event(vh->offview, view, vh_button_anim_end);
+		vh_anim_add(vh->offview, vh_button_on_anim, view);
 	    }
 	    if (view->views->length > 1)
 	    {
 		vh->onview = view->views->data[1];
-		vh_anim_add(vh->onview);
-		vh_anim_set_event(vh->onview, view, vh_button_anim_end);
+		vh_anim_add(vh->onview, vh_button_on_anim, view);
 	    }
 
 	    if (vh->offview) view_set_texture_alpha(vh->offview, 1.0, 0);

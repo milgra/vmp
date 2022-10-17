@@ -2,7 +2,6 @@
 #define vh_touch_h
 
 #include "view.c"
-#include "zc_callback.c"
 
 typedef struct _vh_touch_t vh_touch_t;
 
