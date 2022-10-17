@@ -5,7 +5,25 @@
 #include "wm_event.c"
 #include "zc_text.c"
 
-typedef struct _vh_textinput_t
+typedef struct _vh_textinput_t vh_textinput_t;
+
+enum vh_textinput_event_id
+{
+    VH_TEXTINPUT_TEXT,
+    VH_TEXTINPUT_RETURN,
+    VH_TEXTINPUT_ACTIVATE,
+    VH_TEXTINPUT_DEACTIVATE
+};
+
+typedef struct _vh_textinput_event
+{
+    enum vh_textinput_event_id id;
+    vh_textinput_t*            vh;
+    char*                      text;
+    view_t*                    view;
+} vh_textinput_event;
+
+struct _vh_textinput_t
 {
     char*   text;     // text string
     vec_t*  glyph_v;  // glpyh views
@@ -16,26 +34,18 @@ typedef struct _vh_textinput_t
     int         glyph_index;
     textstyle_t style;
     char        active;
-    void*       userdata;
 
     int mouse_out_deact;
 
-    void (*on_text)(view_t* view, void* data);
-    void (*on_return)(view_t* view);
-    void (*on_activate)(view_t* view);
-    void (*on_deactivate)(view_t* view);
-} vh_textinput_t;
+    void (*on_event)(vh_textinput_event);
+};
 
-void vh_textinput_add(view_t* view, char* text, char* phtext, textstyle_t textstyle, void* userdata);
+void vh_textinput_add(view_t* view, char* text, char* phtext, textstyle_t textstyle, void (*on_event)(vh_textinput_event));
 
 char* vh_textinput_get_text(view_t* view);
 void  vh_textinput_set_text(view_t* view, char* text);
 void  vh_textinput_set_deactivate_on_mouse_out(view_t* view, int flag);
 void  vh_textinput_activate(view_t* view, char state);
-void  vh_textinput_set_on_text(view_t* view, void (*event)(view_t*, void*));
-void  vh_textinput_set_on_return(view_t* view, void (*event)(view_t*));
-void  vh_textinput_set_on_activate(view_t* view, void (*event)(view_t*));
-void  vh_textinput_set_on_deactivate(view_t* view, void (*event)(view_t*));
 
 #endif
 
@@ -293,7 +303,9 @@ void vh_textinput_evt(view_t* view, ev_t ev)
 	// r2_t frame = view->frame.global;
 
 	vh_textinput_activate(view, 1);
-	if (data->on_activate) (*data->on_activate)(view);
+
+	vh_textinput_event event = {.id = VH_TEXTINPUT_ACTIVATE, .vh = data, .text = data->text, .view = view};
+	if (data->on_event) (*data->on_event)(event);
     }
     else if (ev.type == EV_MDOWN_OUT)
     {
@@ -307,7 +319,8 @@ void vh_textinput_evt(view_t* view, ev_t ev)
 		ev.y > frame.y + frame.h)
 	    {
 		vh_textinput_activate(view, 0);
-		if (data->on_deactivate) (*data->on_deactivate)(view);
+		vh_textinput_event event = {.id = VH_TEXTINPUT_DEACTIVATE, .vh = data, .text = data->text, .view = view};
+		if (data->on_event) (*data->on_event)(event);
 	    }
 	}
     }
@@ -331,7 +344,8 @@ void vh_textinput_evt(view_t* view, ev_t ev)
 
 	vh_textinput_upd(view);
 
-	if (data->on_text) (*data->on_text)(view, data->userdata);
+	vh_textinput_event event = {.id = VH_TEXTINPUT_DEACTIVATE, .vh = data, .text = data->text, .view = view};
+	if (data->on_event) (*data->on_event)(event);
     }
     else if (ev.type == EV_KDOWN)
     {
@@ -369,16 +383,21 @@ void vh_textinput_evt(view_t* view, ev_t ev)
 	    vh_anim_set_event(glyph_view, view, vh_textinput_on_glyph_close);
 
 	    vh_textinput_upd(view);
-	    if (data->on_text) (*data->on_text)(view, data->userdata);
+
+	    vh_textinput_event event = {.id = VH_TEXTINPUT_DEACTIVATE, .vh = data, .text = data->text, .view = view};
+	    if (data->on_event) (*data->on_event)(event);
 	}
 	if (ev.keycode == SDLK_RETURN)
 	{
-	    if (data->on_return) (*data->on_return)(view);
+	    vh_textinput_event event = {.id = VH_TEXTINPUT_RETURN, .vh = data, .text = data->text, .view = view};
+	    if (data->on_event) (*data->on_event)(event);
 	}
 	if (ev.keycode == SDLK_ESCAPE)
 	{
 	    vh_textinput_activate(view, 0);
-	    if (data->on_deactivate) (*data->on_deactivate)(view);
+
+	    vh_textinput_event event = {.id = VH_TEXTINPUT_DEACTIVATE, .vh = data, .text = data->text, .view = view};
+	    if (data->on_event) (*data->on_event)(event);
 	}
     }
     else if (ev.type == EV_TIME)
@@ -401,7 +420,7 @@ void vh_textinput_desc(void* p, int level)
     printf("vh_textinput");
 }
 
-void vh_textinput_add(view_t* view, char* text, char* phtext, textstyle_t textstyle, void* userdata)
+void vh_textinput_add(view_t* view, char* text, char* phtext, textstyle_t textstyle, void (*on_event)(vh_textinput_event))
 {
     assert(view->handler == NULL && view->handler_data == NULL);
 
@@ -415,8 +434,9 @@ void vh_textinput_add(view_t* view, char* text, char* phtext, textstyle_t textst
     data->text    = cstr_new_cstring(""); // REL 2
     data->glyph_v = VNEW();               // REL 3
 
-    data->style    = textstyle;
-    data->userdata = userdata;
+    data->style = textstyle;
+
+    data->on_event = on_event;
 
     data->frame_s = view->frame.local;
 
@@ -544,37 +564,14 @@ void vh_textinput_set_text(view_t* view, char* text)
 
     vh_textinput_upd(view);
 
-    if (data->on_text) (*data->on_text)(view, data->userdata);
+    vh_textinput_event event = {.id = VH_TEXTINPUT_TEXT, .vh = data, .text = data->text, .view = view};
+    if (data->on_event) (*data->on_event)(event);
 }
 
 char* vh_textinput_get_text(view_t* view)
 {
     vh_textinput_t* data = view->handler_data;
     return data->text;
-}
-
-void vh_textinput_set_on_text(view_t* view, void (*event)(view_t*, void* data))
-{
-    vh_textinput_t* data = view->handler_data;
-    data->on_text        = event;
-}
-
-void vh_textinput_set_on_return(view_t* view, void (*event)(view_t*))
-{
-    vh_textinput_t* data = view->handler_data;
-    data->on_return      = event;
-}
-
-void vh_textinput_set_on_activate(view_t* view, void (*event)(view_t*))
-{
-    vh_textinput_t* data = view->handler_data;
-    data->on_activate    = event;
-}
-
-void vh_textinput_set_on_deactivate(view_t* view, void (*event)(view_t*))
-{
-    vh_textinput_t* data = view->handler_data;
-    data->on_deactivate  = event;
 }
 
 void vh_textinput_set_deactivate_on_mouse_out(view_t* view, int flag)

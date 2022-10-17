@@ -83,8 +83,6 @@ struct _ui_t
     view_t* settingspopupcont;
     view_t* contextpopupcont;
 
-    cb_t* size_cb;
-
     view_t* cursor;
     view_t* view_base;
 
@@ -140,6 +138,12 @@ int ui_comp_value(void* left, void* right)
     return strcmp(la, ra);
 }
 
+void ui_on_media_player_event(ms_event event)
+{
+    /* handle aspect ratio of cover / video */
+    /* v2_t* r = (v2_t*) data; */
+}
+
 void ui_play_song(map_t* song)
 {
     /* increase play/skip counter */
@@ -171,7 +175,7 @@ void ui_play_song(map_t* song)
     char* path     = MGET(song, "path");
     char* realpath = path_new_append(config_get("lib_path"), path);
 
-    ui.ms = mp_open(realpath, ui.size_cb);
+    ui.ms = mp_open(realpath, ui_on_media_player_event);
     mp_set_volume(ui.ms, ui.volume);
     mp_set_visutype(ui.ms, ui.visutype);
 
@@ -249,125 +253,39 @@ void ui_cancel_input()
     view_remove_subview(ui.view_base, ui.inputarea);
 }
 
-void ui_on_cancel_inputtf(view_t* view)
-{
-    ui_cancel_input();
-}
-
-void ui_on_return_inputtf(view_t* view)
-{
-    if (ui.inputmode == UI_IM_EDITING)
-    {
-	// save value of inputtf
-
-	view_add_subview(ui.metashadow, ui.metaacceptbtn);
-	ui_cancel_input();
-
-	char* val = vh_textinput_get_text(view);
-
-	MPUT(ui.edited_song, ui.edited_key, val);
-	mem_describe(ui.edited_song, 0);
-
-	MPUT(ui.edited_changed, ui.edited_key, val);
-
-	vec_t* pairs = VNEW();
-	vec_t* keys  = VNEW();
-	map_keys(ui.edited_song, keys);
-
-	for (int index = 0; index < keys->length; index++)
-	{
-	    char*  key   = keys->data[index];
-	    char*  value = MGET(ui.edited_song, key);
-	    map_t* map   = MNEW();
-	    MPUT(map, "key", key);
-	    MPUT(map, "value", value);
-	    VADDR(pairs, map);
-	}
-
-	vec_sort(pairs, ui_comp_value);
-
-	ui_table_set_data(ui.metatable, pairs);
-    }
-    else if (ui.inputmode == UI_IM_SORTING)
-    {
-	char* sorting = vh_textinput_get_text(view);
-
-	// check if sorting string is valid
-
-	vec_t* words = cstr_split(sorting, " ");
-
-	if (words->length % 2 == 0)
-	{
-	    songlist_set_sorting(sorting);
-
-	    config_set("sorting", sorting);
-	    config_write(config_get("cfg_path"));
-
-	    ui_update_songlist();
-	}
-
-	REL(words);
-    }
-    else if (ui.inputmode == UI_IM_COVERART)
-    {
-	char* path_cs    = vh_textinput_get_text(view);
-	char* path_final = path_new_normalize(path_cs, config_get("wrk_path")); // REL 1
-	// check if image is valid
-	bm_rgba_t* image = coder_load_image(path_final);
-
-	printf("PATH %s\n", path_final);
-
-	if (image)
-	{
-	    printf("loading image\n");
-	    view_t* cover = view_get_subview(ui.metapopupcont, "metacover");
-
-	    if (!cover->texture.bitmap) view_gen_texture(cover);
-
-	    coder_load_image_into(path_final, cover->texture.bitmap);
-
-	    cover->texture.changed = 1;
-
-	    view_add_subview(ui.metashadow, ui.metaacceptbtn);
-	    ui_cancel_input();
-
-	    ui.edited_cover = RET(path_final);
-	}
-
-	REL(path_final); // REL 1
-    }
-}
-
 void ui_on_key_down(void* userdata, void* data)
 {
     ev_t* ev = (ev_t*) data;
     if (ev->keycode == SDLK_SPACE) ui_toggle_pause();
 }
 
-void ui_on_touch(void* userdata, void* data)
+void ui_on_touch(vh_touch_event event)
 {
-    view_t* view = data;
-
-    if (strcmp(view->id, "inputarea") == 0)
+    if (strcmp(event.view->id, "inputarea") == 0)
     {
 	ui_cancel_input();
     }
-}
-
-void ui_content_size(void* userdata, void* data)
-{
-    /* handle aspect ratio of cover / video */
-    /* v2_t* r = (v2_t*) data; */
-}
-
-void ui_on_btn_event(void* userdata, void* data)
-{
-    view_t*      btnview = data;
-    vh_button_t* vh      = btnview->handler_data;
-
-    if (strcmp(btnview->id, "playbtn") == 0)
+    if (strcmp(event.view->id, "contextpopupcont") == 0)
     {
-	if (vh->state == VH_BUTTON_DOWN)
+	view_remove_from_parent(ui.contextpopupcont);
+    }
+    if (strcmp(event.view->id, "visL") == 0)
+    {
+	ui.visutype = 1 - ui.visutype;
+	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
+    }
+    if (strcmp(event.view->id, "visR") == 0)
+    {
+	ui.visutype = 1 - ui.visutype;
+	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
+    }
+}
+
+void ui_on_btn_event(vh_button_event event)
+{
+    if (strcmp(event.view->id, "playbtn") == 0)
+    {
+	if (event.vh->state == VH_BUTTON_DOWN)
 	{
 	    if (ui.ms) mp_play(ui.ms);
 	    else
@@ -381,15 +299,15 @@ void ui_on_btn_event(void* userdata, void* data)
 	    if (ui.ms) mp_pause(ui.ms);
 	}
     };
-    if (strcmp(btnview->id, "mutebtn") == 0)
+    if (strcmp(event.view->id, "mutebtn") == 0)
     {
 	if (ui.ms)
 	{
-	    if (vh->state == VH_BUTTON_DOWN) mp_mute(ui.ms);
+	    if (event.vh->state == VH_BUTTON_DOWN) mp_mute(ui.ms);
 	    else mp_unmute(ui.ms);
 	}
     };
-    if (strcmp(btnview->id, "prevbtn") == 0)
+    if (strcmp(event.view->id, "prevbtn") == 0)
     {
 	map_t* prev = NULL;
 
@@ -398,7 +316,7 @@ void ui_on_btn_event(void* userdata, void* data)
 
 	if (prev) ui_play_song(prev);
     };
-    if (strcmp(btnview->id, "nextbtn") == 0)
+    if (strcmp(event.view->id, "nextbtn") == 0)
     {
 	map_t* next = NULL;
 
@@ -407,11 +325,11 @@ void ui_on_btn_event(void* userdata, void* data)
 
 	if (next) ui_play_song(next);
     };
-    if (strcmp(btnview->id, "shufflebtn") == 0)
+    if (strcmp(event.view->id, "shufflebtn") == 0)
     {
 	ui.shuffle = 1 - ui.shuffle;
     };
-    if (strcmp(btnview->id, "settingsbtn") == 0)
+    if (strcmp(event.view->id, "settingsbtn") == 0)
     {
 	if (!ui.settingspopupcont->parent)
 	{
@@ -419,7 +337,7 @@ void ui_on_btn_event(void* userdata, void* data)
 	    view_layout(ui.view_base);
 	}
     };
-    if (strcmp(btnview->id, "visubtn") == 0)
+    if (strcmp(event.view->id, "visubtn") == 0)
     {
 	ui.hide_visuals = 1 - ui.hide_visuals;
 
@@ -437,11 +355,11 @@ void ui_on_btn_event(void* userdata, void* data)
 	}
 	view_layout(ui.view_base);
     };
-    if (strcmp(btnview->id, "metabtn") == 0)
+    if (strcmp(event.view->id, "metabtn") == 0)
     {
 	ui_open_metadata_editor();
     };
-    if (strcmp(btnview->id, "filterbtn") == 0)
+    if (strcmp(event.view->id, "filterbtn") == 0)
     {
 	if (!ui.filterpopupcont->parent)
 	{
@@ -462,7 +380,7 @@ void ui_on_btn_event(void* userdata, void* data)
 	    view_layout(ui.view_base);
 	}
     };
-    if (strcmp(btnview->id, "sortingbtn") == 0)
+    if (strcmp(event.view->id, "sortingbtn") == 0)
     {
 	// show inputfield with sorting options
 	r2_t rframe = ui.view_base->frame.global;
@@ -481,7 +399,7 @@ void ui_on_btn_event(void* userdata, void* data)
 
 	ui.inputmode = UI_IM_SORTING;
     };
-    if (strcmp(btnview->id, "clearbtn") == 0)
+    if (strcmp(event.view->id, "clearbtn") == 0)
     {
 	vh_textinput_set_text(ui.filtertf, "");
 	ui_manager_activate(ui.filtertf);
@@ -490,37 +408,27 @@ void ui_on_btn_event(void* userdata, void* data)
 	songlist_set_filter(NULL);
 	ui_update_songlist();
     };
-    if (strcmp(btnview->id, "inputclearbtn") == 0)
+    if (strcmp(event.view->id, "inputclearbtn") == 0)
     {
 	vh_textinput_set_text(ui.inputtf, "");
 	ui_manager_activate(ui.inputtf);
 	vh_textinput_activate(ui.inputtf, 1);
     };
-    if (strcmp(btnview->id, "exitbtn") == 0) wm_close();
-    if (strcmp(btnview->id, "maxbtn") == 0) wm_toggle_fullscreen();
-    if (strcmp(btnview->id, "visL") == 0)
-    {
-	ui.visutype = 1 - ui.visutype;
-	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
-    }
-    if (strcmp(btnview->id, "visR") == 0)
-    {
-	ui.visutype = 1 - ui.visutype;
-	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
-    }
-    if (strcmp(btnview->id, "settingsclosebtn") == 0)
+    if (strcmp(event.view->id, "exitbtn") == 0) wm_close();
+    if (strcmp(event.view->id, "maxbtn") == 0) wm_toggle_fullscreen();
+    if (strcmp(event.view->id, "settingsclosebtn") == 0)
     {
 	view_remove_from_parent(ui.settingspopupcont);
     }
-    if (strcmp(btnview->id, "filterclosebtn") == 0)
+    if (strcmp(event.view->id, "filterclosebtn") == 0)
     {
 	view_remove_from_parent(ui.filterpopupcont);
     }
-    if (strcmp(btnview->id, "metaclosebtn") == 0)
+    if (strcmp(event.view->id, "metaclosebtn") == 0)
     {
 	view_remove_from_parent(ui.metapopupcont);
     }
-    if (strcmp(btnview->id, "metaacceptbtn") == 0)
+    if (strcmp(event.view->id, "metaacceptbtn") == 0)
     {
 	printf("CAHNEGED\n");
 
@@ -539,7 +447,7 @@ void ui_on_btn_event(void* userdata, void* data)
 	lib_write(config_get("lib_path"));
 	ui_update_songlist();
     }
-    if (strcmp(btnview->id, "metacoverbtn") == 0)
+    if (strcmp(event.view->id, "metacoverbtn") == 0)
     {
 	// show inputfield with sorting options
 	r2_t rframe = ui.view_base->frame.global;
@@ -557,10 +465,6 @@ void ui_on_btn_event(void* userdata, void* data)
 	vh_textinput_set_text(ui.inputtf, "/home/path_to_image/image.png");
 
 	ui.inputmode = UI_IM_COVERART;
-    }
-    if (strcmp(btnview->id, "contextpopupcont") == 0)
-    {
-	view_remove_from_parent(ui.contextpopupcont);
     }
 }
 
@@ -805,12 +709,92 @@ void on_metalist_event(ui_table_event event)
     }
 }
 
-void ui_on_filter(view_t* view, void* userdata)
+void ui_on_text_event(vh_textinput_event event)
 {
-    char* filter = vh_textinput_get_text(view);
+    if (strcmp(event.view->id, "filtertf") == 0)
+    {
+	songlist_set_filter(event.text);
+	ui_update_songlist();
+    }
+    else if (strcmp(event.view->id, "inputtf") == 0)
+    {
+	if (event.id == VH_TEXTINPUT_DEACTIVATE) ui_cancel_input();
 
-    songlist_set_filter(filter);
-    ui_update_songlist();
+	if (event.id == VH_TEXTINPUT_RETURN)
+	{
+	    if (ui.inputmode == UI_IM_EDITING)
+	    {
+		// save value of inputtf
+
+		view_add_subview(ui.metashadow, ui.metaacceptbtn);
+		ui_cancel_input();
+
+		MPUT(ui.edited_song, ui.edited_key, event.text);
+		MPUT(ui.edited_changed, ui.edited_key, event.text);
+
+		vec_t* pairs = VNEW();
+		vec_t* keys  = VNEW();
+		map_keys(ui.edited_song, keys);
+
+		for (int index = 0; index < keys->length; index++)
+		{
+		    char*  key   = keys->data[index];
+		    char*  value = MGET(ui.edited_song, key);
+		    map_t* map   = MNEW();
+		    MPUT(map, "key", key);
+		    MPUT(map, "value", value);
+		    VADDR(pairs, map);
+		}
+
+		vec_sort(pairs, ui_comp_value);
+
+		ui_table_set_data(ui.metatable, pairs);
+	    }
+	    else if (ui.inputmode == UI_IM_SORTING)
+	    {
+		vec_t* words = cstr_split(event.text, " ");
+
+		if (words->length % 2 == 0)
+		{
+		    songlist_set_sorting(event.text);
+
+		    config_set("sorting", event.text);
+		    config_write(config_get("cfg_path"));
+
+		    ui_update_songlist();
+		}
+
+		REL(words);
+	    }
+	    else if (ui.inputmode == UI_IM_COVERART)
+	    {
+		char* path_final = path_new_normalize(event.text, config_get("wrk_path")); // REL 1
+		// check if image is valid
+		bm_rgba_t* image = coder_load_image(path_final);
+
+		printf("PATH %s\n", path_final);
+
+		if (image)
+		{
+		    printf("loading image\n");
+		    view_t* cover = view_get_subview(ui.metapopupcont, "metacover");
+
+		    if (!cover->texture.bitmap) view_gen_texture(cover);
+
+		    coder_load_image_into(path_final, cover->texture.bitmap);
+
+		    cover->texture.changed = 1;
+
+		    view_add_subview(ui.metashadow, ui.metaacceptbtn);
+		    ui_cancel_input();
+
+		    ui.edited_cover = RET(path_final);
+		}
+
+		REL(path_final); // REL 1
+	    }
+	}
+    }
 }
 
 void ui_pos_change(view_t* view, float angle)
@@ -881,12 +865,7 @@ void ui_init(float width, float height)
 
     /* callbacks */
 
-    cb_t* btn_cb   = cb_new(ui_on_btn_event, NULL);
-    cb_t* key_cb   = cb_new(ui_on_key_down, NULL);
-    cb_t* size_cb  = cb_new(ui_content_size, NULL);
-    cb_t* touch_cb = cb_new(ui_on_touch, NULL);
-
-    ui.size_cb = size_cb;
+    cb_t* key_cb = cb_new(ui_on_key_down, NULL);
 
     /* listen for keys and shortcuts */
 
@@ -931,22 +910,22 @@ void ui_init(float width, float height)
     view_t* playbtn          = view_get_subview(ui.view_base, "playbtn");
     view_t* mutebtn          = view_get_subview(ui.view_base, "mutebtn");
 
-    vh_button_add(prevbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(nextbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(shufflebtn, VH_BUTTON_TOGGLE, btn_cb);
-    vh_button_add(metabtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(settingsbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(visubtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(maxbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(exitbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(sortingbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(filterbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(clearbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(inputclearbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(playbtn, VH_BUTTON_TOGGLE, btn_cb);
-    vh_button_add(mutebtn, VH_BUTTON_TOGGLE, btn_cb);
-    vh_button_add(filterclosebtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(settingsclosebtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(prevbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(nextbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(shufflebtn, VH_BUTTON_TOGGLE, ui_on_btn_event);
+    vh_button_add(metabtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(settingsbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(visubtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(maxbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(exitbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(sortingbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(filterbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(clearbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(inputclearbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(playbtn, VH_BUTTON_TOGGLE, ui_on_btn_event);
+    vh_button_add(mutebtn, VH_BUTTON_TOGGLE, ui_on_btn_event);
+    vh_button_add(filterclosebtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(settingsclosebtn, VH_BUTTON_NORMAL, ui_on_btn_event);
 
     /* textfields */
 
@@ -959,8 +938,7 @@ void ui_init(float width, float height)
     ui.filtertf = view_get_subview(ui.view_base, "filtertf");
     ui.filterts = ui_util_gen_textstyle(ui.filtertf);
 
-    vh_textinput_add(ui.filtertf, "", "Filter", ui.filterts, NULL);
-    vh_textinput_set_on_text(ui.filtertf, ui_on_filter);
+    vh_textinput_add(ui.filtertf, "", "Filter", ui.filterts, ui_on_text_event);
 
     ui.timetf = view_get_subview(ui.view_base, "timetf");
     ui.timets = ui_util_gen_textstyle(ui.timetf);
@@ -977,12 +955,9 @@ void ui_init(float width, float height)
     ui.inputarea->blocks_touch  = 1;
     ui.inputarea->blocks_scroll = 1;
 
-    vh_textinput_add(ui.inputtf, "Generic input", "", ui.inputts, NULL);
-    vh_textinput_set_on_deactivate(ui.inputtf, ui_on_cancel_inputtf);
-    vh_textinput_set_on_return(ui.inputtf, ui_on_return_inputtf);
-    vh_textinput_set_deactivate_on_mouse_out(ui.inputtf, 0);
+    vh_textinput_add(ui.inputtf, "Generic input", "", ui.inputts, ui_on_text_event);
 
-    vh_touch_add(ui.inputarea, touch_cb);
+    vh_touch_add(ui.inputarea, ui_on_touch);
 
     view_remove_from_parent(ui.inputarea);
 
@@ -1127,9 +1102,9 @@ void ui_init(float width, float height)
     view_t* metaacceptbtn = view_get_subview(ui.view_base, "metaacceptbtn");
     view_t* metacoverbtn  = view_get_subview(ui.view_base, "metacoverbtn");
 
-    vh_button_add(metaclosebtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(metaacceptbtn, VH_BUTTON_NORMAL, btn_cb);
-    vh_button_add(metacoverbtn, VH_BUTTON_NORMAL, btn_cb);
+    vh_button_add(metaclosebtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(metaacceptbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
+    vh_button_add(metacoverbtn, VH_BUTTON_NORMAL, ui_on_btn_event);
 
     ui.metashadow    = view_get_subview(ui.view_base, "metashadow");
     ui.metaacceptbtn = RET(metaacceptbtn);
@@ -1198,7 +1173,7 @@ void ui_init(float width, float height)
     ui_table_set_data(ui.contexttable, items);
     REL(items);
 
-    vh_touch_add(ui.contextpopupcont, btn_cb);
+    vh_touch_add(ui.contextpopupcont, ui_on_touch);
 
     view_remove_from_parent(ui.contextpopupcont);
 
@@ -1214,10 +1189,9 @@ void ui_init(float width, float height)
     view_gen_texture(ui.visR);
     view_gen_texture(ui.cover);
 
-    vh_touch_add(ui.visL, btn_cb);
-    vh_touch_add(ui.visR, btn_cb);
+    vh_touch_add(ui.visL, ui_on_touch);
+    vh_touch_add(ui.visR, ui_on_touch);
 
-    REL(btn_cb);
     REL(key_cb);
 
     // show texture map for debug
@@ -1245,17 +1219,20 @@ void ui_destroy()
     REL(ui.filterpopupcont);
     REL(ui.contextpopupcont);
 
-    REL(ui.size_cb);
     REL(ui.view_base);
 
     REL(ui.metatable);
     REL(ui.songtable);
+    REL(ui.contexttable);
     REL(ui.settingstable);
     REL(ui.artisttable);
     REL(ui.genretable);
 
     REL(ui.metaacceptbtn);
     REL(ui.inputarea);
+
+    REL(ui.edited_changed);
+    REL(ui.edited_deleted);
 
     ui_manager_destroy(); // DESTROY 1
 

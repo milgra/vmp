@@ -229,6 +229,9 @@ void destroy()
     if (vmp.record) evrec_destroy(); // DESTROY 4
 
     ui_destroy(); // DESTROY 3
+
+    lib_destroy();
+    songlist_destroy();
 }
 
 int main(int argc, char* argv[])
@@ -388,7 +391,7 @@ int main(int argc, char* argv[])
     if (rep_path) REL(rep_path); // REL 15
 
 #ifdef DEBUG
-	/* mem_stats(); */
+    mem_stats();
 #endif
 
     return 0;

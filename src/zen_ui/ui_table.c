@@ -8,8 +8,7 @@
 
 typedef struct _ui_table_t ui_table_t;
 
-typedef enum _ui_table_event_id_t ui_table_event_id;
-enum _ui_table_event_id_t
+enum ui_table_event_id
 {
     UI_TABLE_EVENT_SELECT,
     UI_TABLE_EVENT_OPEN,
@@ -21,18 +20,17 @@ enum _ui_table_event_id_t
     UI_TABLE_EVENT_FIELD_SELECT
 };
 
-typedef struct _ui_table_event_t ui_table_event;
-struct _ui_table_event_t
+typedef struct _ui_table_event
 {
-    ui_table_event_id id;
-    ui_table_t*       table;
-    char*             field;
-    vec_t*            fields;
-    vec_t*            selected_items;
-    int32_t           selected_index;
-    view_t*           rowview;
-    ev_t              event;
-};
+    enum ui_table_event_id id;
+    ui_table_t*            table;
+    char*                  field;
+    vec_t*                 fields;
+    vec_t*                 selected_items;
+    int32_t                selected_index;
+    view_t*                rowview;
+    ev_t                   event;
+} ui_table_event;
 
 struct _ui_table_t
 {

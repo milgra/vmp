@@ -4,6 +4,7 @@
 #include "zc_map.c"
 #include "zc_vector.c"
 
+void     songlist_destroy();
 map_t*   songlist_get_song(int shuffle);
 map_t*   songlist_get_prev_song(map_t* song);
 map_t*   songlist_get_next_song(map_t* song);
@@ -40,6 +41,18 @@ struct _songlist_t
     vec_t* sortvec;
     map_t* numfields; // numeric fields
 } sl = {0};
+
+void songlist_destroy()
+{
+    if (sl.fields) REL(sl.fields);
+    if (sl.songs) REL(sl.songs);
+    if (sl.visible_songs) REL(sl.visible_songs);
+    if (sl.filter) REL(sl.filter);
+    if (sl.filtermap) REL(sl.filtermap);
+    if (sl.sorting) REL(sl.sorting);
+    if (sl.sortvec) REL(sl.sortvec);
+    if (sl.numfields) REL(sl.numfields);
+}
 
 map_t* songlist_get_song(int shuffle)
 {
