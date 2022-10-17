@@ -344,7 +344,7 @@ void vh_textinput_evt(view_t* view, ev_t ev)
 
 	vh_textinput_upd(view);
 
-	vh_textinput_event event = {.id = VH_TEXTINPUT_DEACTIVATE, .vh = data, .text = data->text, .view = view};
+	vh_textinput_event event = {.id = VH_TEXTINPUT_TEXT, .vh = data, .text = data->text, .view = view};
 	if (data->on_event) (*data->on_event)(event);
     }
     else if (ev.type == EV_KDOWN)
@@ -384,7 +384,7 @@ void vh_textinput_evt(view_t* view, ev_t ev)
 
 	    vh_textinput_upd(view);
 
-	    vh_textinput_event event = {.id = VH_TEXTINPUT_DEACTIVATE, .vh = data, .text = data->text, .view = view};
+	    vh_textinput_event event = {.id = VH_TEXTINPUT_TEXT, .vh = data, .text = data->text, .view = view};
 	    if (data->on_event) (*data->on_event)(event);
 	}
 	if (ev.keycode == SDLK_RETURN)
