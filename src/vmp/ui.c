@@ -32,7 +32,6 @@ void ui_update_cursor(ku_rect_t frame);
 #include "ku_gen_html.c"
 #include "ku_gen_textstyle.c"
 #include "ku_gen_type.c"
-#include "ku_table.c"
 #include "ku_text.c"
 #include "library.c"
 #include "mediaplayer.c"
@@ -51,6 +50,7 @@ void ui_update_cursor(ku_rect_t frame);
 #include "vh_button.c"
 #include "vh_key.c"
 #include "vh_knob.c"
+#include "vh_table.c"
 #include "vh_textinput.c"
 #include "vh_touch.c"
 #include <xkbcommon/xkbcommon.h>
@@ -67,12 +67,10 @@ struct _ui_t
 {
     ku_window_t* window; /* window for this ui */
 
-    ku_table_t* metatable;
-    ku_table_t* songtable;
-    ku_table_t* genretable;
-    ku_table_t* artisttable;
-    ku_table_t* settingstable;
-    ku_table_t* contexttable;
+    ku_view_t* songtablev;
+    ku_view_t* metatablev;
+    ku_view_t* genretablev;
+    ku_view_t* artisttablev;
 
     ku_view_t* metapopupcont;
     ku_view_t* filterpopupcont;
@@ -182,7 +180,7 @@ void ui_play_song(mt_map_t* song)
 
     /* update song list table */
     uint32_t index = songlist_get_index(song);
-    if (index < UINT32_MAX) ku_table_select(ui.songtable, index, 0);
+    if (index < UINT32_MAX) vh_table_select(ui.songtablev, index, 0);
 
     /* update info text */
     char info[200];
@@ -202,9 +200,10 @@ void ui_open_metadata_editor()
 
 	ku_view_add_subview(ui.view_base, ui.metapopupcont);
 
-	if (ui.songtable->selected_items->length > 0)
+	vh_table_t* vh = (vh_table_t*) ui.songtablev->handler_data;
+	if (vh->selected_items->length > 0)
 	{
-	    mt_map_t* info = ui.songtable->selected_items->data[0];
+	    mt_map_t* info = vh->selected_items->data[0];
 
 	    ku_view_t* cover    = ku_view_get_subview(ui.metapopupcont, "metacover");
 	    char*      path     = MGET(info, "path");
@@ -235,7 +234,7 @@ void ui_open_metadata_editor()
 
 	    mt_vector_sort(pairs, ui_comp_value);
 
-	    ku_table_set_data(ui.metatable, pairs);
+	    vh_table_set_data(ui.metatablev, pairs);
 	    REL(pairs);
 	    REL(keys);
 
@@ -368,10 +367,8 @@ void ui_on_btn_event(vh_button_event_t event)
 	    lib_get_genres(genres);
 	    lib_get_artists(artists);
 
-	    printf("artisttable %i\n", ui.artisttable == NULL);
-
-	    ku_table_set_data(ui.genretable, genres);
-	    ku_table_set_data(ui.artisttable, artists);
+	    vh_table_set_data(ui.genretablev, genres);
+	    vh_table_set_data(ui.artisttablev, artists);
 
 	    REL(genres);
 	    REL(artists);
@@ -515,7 +512,7 @@ void ui_on_text_event(vh_textinput_event_t event)
 
 		mt_vector_sort(pairs, ui_comp_value);
 
-		ku_table_set_data(ui.metatable, pairs);
+		vh_table_set_data(ui.metatablev, pairs);
 	    }
 	    else if (ui.inputmode == UI_IM_SORTING)
 	    {
@@ -600,15 +597,15 @@ void ui_update_songlist()
     mt_vector_t* entries = VNEW();
     lib_get_entries(entries);
     songlist_set_songs(entries);
-    ku_table_set_data(ui.songtable, songlist_get_visible_songs());
+    vh_table_set_data(ui.songtablev, songlist_get_visible_songs());
     REL(entries);
 }
 
-void on_table_event(ku_table_event_t event)
+void on_table_event(vh_table_event_t event)
 {
-    if (event.table == ui.songtable)
+    if (strcmp(event.view->id, "songtable") == 0)
     {
-	if (event.id == KU_TABLE_EVENT_FIELDS_UPDATE)
+	if (event.id == VH_TABLE_EVENT_FIELDS_UPDATE)
 	{
 	    mt_vector_t* fields   = event.fields;
 	    char*        fieldstr = mt_string_new_cstring("");
@@ -623,7 +620,7 @@ void on_table_event(ku_table_event_t event)
 	    config_set("fields", fieldstr);
 	    config_write(config_get("cfg_path"));
 	}
-	else if (event.id == KU_TABLE_EVENT_FIELD_SELECT)
+	else if (event.id == VH_TABLE_EVENT_FIELD_SELECT)
 	{
 	    char* field   = event.field;
 	    char* sorting = mt_string_new_cstring(songlist_get_sorting());
@@ -655,10 +652,10 @@ void on_table_event(ku_table_event_t event)
 
 	    ui_update_songlist();
 	}
-	else if (event.id == KU_TABLE_EVENT_SELECT)
+	else if (event.id == VH_TABLE_EVENT_SELECT)
 	{
 	}
-	else if (event.id == KU_TABLE_EVENT_CONTEXT)
+	else if (event.id == VH_TABLE_EVENT_CONTEXT)
 	{
 	    if (ui.contextpopupcont->parent == NULL)
 	    {
@@ -666,17 +663,17 @@ void on_table_event(ku_table_event_t event)
 		ku_view_layout(ui.view_base);
 	    }
 	}
-	else if (event.id == KU_TABLE_EVENT_OPEN)
+	else if (event.id == VH_TABLE_EVENT_OPEN)
 	{
 	    mt_vector_t* selected = event.selected_items;
 	    mt_map_t*    info     = selected->data[0];
 
 	    ui_play_song(info);
 	}
-	else if (event.id == KU_TABLE_EVENT_DRAG)
+	else if (event.id == VH_TABLE_EVENT_DRAG)
 	{
 	}
-	else if (event.id == KU_TABLE_EVENT_KEY_DOWN)
+	else if (event.id == VH_TABLE_EVENT_KEY_DOWN)
 	{
 	    ku_event_t ev = event.ev;
 
@@ -686,23 +683,25 @@ void on_table_event(ku_table_event_t event)
 
 		if (ev.keycode == XKB_KEY_Down) index += 1;
 		if (ev.keycode == XKB_KEY_Up) index -= 1;
-		ku_table_select(event.table, index, 0);
+		vh_table_select(event.view, index, 0);
 	    }
 	}
-	else if (event.id == KU_TABLE_EVENT_DROP)
+	else if (event.id == VH_TABLE_EVENT_DROP)
 	{
 	}
     }
-    else if (event.table == ui.contexttable)
+    else if (strcmp(event.view->id, "contexttable") == 0)
     {
-	if (event.id == KU_TABLE_EVENT_SELECT)
+	if (event.id == VH_TABLE_EVENT_SELECT)
 	{
 	    if (event.selected_index == 0) ui_open_metadata_editor();
 	    if (event.selected_index == 1)
 	    {
-		if (ui.songtable->selected_items->length > 0)
+		vh_table_t* vh = (vh_table_t*) ui.songtablev->handler_data;
+
+		if (vh->selected_items->length > 0)
 		{
-		    mt_map_t* song = ui.songtable->selected_items->data[0];
+		    mt_map_t* song = vh->selected_items->data[0];
 		    lib_remove_entry(song);
 		    fm_delete_file(config_get("lib_path"), song);
 		    lib_write(config_get("lib_path"));
@@ -711,19 +710,22 @@ void on_table_event(ku_table_event_t event)
 	    }
 	    if (event.selected_index == 2)
 	    {
-		if (ui.songtable->selected_items->length > 0)
+		vh_table_t* vh = (vh_table_t*) ui.songtablev->handler_data;
+
+		if (vh->selected_items->length > 0)
 		{
-		    mt_map_t* song  = ui.songtable->selected_items->data[0];
+		    mt_map_t* song  = vh->selected_items->data[0];
 		    uint32_t  index = songlist_get_index(song);
-		    if (index < UINT32_MAX) ku_table_select(ui.songtable, index, 0);
+		    if (index < UINT32_MAX) vh_table_select(ui.songtablev, index, 0);
 		}
 	    }
 	    ku_view_remove_from_parent(ui.contextpopupcont);
 	}
     }
-    else if (event.table == ui.genretable)
+    else if (strcmp(event.view->id, "genretable") == 0)
+
     {
-	if (event.id == KU_TABLE_EVENT_SELECT)
+	if (event.id == VH_TABLE_EVENT_SELECT)
 	{
 	    mt_vector_t* selected = event.selected_items;
 	    mt_map_t*    info     = selected->data[0];
@@ -738,9 +740,9 @@ void on_table_event(ku_table_event_t event)
 	    vh_textinput_set_text(ui.filtertf, filter);
 	}
     }
-    else if (event.table == ui.artisttable)
+    else if (strcmp(event.view->id, "artisttable") == 0)
     {
-	if (event.id == KU_TABLE_EVENT_SELECT)
+	if (event.id == VH_TABLE_EVENT_SELECT)
 	{
 	    mt_vector_t* selected = event.selected_items;
 	    mt_map_t*    info     = selected->data[0];
@@ -755,9 +757,9 @@ void on_table_event(ku_table_event_t event)
 	    vh_textinput_set_text(ui.filtertf, filter);
 	}
     }
-    else if (event.table == ui.metatable)
+    else if (strcmp(event.view->id, "metatable") == 0)
     {
-	if (event.id == KU_TABLE_EVENT_OPEN)
+	if (event.id == VH_TABLE_EVENT_OPEN)
 	{
 	    // show input textfield above rowwiew
 
@@ -801,132 +803,6 @@ void on_table_event(ku_table_event_t event)
 	    }
 	}
     }
-}
-
-/* creates a table from layer structure */
-/* TODO move this maybe to ku_gen_type? */
-
-ku_table_t* ui_create_table(ku_view_t* view, mt_vector_t* fields)
-{
-    /* <div id="filetable" class="colflex marginlt4"> */
-    /*   <div id="filetablehead" class="tablehead overflowhidden"> */
-    /*       <div id="tiletableheadrow" class="head rowtext"/> */
-    /*   </div> */
-    /*   <div id="filetablelayers" class="fullscaleview overflowhidden"> */
-    /*     <div id="filetablebody" class="tablebody fullscaleview"> */
-    /* 	     <div id="filetable_row_a" class="rowa" type="label" text="row a"/> */
-    /* 	     <div id="filetable_row_b" class="rowb" type="label" text="row b"/> */
-    /* 	     <div id="filetable_row_selected" class="rowselected" type="label" text="row selected"/> */
-    /*     </div> */
-    /*     <div id="filetablescroll" class="fullscaleview"> */
-    /* 	     <div id="filetablevertscroll" class="vertscroll"/> */
-    /* 	     <div id="filetablehoriscroll" class="horiscroll"/> */
-    /*     </div> */
-    /*     <div id="filetableevt" class="fullscaleview"/> */
-    /*   </div> */
-    /* </div> */
-
-    ku_view_t* header  = NULL;
-    ku_view_t* headrow = NULL;
-    ku_view_t* layers  = NULL;
-    ku_view_t* body    = NULL;
-    ku_view_t* scroll  = NULL;
-    ku_view_t* event   = NULL;
-    ku_view_t* row_a   = NULL;
-    ku_view_t* row_b   = NULL;
-    ku_view_t* row_s   = NULL;
-
-    if (view->views->length == 2)
-    {
-	/* header view is present */
-	header = view->views->data[0];
-	layers = view->views->data[1];
-	if (header->views->length > 0)
-	{
-	    if (layers->views->length == 3)
-	    {
-		headrow = header->views->data[0];
-		body    = layers->views->data[0];
-		scroll  = layers->views->data[1];
-		event   = layers->views->data[2];
-
-		if (body->views->length == 3)
-		{
-		    row_a = body->views->data[0];
-		    row_b = body->views->data[1];
-		    row_s = body->views->data[2];
-		}
-		else mt_log_error("Missing row a, row b or row selected views for %s\n", view->id);
-	    }
-	    else mt_log_error("Missing body, scroll and event layers for %s", view->id);
-	}
-	else mt_log_error("Missing header row view for %s", view->id);
-    }
-    else if (view->views->length == 1)
-    {
-	/* no header */
-	layers = view->views->data[0];
-	if (layers->views->length == 3)
-	{
-	    body   = layers->views->data[0];
-	    scroll = layers->views->data[1];
-	    event  = layers->views->data[2];
-	    if (body->views->length == 3)
-	    {
-		row_a = body->views->data[0];
-		row_b = body->views->data[1];
-		row_s = body->views->data[2];
-	    }
-	    else mt_log_error("Missing row a, row b or row selected views for %s\n", view->id);
-	}
-	else if (layers->views->length == 2)
-	{
-	    body  = layers->views->data[0];
-	    event = layers->views->data[1];
-	    if (body->views->length == 3)
-	    {
-		row_a = body->views->data[0];
-		row_b = body->views->data[1];
-		row_s = body->views->data[2];
-	    }
-	    else mt_log_error("Missing row a, row b or row selected views for %s\n", view->id);
-	}
-	else mt_log_error("Missing body, scroll and event layers for %s", view->id);
-    }
-    else mt_log_error("Missing layers for %s", view->id);
-
-    if (row_a)
-    {
-	textstyle_t rowastyle = ku_gen_textstyle_parse(row_a);
-	textstyle_t rowbstyle = ku_gen_textstyle_parse(row_b);
-	textstyle_t rowsstyle = ku_gen_textstyle_parse(row_s);
-	textstyle_t headstyle = headrow == NULL ? (textstyle_t){0} : ku_gen_textstyle_parse(headrow);
-
-	ku_table_t* table = ku_table_create(
-	    view->id,
-	    body,
-	    scroll,
-	    event,
-	    header,
-	    fields,
-	    rowastyle,
-	    rowbstyle,
-	    rowsstyle,
-	    headstyle,
-	    on_table_event);
-
-	/* rows are not needed any more */
-
-	ku_view_remove_from_parent(row_a);
-	ku_view_remove_from_parent(row_b);
-	ku_view_remove_from_parent(row_s);
-
-	if (headrow) ku_view_remove_from_parent(headrow);
-
-	return table;
-    }
-
-    return NULL;
 }
 
 void ui_init(int width, int height, float scale, ku_window_t* window)
@@ -1020,11 +896,14 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     REL(words);
 
-    ui.songtable = ui_create_table(GETV(bv, "songtable"), fields);
+    ui.songtablev = GETV(bv, "songtable");
+
+    vh_table_attach(ui.songtablev, fields, on_table_event);
 
     REL(fields);
 
-    ku_window_activate(ui.window, GETV(bv, "songtableevt"));
+    vh_table_t* vh = ui.songtablev->handler_data;
+    ku_window_activate(ui.window, vh->evnt_v);
 
     /* settings list */
 
@@ -1041,7 +920,8 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     VADDR(fields, mt_string_new_cstring("value"));
     VADDR(fields, mt_number_new_int(510));
 
-    ui.settingstable = ui_create_table(GETV(bv, "settingstable"), fields);
+    ku_view_t* settingstablev = GETV(bv, "settingstable");
+    vh_table_attach(settingstablev, fields, on_table_event);
 
     REL(fields);
 
@@ -1054,7 +934,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Organize Library : %s", config_get("lib_organize"))}));
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Library Path : %s", config_get("lib_path"))}));
 
-    ku_table_set_data(ui.settingstable, items);
+    vh_table_set_data(settingstablev, items);
     REL(items);
 
     ku_view_remove_from_parent(ui.settingspopupcont);
@@ -1078,8 +958,11 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     VADDR(artistfields, mt_string_new_cstring("artist"));
     VADDR(artistfields, mt_number_new_int(350));
 
-    ui.genretable  = ui_create_table(GETV(bv, "genretable"), genrefields);
-    ui.artisttable = ui_create_table(GETV(bv, "artisttable"), artistfields);
+    ui.genretablev  = GETV(bv, "genretable");
+    ui.artisttablev = GETV(bv, "artisttable");
+
+    vh_table_attach(ui.genretablev, genrefields, on_table_event);
+    vh_table_attach(ui.artisttablev, artistfields, on_table_event);
 
     REL(genrefields);
     REL(artistfields);
@@ -1109,7 +992,8 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     VADDR(metafields, mt_string_new_cstring("value"));
     VADDR(metafields, mt_number_new_int(350));
 
-    ui.metatable = ui_create_table(GETV(bv, "metatable"), metafields);
+    ui.metatablev = GETV(bv, "metatable");
+    vh_table_attach(ui.metatablev, metafields, on_table_event);
 
     REL(metafields);
 
@@ -1130,7 +1014,8 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     VADDR(fields, mt_string_new_cstring("value"));
     VADDR(fields, mt_number_new_int(200));
 
-    ui.contexttable = ui_create_table(GETV(bv, "contexttable"), fields);
+    ku_view_t* contexttablev = GETV(bv, "contexttable");
+    vh_table_attach(contexttablev, fields, on_table_event);
 
     REL(fields);
 
@@ -1140,7 +1025,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(50, "Delete song")}));
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(50, "Go to current")}));
 
-    ku_table_set_data(ui.contexttable, items);
+    vh_table_set_data(contexttablev, items);
     REL(items);
 
     vh_touch_add(ui.contextpopupcont, ui_on_touch);
@@ -1195,13 +1080,6 @@ void ui_destroy()
     REL(ui.contextpopupcont);
 
     REL(ui.view_base);
-
-    REL(ui.metatable);
-    REL(ui.songtable);
-    REL(ui.contexttable);
-    REL(ui.settingstable);
-    REL(ui.artisttable);
-    REL(ui.genretable);
 
     REL(ui.metaacceptbtn);
     REL(ui.inputarea);
