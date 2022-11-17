@@ -1,62 +1,90 @@
-# MultiMedia File Manager
+# Visual Music Player development roadmap
 
-increase fault tolerance of css and html parser
-increase standards compatibility of css and html
-figure out how to use dirty rects with double buffering in ku_renderer_egl
-update software renderer, cur out dirty rect, implement image zoom
+Visual Music Player
 
-0.2
+preferences popup
+donation popup
+genre selector
+filter textfield
+filter clear
+genre selector
+process popup
 
-fullscreen crash
-refactor ui.c based on vmp, remove ui_visualizer
-file path on the top
-+/- to zoom in/out media
-pdf paging
-video seek ( seek bar, + arrows )
-del to delete file ( + ikon, + shortcut )
+**near future**
 
-0.3
+- about popup wanders down on resize
+- margin top and bottom 20 miswork
+remember song state
+genre list should filter artist list also
+str to cstr mindenhol
+text style kulon view-bol jojjon, ne interferaljon table css-sel
+clean info log level
+don't render if no change happened in the ui
 
-about window verzioszammal, shortcuts
-enable clipboard
-drag from clipboard - copy
-CTRL + drag from clipboard - move
-detailed stream infos video/audional file infoba
-store table states
-context menu - copy to clipboard, delete, paste clipboard
+ - metadata editor problems, doesn't jump to beginning after long edit
+ - jump to current song misbehaves when column sort is set differently
+ - full screen visualizer
+ - release all bitmaps after adding to texmap, re-render them on texture reset to save 300M memory
 
-Future
+- CFG_PATH, RES_PATH legyen makefileba deklaralva os alapjan vagy legalabbis main.c tetejen makrokkal
 
-linelist component, text fileoknak es hexa viewnak
-visualization level gombok, kep, oszcilloszkop, binaris
-search bar
+ - column sort ui error on left scrolled songlist
+ - invalid location in change library popup
+ - mute state doesn't stay between songs
+ - activity log item height problem
+ - when recording detect remote control events and send udp packet in case of replay
+ - filter popup/bar in the intro video
+ - the whole list empties after song deletion
+ - date/time to log entries
+ - column sort problem when horizontally scrolled ( plays )
+ - if you sort a filtered list it falls back to full list
+ - song editor field resize, reopen - wrong sizes in edited fields
+ - filter, play song, unfilter, jump to current song - wrong song
+ - join pthreads to avoid memory leak report
+ - glyph grey out when texture reset
+ - show scrollbar on mouse over, fade in/out
+ - use zen_callback in all view handlers
+ - filters popup : genre select should filter artists, "none" item is needed
+ - ui scaling should be settable by command line parameters
+ - moving mouse during inertia scroll causes scroll to stuck in some cases
+ - save shuffle state, current song, current position, current volume on exit, use them on start
+ - filtering with logical operators - genre is metal, year is not 2000
+ - normalize css - remove unused classes, snyc element and tag and class names
+ - text style should come from css
+ - remove non-standard css and html (type=button, blocks=true)
+ - log should fill up from up to down, should show time
+ - modify rdft to show more lower range
+ - full screen cover art/video playing
+ - full screen visualizer
+ - file browser popup for library selection and cover art selection
+ - analog VU meter visualizer
+ - volume fade in/out on play/pause/next/prev
+ - use xy_new and xy_del everywhere for objects that have to be released
+ - solve last column resize problem
+ - select/copy/paste in textfields
+ - prev button in shuffle mode should jump to previously played song
+ - zc_callback instead of custom function pointers
+ -jobb/bal gomb prev/next
+ - replace test songs to copyleft songs
 
-hacker news headerless c - sov, mmfm, swayos
+**inbetween future**
 
-Would be awesome some day
+ - statistics - top 10 most listened artist, song, genre, last month, last year, etc - stats browser
+ - songs from one year ago this day - history browser
+ - dark mode
+ - metadata update should happen in the backgroun to stop ui lag
+ - vertical limit for paragraphs to avoid texture map overrun
+ - settings cell autosize?
 
-shortcutok config fileba vagy kulon fileba,sway szeru
-listen for folder change event
-image eseten ne is inditson threadet viewer -> gyorsabb
-keep reader and decoder threads running in viewer to speed up media playing
+**far future**
 
-libffplayer legyen egy kulon library ffmpeg felett
-libkineticui - sdl renderer / texture based
-
-
-- Also extracts all stream and metadata info from multimedia files, also shows the raw hexa/ASCII bytes of the file if needed
-- Visual Pasteboard, drop files and folders there for later reuse or create folders for collecting files
-- Works without a window manager for super hackers
-- Frequency and scope analyzer visualizers for audio conent
-  
-- frekvenica eses/emelkedes hatterben
-
-- hexa viewer
-- pdf viewer
-- full path search barban
-- seek knob over visualizer
-- working visu
-- working metadata info table
-- working hexa view
-- zen media to zen ~music
-- flatpak for linux
+ - library analyzer should avoid extension-based analyzation, use something deeper
+ - cerebral cortex as interactive visualizer - on left/right press start game
+ - andromeda : monolith 64K demo like particle visualizer	     
+ - grid-based warping of video/album cover based on frequency ( bass in the center )
+ - speed up font       rendering by using glyph indexes instead of codepoints
+ - vh_textinput should seamlessly switch between texture paragraph and glpyh-based paragraph
+ - Android Auto support with full screen visualizer for kick-ass experience
+ - Vulkan backend for Zen UI
+ - replace/merge zc_string with utf8.h?
+ - retain userdatas?

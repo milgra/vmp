@@ -65,7 +65,7 @@ enum _ui_inputmode
 
 struct _ui_t
 {
-    MediaState_t* ms;
+    ku_window_t* window; /* window for this ui */
 
     ku_table_t* metatable;
     ku_table_t* songtable;
@@ -98,14 +98,11 @@ struct _ui_t
     ku_view_t* metashadow;
     ku_view_t* metaacceptbtn;
 
-    textstyle_t infots;
-    textstyle_t timets;
-    textstyle_t inputts;
-    textstyle_t filterts;
-
     ku_view_t* inputarea;
     ku_view_t* inputbck;
     ku_view_t* inputtf;
+
+    MediaState_t* ms;
 
     mt_map_t*    edited_song;
     char*        edited_key;
@@ -121,10 +118,7 @@ struct _ui_t
     float     timestate;
 
     ui_inputmode inputmode;
-
-    ku_window_t* window;
-
-    ku_view_t* cursorv; /* replay cursor */
+    ku_view_t*   cursorv; /* replay cursor */
 
 } ui;
 
@@ -193,7 +187,7 @@ void ui_play_song(mt_map_t* song)
     /* update info text */
     char info[200];
     snprintf(info, 200, "%s / %s", (char*) MGET(song, "artist"), (char*) MGET(song, "title"));
-    tg_text_set(ui.infotf, info, ui.infots);
+    tg_text_set1(ui.infotf, info);
 
     ku_view_t* playbtn = ku_view_get_subview(ui.view_base, "playbtn");
     if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
@@ -955,13 +949,9 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     ku_view_t* bv = mt_vector_head(view_list);
 
     ui.view_base = RET(bv);
+    ku_window_add(ui.window, ui.view_base);
 
     REL(view_list);
-
-    /* initial layout of views */
-
-    ku_view_set_frame(ui.view_base, (ku_rect_t){0.0, 0.0, (float) width, (float) height});
-    ku_window_add(ui.window, ui.view_base);
 
     /* listen for keys and shortcuts */
 
@@ -990,26 +980,16 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     /* textfields */
 
     ui.infotf = ku_view_get_subview(ui.view_base, "infotf");
-    ui.infots = ku_gen_textstyle_parse(ui.infotf);
-
-    tg_text_add(ui.infotf);
-    tg_text_set(ui.infotf, "Ready", ui.infots);
 
     ui.filtertf = ku_view_get_subview(ui.view_base, "filtertf");
-    ui.filterts = ku_gen_textstyle_parse(ui.filtertf);
 
     vh_textinput_add(ui.filtertf, "", "Filter", ui_on_text_event);
 
     ui.timetf = ku_view_get_subview(ui.view_base, "timetf");
-    ui.timets = ku_gen_textstyle_parse(ui.timetf);
-
-    tg_text_add(ui.timetf);
-    tg_text_set(ui.timetf, "00:00 / 08:00", ui.timets);
 
     ui.inputarea = RET(ku_view_get_subview(ui.view_base, "inputarea"));
     ui.inputbck  = ku_view_get_subview(ui.view_base, "inputbck");
     ui.inputtf   = ku_view_get_subview(ui.view_base, "inputtf");
-    ui.inputts   = ku_gen_textstyle_parse(ui.inputtf);
 
     ui.inputbck->blocks_touch   = 1;
     ui.inputarea->blocks_touch  = 1;
@@ -1020,13 +1000,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     vh_touch_add(ui.inputarea, ui_on_touch);
 
     ku_view_remove_from_parent(ui.inputarea);
-
-    textstyle_t ts   = ui.inputts;
-    ts.size          = 40;
-    ts.align         = TA_CENTER;
-    ku_view_t* cover = ku_view_get_subview(ui.view_base, "metacover");
-    tg_text_add(cover);
-    tg_text_set(cover, "NO COVER ART", ts);
 
     /* songlist */
 
@@ -1323,7 +1296,7 @@ void ui_update_player()
 
 		char timebuff[20];
 		snprintf(timebuff, 20, "%.2i:%.2i / %.2i:%.2i", tmin, tsec, dmin, dsec);
-		tg_text_set(ui.timetf, timebuff, ui.timets);
+		tg_text_set1(ui.timetf, timebuff);
 
 		double ratio = time / ui.ms->duration;
 		tg_knob_set_angle(ui.seekknob, ratio * 6.28 - 3.14 / 2.0);
@@ -1336,7 +1309,7 @@ void ui_update_player()
 
 void ui_show_progress(char* progress)
 {
-    tg_text_set(ui.infotf, progress, ui.infots);
+    tg_text_set1(ui.infotf, progress);
 }
 
 #endif

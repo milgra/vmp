@@ -1,9 +1,9 @@
-# Multimedia File Manager technical information
+# Visual Music Player technical information
 for contributors and developers
 
 ## 1. Overview ##
 
-Multimedia File Manager is a pure C project written in [headerless C](https://github.com/milgra/headerlessc).
+Visual Music Player is a pure C project written in [headerless C](https://github.com/milgra/headerlessc).
 It uses the ffmpeg library for media decoding/encoding/transcoding, SDL2 library for window and audio handling and OpenGL context creation, mupdf for pdf rendering and freetype for text generation.
 It uses a custom UI renderer called Zen UI.
 It uses the Zen Core library for memory management, map/vector/bitmap container implementations, utf8 string and math functions.
@@ -43,7 +43,7 @@ svg - media source files
 tst - recorded test sessions and test working directory
 ```
  
-## 4. Multimedia File Manager Logic ##
+## 4. Visual Music Player Logic ##
 
 ```
 config.c - configuration settings collector & writer
@@ -87,7 +87,7 @@ ninja -C build
 
 ```
 
-# Multimedia File Manager test protocol
+# Visual Music Player test protocol
 
 Before creating a pull request first check for leaks around your modification first with the built-in leak checker ( automatically executed on exit in dev mode ) and with valgrind(freebsd) or valgrind/address sanitizer(linux)
 Then create a release build with meson build --buildtype=debug
