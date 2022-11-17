@@ -663,6 +663,10 @@ void vh_table_attach(
 	    head_v->style.height = headrow->frame.local.h;
 	}
 
+	/* set mask */
+	body_v->style.masked = 1;
+	if (head_v) head_v->style.masked = 1;
+
 	/* attach header view as first view */
 	if (head_v) ku_view_add_subview(view, head_v);
 

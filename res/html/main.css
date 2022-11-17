@@ -25,17 +25,6 @@
     align-items: center;
 }
 
-.tablehead {
-    height: 20px;
-    width: 100%;
-    background-color: #121212FF;
-}
-
-.tableback {
-    color: #222222FF;
-    overflow: hidden;
-}
-
 .vertscroll {
     width: 10px;
     height: 100px;
@@ -209,11 +198,6 @@
     line-height: 20px;
     color: #DEDEDEFF;
     background-color: #121212FF;
-}
-
-.tableback {
-    background-color: #222222FF;
-    overflow: hidden;
 }
 
 #songlisttop {
@@ -501,45 +485,33 @@
     margin: auto;
 }
 
-#songlist {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background-color: #141414FF;
-}
-
 #genretable {
     width: 150px;
     height: 100%;
-    overflow: hidden;
     margin-top: 40px;
     margin-bottom: 40px;
     background-color: #252525FF;
 }
 
 #artisttable {
-    overflow: hidden;
     margin-top: 40px;
     margin-bottom: 40px;
     background-color: #252525FF;
 }
 
 #metatable {
-    overflow: hidden;
     margin-top: 40px;
     margin-bottom: 40px;
     background-color: #252525FF;
 }
 
 #contexttable {
-    overflow: hidden;
     margin-top: 20px;
     margin-bottom: 20px;
     background-color: #353535FF;
 }
 
 #settingstable {
-    overflow: hidden;
     margin-top: 40px;
     margin-bottom: 40px;
     background-color: #151515FF;
