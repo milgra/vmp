@@ -1,8 +1,3 @@
-.fullscaleview {
-    height: 100%;
-    width: 100%;
-}
-
 .fullscale {
     height: 100%;
     width: 100%;
@@ -11,15 +6,11 @@
 .colflex {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    height: 100%;
 }
 
 .rowflex {
     display: flex;
     flex-direction: row;
-    width: 100%;
-    height: 100%;
 }
 
 .popupshadow {
@@ -40,28 +31,9 @@
     background-color: #121212FF;
 }
 
-.tablebody {
+.tableback {
     color: #222222FF;
     overflow: hidden;
-    font-size: 16px;
-    font-family: "Terminus (TTF):style=Bold";
-    line-height: 22px;
-}
-
-.contexttablebody {
-
-}
-
-.textaligncenter {
-    text-align: center;
-}
-
-.textalignleft {
-    text-align: left;
-}
-
-.textalignright {
-    text-align: right;
 }
 
 .vertscroll {
@@ -87,18 +59,40 @@
     height: 30px;
 }
 
-.closebtn {
-    margin: auto;
-    top: 5px;
-    width: 30px;
-    height: 30px;
-}
-
 .acceptbtn {
     margin: auto;
     bottom: 5px;
-    width: 30px;
-    height: 30px;
+}
+
+.closebtn {
+    margin: auto;
+    top: 5px;
+}
+
+.font16center {
+    font-size: 16px;
+    text-align: center;
+    font-family: "Terminus (TTF):style=Bold";
+}
+
+.font16left {
+    font-size: 16px;
+    text-align: left;
+    font-family: "Terminus (TTF):style=Bold";
+    word-wrap: break-word;
+    line-height: 16px;
+}
+
+.textaligncenter {
+    text-align: center;
+}
+
+.textalignleft {
+    text-align: left;
+}
+
+.textalignright {
+    text-align: right;
 }
 
 .closeicon {
@@ -228,6 +222,7 @@
     height: 100%;
     background-color: #454545FF;
 }
+
 
 #previcon {
     width: 30px;
@@ -365,13 +360,8 @@
 }
 
 #timetf {
-    width: 100%;
-    height: 100%;
     blocks: no;
     color: #EFEFEFFF;
-    font-size: 16px;
-    text-align: center;
-    font-family: "Terminus (TTF):style=Bold";
 }
 
 #infobck {
@@ -380,13 +370,8 @@
 }
 
 #infotf {
-    width: 100%;
-    height: 100%;
     blocks: no;
     color: #EFEFEFFF;
-    font-size: 16px;
-    text-align: center;
-    font-family: "Terminus (TTF):style=Bold";
 }
 
 #filterbck {
@@ -398,13 +383,8 @@
 }
 
 #filtertf {
-    width: 100%;
-    height: 100%;
     blocks: no;
     color: #232323FF;
-    font-size: 16px;
-    text-align: left;
-    font-family: "Terminus (TTF):style=Bold";
 }
 
 #inputbck {
@@ -420,13 +400,8 @@
 }
 
 #inputtf {
-    width: 100%;
-    height: 100%;
     blocks: no;
     color: #232323FF;
-    font-size: 16px;
-    text-align: left;
-    font-family: "Terminus (TTF):style=Bold";
     margin-left: 5px;
 }
 
@@ -463,26 +438,6 @@
     margin: auto;
 }
 
-#filterbtn {
-    width: 30px;
-    height: 30px;
-}
-
-#sortingbtn {
-    width: 30px;
-    height: 30px;
-}
-
-#clearbtn {
-    width: 30px;
-    height: 30px;
-}
-
-#inputclearbtn {
-    width: 30px;
-    height: 30px;
-}
-
 #metacoverbtn {
     width: 40px;
     height: 40px;
@@ -511,20 +466,6 @@
     background-color: #EFEFEFFF;
     box-shadow: 5px #0000000A;
     border-radius: 4px;
-}
-
-#filterbar {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-}
-
-#inputbar {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
 }
 
 #visuals {
@@ -573,26 +514,13 @@
 }
 
 #artisttable {
-    width: 100%;
-    height: 100%;
     overflow: hidden;
     margin-top: 40px;
     margin-bottom: 40px;
     background-color: #252525FF;
 }
 
-#infotable {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    margin-top: 40px;
-    margin-bottom: 40px;
-    background-color: #353535FF;
-}
-
 #metatable {
-    width: 100%;
-    height: 100%;
     overflow: hidden;
     margin-top: 40px;
     margin-bottom: 40px;
@@ -613,8 +541,6 @@
 }
 
 #metacover {
-    width: 100%;
-    height: 100%;
     overflow: hidden;
     margin-top: 40px;
     margin-bottom: 40px;

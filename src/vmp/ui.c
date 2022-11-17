@@ -610,12 +610,6 @@ void ui_update_songlist()
     REL(entries);
 }
 
-/* slider event, comes from seekbar currently */
-
-void ui_on_slider_event(vh_slider_event_t event)
-{
-}
-
 void on_table_event(ku_table_event_t event)
 {
     if (event.table == ui.songtable)
@@ -814,6 +808,7 @@ void on_table_event(ku_table_event_t event)
 	}
     }
 }
+
 /* creates a table from layer structure */
 /* TODO move this maybe to ku_gen_type? */
 
@@ -955,7 +950,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     ku_gen_html_parse(config_get("html_path"), view_list);
     ku_gen_css_apply(view_list, config_get("css_path"), config_get("res_path"), 1.0);
-    ku_gen_type_apply(view_list, ui_on_btn_event, ui_on_slider_event);
+    ku_gen_type_apply(view_list, ui_on_btn_event, NULL);
 
     ku_view_t* bv = mt_vector_head(view_list);
 
@@ -1031,7 +1026,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     ts.align         = TA_CENTER;
     ku_view_t* cover = ku_view_get_subview(ui.view_base, "metacover");
     tg_text_add(cover);
-    tg_text_set(cover, "NO COVER ÁRT", ts);
+    tg_text_set(cover, "NO COVER ART", ts);
 
     /* songlist */
 
@@ -1062,8 +1057,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     ku_view_t* settingspopupcont = ku_view_get_subview(ui.view_base, "settingspopupcont");
     ku_view_t* settingspopup     = ku_view_get_subview(ui.view_base, "settingspopup");
-    ku_view_t* settingstable     = ku_view_get_subview(ui.view_base, "settingstable");
-    ku_view_t* settingstableevt  = ku_view_get_subview(ui.view_base, "settingslistevt");
 
     settingspopup->blocks_touch  = 1;
     settingspopup->blocks_scroll = 1;
@@ -1097,10 +1090,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     ku_view_t* filterpopupcont = ku_view_get_subview(ui.view_base, "filterpopupcont");
     ku_view_t* filterpopup     = ku_view_get_subview(ui.view_base, "filterpopup");
-    ku_view_t* genrelist       = ku_view_get_subview(ui.view_base, "genretable");
-    ku_view_t* genrelistevt    = ku_view_get_subview(ui.view_base, "genrelistevt");
-    ku_view_t* artistlist      = ku_view_get_subview(ui.view_base, "artisttable");
-    ku_view_t* artistlistevt   = ku_view_get_subview(ui.view_base, "artistlistevt");
 
     filterpopup->blocks_touch  = 1;
     filterpopup->blocks_scroll = 1;
@@ -1128,9 +1117,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     ku_view_t* metapopupcont = ku_view_get_subview(ui.view_base, "metapopupcont");
     ku_view_t* metapopup     = ku_view_get_subview(ui.view_base, "metapopup");
-    ku_view_t* metalist      = ku_view_get_subview(ui.view_base, "metatable");
-    ku_view_t* metalistevt   = ku_view_get_subview(ui.view_base, "metalistevt");
-
     ku_view_t* metaacceptbtn = ku_view_get_subview(ui.view_base, "metaacceptbtn");
 
     ui.metashadow    = ku_view_get_subview(ui.view_base, "metashadow");
@@ -1160,8 +1146,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     ku_view_t* contextpopupcont = ku_view_get_subview(ui.view_base, "contextpopupcont");
     ku_view_t* contextpopup     = ku_view_get_subview(ui.view_base, "contextpopup");
-    ku_view_t* contextlist      = ku_view_get_subview(ui.view_base, "contexttable");
-    ku_view_t* contextlistevt   = ku_view_get_subview(ui.view_base, "contextlistevt");
 
     contextpopup->blocks_touch  = 1;
     contextpopup->blocks_scroll = 1;

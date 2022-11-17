@@ -318,8 +318,6 @@ ku_view_t* ku_table_item_create(
 
 		wth += size->intv + 2;
 
-		printf("item create %s\n", value);
-
 		if (value) tg_text_set(cellview, value, style);
 		else tg_text_set(cellview, "", style); // reset old value
 	    }

@@ -1,30 +1,30 @@
-<div id="base" class="fullscaleview">
+<div id="base" class="fullscale">
 
-  <div id="songs" class="colflex">
+  <div id="songs" class="fullscale colflex">
     <div id="songlisttop"/>
 
-    <div id="songtable" class="colflex">
+    <div id="songtable" class="fullscale colflex">
       <div id="songtablehead" class="tablehead">
 	<div id="songtableheadrow" class="head rowtext"/>
       </div>
-      <div id="songtablelayers" class="tableback fullscaleview">
-	<div id="songtablebody" class="tablebody fullscaleview">
+      <div id="songtablelayers" class="tableback fullscale">
+	<div id="songtablebody" class="fullscale">
 	  <div id="songtable_row_a" class="rowa rowtext" type="label" text="row a"/>
 	  <div id="songtable_row_b" class="rowb rowtext" type="label" text="row b"/>
 	  <div id="songtable_row_selected" class="rowselected rowtext" type="label" text="row selected"/>
 	</div>
-	<div id="songtablescroll" class="fullscaleview">
+	<div id="songtablescroll" class="fullscale">
 	  <div id="songtablevertscroll" class="vertscroll"/>
 	  <div id="songtablehoriscroll" class="horiscroll"/>
 	</div>
-	<div id="songtableevt" class="fullscaleview"/>
+	<div id="songtableevt" class="fullscale"/>
       </div>
     </div>
     
   </div>
 
   <div id="visuals">
-    <div id="visualsflex" class="rowflex">
+    <div id="visualsflex" class="fullscale rowflex">
       <div id="visL" class="freq"/>
       <div id="cover" class="cover"/>
       <div id="visR" class="freq"/>
@@ -35,22 +35,22 @@
     <div id="toolbar">
       <div id="leftpart" class="50px"/>
       <div id="toolbarcolor">
-	<div id="toolbarbodyflex" class="colflex">
+	<div id="toolbarbodyflex" class="fullscale colflex">
 	  <div id="infobck">
-	    <div id="infotf"/>
+	    <div id="infotf" class="font16center fullscale"/>
 	  </div>
-	  <div id="searchflex" class="rowflex">
+	  <div id="searchflex" class="fullscale rowflex">
 	    <div id="leftsearch" class="50px"/>
 	    <div id="filterbarbck">
-	      <div id="filterbar">
-		<div id="sortingbtn" type="button">
+	      <div id="filterbar" class="fullscale rowflex">
+		<div id="sortingbtn" type="button" class="toolbtn">
 		  <div id="sortingicon"/>
 		</div>
-		<div id="filterbtn" type="button">
+		<div id="filterbtn" type="button" class="toolbtn">
 		  <div id="filtericon"/>
 		</div>
-		<div id="filtertf"/>
-		<div id="clearbtn" type="button">
+		<div id="filtertf" class="font16left fullscale"/>
+		<div id="clearbtn" type="button" class="toolbtn">
 		  <div id="filterclearicon" class="closeiconblack"/>
 		</div>
 	      </div>
@@ -76,7 +76,7 @@
 	    <div id="metabtn" class="toolbtn" type="button">
 	      <div id="metaicon"/>
 	    </div>
-	    <div id="timetf"/>
+	    <div id="timetf" class="font16center fullscale"/>
 	    <div id="visubtn" class="toolbtn" type="button">
 	      <div id="visuicon"/>
 	    </div>
@@ -115,17 +115,17 @@
     
   </div>
   
-  <div id="settingspopupcont" class="popupcontainer fullscaleview">
+  <div id="settingspopupcont" class="popupcontainer fullscale">
     <div id="settingspopup">
       <div id="settingsshadow" class="popupshadow">
 	<div id="settingstable" class="fullscale">
-	  <div id="settingstablelayers" class="fullscaleview">
-	    <div id="settingstablebody" class="tablebody textaligncenter fullscaleview">
+	  <div id="settingstablelayers" class="fullscale">
+	    <div id="settingstablebody" class="textaligncenter fullscale">
 	      <div id="settingstable_row_a" class="rowa rowtextcenter" type="label" text="row a"/>
 	      <div id="settingstable_row_b" class="rowb rowtextcenter" type="label" text="row b"/>
 	      <div id="settingstable_row_selected" class="rowselected rowtextcenter" type="label" text="row selected"/>
 	    </div>
-	    <div id="settingstableevt" class="fullscaleview"/>
+	    <div id="settingstableevt" class="fullscale"/>
 	  </div>
 	</div>
 	<div id="settingsclosebtn" class="closebtn" type="button">
@@ -135,30 +135,30 @@
     </div>
   </div>
 
-  <div id="filterpopupcont" class="popupcontainer fullscaleview">
+  <div id="filterpopupcont" class="popupcontainer fullscale">
     <div id="filterpopup">
       <div id="filtershadow" class="popupshadow">
-	<div id="filterflex" class="rowflex">
+	<div id="filterflex" class="fullscale rowflex">
 	  <div id="genretable">
-	    <div id="genretablelayers" class="fullscaleview">
-	      <div id="genretablebody" class="tablebody textalignright fullscaleview">
+	    <div id="genretablelayers" class="fullscale">
+	      <div id="genretablebody" class="textalignright fullscale">
 		<div id="genretable_row_a" class="rowa rowtext" type="label" text="row a"/>
 		<div id="genretable_row_b" class="rowb rowtext" type="label" text="row b"/>
 		<div id="genretable_row_selected" class="rowselected rowtext" type="label" text="row selected"/>
 	      </div>
-	      <div id="genretableevt" class="fullscaleview">
+	      <div id="genretableevt" class="fullscale">
 	      </div>
 	    </div>
 	  </div>
 	  <div id="filtergap" class="gap"/>
-	  <div id="artisttable">
-	    <div id="artisttablelayers" class="fullscaleview">
-	      <div id="artisttablebody" class="tablebody textalignleft fullscaleview">
+	  <div id="artisttable" class="fullscale">
+	    <div id="artisttablelayers" class="fullscale">
+	      <div id="artisttablebody" class="textalignleft fullscale">
 		<div id="artistable_row_a" class="rowa rowtext" type="label" text="row a"/>
 		<div id="artistable_row_b" class="rowb rowtext" type="label" text="row b"/>
 		<div id="artistable_row_selected" class="rowselected rowtext" type="label" text="row selected"/>
 	      </div>
-	      <div id="artisttableevt" class="fullscaleview"/>
+	      <div id="artisttableevt" class="fullscale"/>
 	    </div>
 	  </div>
 	</div>
@@ -169,58 +169,58 @@
     </div>
   </div>
 
-  <div id="metapopupcont" class="popupcontainer fullscaleview">
+  <div id="metapopupcont" class="popupcontainer fullscale">
     <div id="metapopup">
       <div id="metashadow" class="popupshadow">
-	<div id="metaflex" class="rowflex">
+	<div id="metaflex" class="fullscale rowflex">
 	  <div id="metatable" class="fullscale">
-	    <div id="metatablelayers" class="fullscaleview">
-	      <div id="metatablebody" class="tablebody fullscaleview">
+	    <div id="metatablelayers" class="fullscale">
+	      <div id="metatablebody" class="fullscale">
 		<div id="metatable_row_a" class="rowa rowtext" type="label" text="row a"/>
 		<div id="metatable_row_b" class="rowb rowtext" type="label" text="row b"/>
 		<div id="metatable_row_selected" class="rowselected rowtext" type="label" text="row selected"/>
 	      </div>
-	      <div id="metatableevt" class="fullscaleview"/>
+	      <div id="metatableevt" class="fullscale"/>
 	    </div>
 	  </div>
-	  <div id="metacover">
+	  <div id="metacover" class="fullscale">
 	    <div id="metacoverbtn" type="button">
 	      <div id="metacovericon"/>
 	    </div>
 	  </div>
 	</div>
-	<div id="metaclosebtn" class="closebtn" type="button">
+	<div id="metaclosebtn" class="closebtn toolbtn" type="button">
 	  <div id="metacloseicon" class="closeicon"/>
 	</div>
-	<div id="metaacceptbtn" class="acceptbtn" type="button">
+	<div id="metaacceptbtn" class="acceptbtn toolbtn" type="button">
 	  <div id="metaaccepticon" class="accepticon"/>
 	</div>
       </div>
     </div>
   </div>
 
-  <div id="inputarea" class="fullscaleview">
+  <div id="inputarea" class="fullscale">
     <div id="inputbck">
-      <div id="inputbar">
-	<div id="inputtf"/>
-	<div id="inputclearbtn" type="button">
+      <div id="inputbar" class="fullscale rowflex">
+	<div id="inputtf" class="font16left fullscale"/>
+	<div id="inputclearbtn" type="button" class="toolbtn">
 	  <div id="inputclearicon" class="closeiconblack"/>
 	</div>
       </div>
     </div>
   </div>
 
-  <div id="contextpopupcont" class="popupcontainer fullscaleview">
+  <div id="contextpopupcont" class="popupcontainer fullscale">
     <div id="contextpopup">
       <div id="contextshadow" class="popupshadow">
 	<div id="contexttable" class="fullscale">
-	  <div id="contexttablelayers" class="fullscaleview">
-	    <div id="contexttablebody" class="contexttablebody fullscaleview">
+	  <div id="contexttablelayers" class="fullscale">
+	    <div id="contexttablebody" class="fullscale">
 	      <div id="contexttable_row_a" class="contextrowa rowtext" type="label" text="row a"/>
 	      <div id="contexttable_row_b" class="contextrowb rowtext" type="label" text="row b"/>
 	      <div id="contexttable_row_selected" class="contextrowselected rowtext" type="label" text="row selected"/>
 	    </div>
-	    <div id="contexttableevt" class="fullscaleview"/>
+	    <div id="contexttableevt" class="fullscale"/>
 	  </div>
 	</div>
       </div>
