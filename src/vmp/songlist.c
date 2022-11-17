@@ -1,45 +1,45 @@
 #ifndef songlist_h
 #define songlist_h
 
-#include "zc_map.c"
-#include "zc_vector.c"
+#include "mt_map.c"
+#include "mt_vector.c"
 
-void     songlist_destroy();
-map_t*   songlist_get_song(int shuffle);
-map_t*   songlist_get_prev_song(map_t* song);
-map_t*   songlist_get_next_song(map_t* song);
-void     songlist_set_songs(vec_t* songs);
-uint32_t songlist_get_index(map_t* song);
-void     songlist_apply_filter();
-void     songlist_apply_sorting();
-void     songlist_set_filter(char* filter);
-void     songlist_set_sorting(char* sorting);
-void     songlist_set_fields(map_t* fields);
-void     songlist_set_numeric_fields(map_t* fields);
-char*    songlist_get_sorting();
-vec_t*   songlist_get_visible_songs();
+void         songlist_destroy();
+mt_map_t*    songlist_get_song(int shuffle);
+mt_map_t*    songlist_get_prev_song(mt_map_t* song);
+mt_map_t*    songlist_get_next_song(mt_map_t* song);
+void         songlist_set_songs(mt_vector_t* songs);
+uint32_t     songlist_get_index(mt_map_t* song);
+void         songlist_apply_filter();
+void         songlist_apply_sorting();
+void         songlist_set_filter(char* filter);
+void         songlist_set_sorting(char* sorting);
+void         songlist_set_fields(mt_map_t* fields);
+void         songlist_set_numeric_fields(mt_map_t* fields);
+char*        songlist_get_sorting();
+mt_vector_t* songlist_get_visible_songs();
 
 #endif
 
 #if __INCLUDE_LEVEL__ == 0
 
-#include "cstr_util.c"
+#include "mt_string.c"
+#include "mt_string_ext.c"
 #include "utf8.h"
-#include "zc_cstring.c"
 #include <stdlib.h>
 
 struct _songlist_t
 {
-    map_t* fields;
+    mt_map_t* fields;
 
-    vec_t* songs;         // all items in library
-    vec_t* visible_songs; // filtered items
+    mt_vector_t* songs;         // all items in library
+    mt_vector_t* visible_songs; // filtered items
 
-    char*  filter;    // artist is Metallica album is Ride the lightning genre is Rock genre is Metal
-    map_t* filtermap; // key - field,
-    char*  sorting;   // 1 is ascending 0 is descending
-    vec_t* sortvec;
-    map_t* numfields; // numeric fields
+    char*        filter;    // artist is Metallica album is Ride the lightning genre is Rock genre is Metal
+    mt_map_t*    filtermap; // key - field,
+    char*        sorting;   // 1 is ascending 0 is descending
+    mt_vector_t* sortvec;
+    mt_map_t*    numfields; // numeric fields
 } sl = {0};
 
 void songlist_destroy()
@@ -54,9 +54,9 @@ void songlist_destroy()
     if (sl.numfields) REL(sl.numfields);
 }
 
-map_t* songlist_get_song(int shuffle)
+mt_map_t* songlist_get_song(int shuffle)
 {
-    map_t* result = NULL;
+    mt_map_t* result = NULL;
     if (sl.visible_songs && sl.visible_songs->length > 0)
     {
 	int index = 0;
@@ -66,12 +66,12 @@ map_t* songlist_get_song(int shuffle)
     return result;
 }
 
-map_t* songlist_get_prev_song(map_t* song)
+mt_map_t* songlist_get_prev_song(mt_map_t* song)
 {
-    map_t* result = NULL;
+    mt_map_t* result = NULL;
     if (sl.visible_songs && sl.visible_songs->length > 0)
     {
-	uint32_t index = vec_index_of_data(sl.visible_songs, song);
+	uint32_t index = mt_vector_index_of_data(sl.visible_songs, song);
 	if (index < UINT32_MAX && index > 0)
 	{
 	    index -= 1;
@@ -81,12 +81,12 @@ map_t* songlist_get_prev_song(map_t* song)
     return result;
 }
 
-map_t* songlist_get_next_song(map_t* song)
+mt_map_t* songlist_get_next_song(mt_map_t* song)
 {
-    map_t* result = NULL;
+    mt_map_t* result = NULL;
     if (sl.visible_songs && sl.visible_songs->length > 0)
     {
-	uint32_t index = vec_index_of_data(sl.visible_songs, song);
+	uint32_t index = mt_vector_index_of_data(sl.visible_songs, song);
 	if (index < UINT32_MAX && index < sl.visible_songs->length)
 	{
 	    index += 1;
@@ -96,29 +96,29 @@ map_t* songlist_get_next_song(map_t* song)
     return result;
 }
 
-uint32_t songlist_get_index(map_t* song)
+uint32_t songlist_get_index(mt_map_t* song)
 {
-    uint32_t result = vec_index_of_data(sl.visible_songs, song);
+    uint32_t result = mt_vector_index_of_data(sl.visible_songs, song);
     return result;
 }
 
 void songlist_apply_filter()
 {
-    if (sl.visible_songs) vec_reset(sl.visible_songs);
+    if (sl.visible_songs) mt_vector_reset(sl.visible_songs);
     else sl.visible_songs = VNEW();
 
     if (sl.filter != NULL)
     {
-	vec_t* filtered = VNEW();
-	vec_t* fields   = VNEW();
+	mt_vector_t* filtered = VNEW();
+	mt_vector_t* fields   = VNEW();
 
-	map_keys(sl.fields, fields);
+	mt_map_keys(sl.fields, fields);
 
 	for (int index = 0;
 	     index < sl.songs->length;
 	     index++)
 	{
-	    map_t* entry = sl.songs->data[index];
+	    mt_map_t* entry = sl.songs->data[index];
 
 	    for (int fi = 0; fi < fields->length; fi++)
 	    {
@@ -142,12 +142,12 @@ void songlist_apply_filter()
 	    }
 	}
 
-	vec_add_in_vector(sl.visible_songs, filtered);
+	mt_vector_add_in_vector(sl.visible_songs, filtered);
 	REL(filtered);
     }
     else
     {
-	vec_add_in_vector(sl.visible_songs, sl.songs);
+	mt_vector_add_in_vector(sl.visible_songs, sl.songs);
     }
 }
 
@@ -155,17 +155,17 @@ void songlist_set_filter(char* filter)
 {
     if (sl.filter != NULL) REL(sl.filter);
     sl.filter = NULL;
-    if (filter) sl.filter = cstr_new_cstring(filter);
+    if (filter) sl.filter = STRNC(filter);
 
     if (sl.filter)
     {
-	vec_t* words = cstr_split(sl.filter, " ");
+	mt_vector_t* words = mt_string_split(sl.filter, " ");
 
 	if (sl.filtermap) REL(sl.filtermap);
 	sl.filtermap = MNEW();
 
 	char* currentfield = NULL;
-	char* currentword  = cstr_new_cstring("");
+	char* currentword  = STRNC("");
 
 	for (int index = 0; index < words->length; index++)
 	{
@@ -173,7 +173,7 @@ void songlist_set_filter(char* filter)
 
 	    if (strcmp(word, "is") == 0) continue;
 
-	    if (map_get(sl.fields, word) != NULL)
+	    if (mt_map_get(sl.fields, word) != NULL)
 	    {
 		if (currentword != NULL && currentfield != NULL) MPUT(sl.filtermap, currentfield, currentword);
 
@@ -182,12 +182,12 @@ void songlist_set_filter(char* filter)
 
 		// store as field
 		currentfield = word;
-		currentword  = cstr_new_cstring("");
+		currentword  = STRNC("");
 	    }
 	    else
 	    {
-		if (strlen(currentword) > 0) currentword = cstr_append(currentword, " ");
-		currentword = cstr_append(currentword, word);
+		if (strlen(currentword) > 0) currentword = mt_string_append(currentword, " ");
+		currentword = mt_string_append(currentword, word);
 	    }
 	}
 
@@ -203,8 +203,8 @@ void songlist_set_filter(char* filter)
 
 int songlist_comp_entry(void* left, void* right)
 {
-    map_t* l = left;
-    map_t* r = right;
+    mt_map_t* l = left;
+    mt_map_t* r = right;
 
     for (int index = 0; index < sl.sortvec->length; index += 2)
     {
@@ -246,7 +246,7 @@ void songlist_apply_sorting()
 {
     if (sl.sorting)
     {
-	vec_sort(sl.visible_songs, songlist_comp_entry);
+	mt_vector_sort(sl.visible_songs, songlist_comp_entry);
     }
 }
 
@@ -256,13 +256,13 @@ void songlist_set_sorting(char* sorting)
     sl.sorting = NULL;
     if (sorting)
     {
-	sl.sorting = cstr_new_cstring(sorting);
+	sl.sorting = STRNC(sorting);
 	if (sl.sortvec) REL(sl.sortvec);
-	sl.sortvec = cstr_split(sl.sorting, " ");
+	sl.sortvec = mt_string_split(sl.sorting, " ");
     }
 }
 
-void songlist_set_songs(vec_t* songs)
+void songlist_set_songs(mt_vector_t* songs)
 {
     if (sl.songs) REL(sl.songs);
     sl.songs = NULL;
@@ -272,21 +272,21 @@ void songlist_set_songs(vec_t* songs)
     songlist_apply_sorting();
 }
 
-void songlist_set_fields(map_t* fields)
+void songlist_set_fields(mt_map_t* fields)
 {
     if (sl.fields) REL(sl.fields);
     sl.fields = NULL;
     if (fields) sl.fields = RET(fields);
 }
 
-void songlist_set_numeric_fields(map_t* fields)
+void songlist_set_numeric_fields(mt_map_t* fields)
 {
     if (sl.numfields) REL(sl.numfields);
     sl.numfields = NULL;
     if (fields) sl.numfields = RET(fields);
 }
 
-vec_t* songlist_get_visible_songs()
+mt_vector_t* songlist_get_visible_songs()
 {
     return sl.visible_songs;
 }

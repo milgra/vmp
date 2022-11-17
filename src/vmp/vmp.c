@@ -1,19 +1,23 @@
 #include "analyzer.c"
+#include "coder.c"
 #include "config.c"
 #include "evrecorder.c"
 #include "filemanager.c"
+#include "ku_connector_wayland.c"
+#include "ku_gl.c"
+#include "ku_renderer_egl.c"
+#include "ku_renderer_soft.c"
+#include "ku_window.c"
 #include "library.c"
+#include "mt_bitmap_ext.c"
+#include "mt_log.c"
+#include "mt_map.c"
+#include "mt_path.c"
+#include "mt_string.c"
+#include "mt_time.c"
 #include "remote.c"
 #include "songlist.c"
 #include "ui.c"
-#include "ui_compositor.c"
-#include "ui_manager.c"
-#include "wm_connector.c"
-#include "zc_cstring.c"
-#include "zc_log.c"
-#include "zc_map.c"
-#include "zc_path.c"
-#include "zc_time.c"
 #include <SDL.h>
 #include <getopt.h>
 #include <limits.h>
@@ -24,139 +28,167 @@
 
 struct
 {
-    char replay;
-    char record;
+    char              replay;
+    char              record;
+    struct wl_window* wlwindow;
+    ku_window_t*      kuwindow;
+
+    ku_rect_t    dirtyrect;
+    int          softrender;
+    mt_vector_t* eventqueue;
 
     float       analyzer_ratio;
     analyzer_t* analyzer;
 
     int      frames;
     remote_t remote;
+
+    char* rec_path;
+    char* rep_path;
 } vmp = {0};
 
-void init(int width, int height)
+void init(wl_event_t event)
 {
-    zc_time(NULL);
-    ui_init(width, height); // DESTROY 3
-    zc_time("ui init");
+    SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
+    SDL_Init(SDL_INIT_AUDIO);
+
+    vmp.eventqueue = VNEW();
+
+    struct monitor_info* monitor = event.monitors[0];
+
+    if (vmp.softrender)
+    {
+	vmp.wlwindow = ku_wayland_create_window("vmp", 1200, 600);
+    }
+    else
+    {
+	vmp.wlwindow = ku_wayland_create_eglwindow("vmp", 1200, 600);
+
+	int max_width  = 0;
+	int max_height = 0;
+
+	for (int index = 0; index < event.monitor_count; index++)
+	{
+	    struct monitor_info* monitor = event.monitors[index];
+	    if (monitor->logical_width > max_width) max_width = monitor->logical_width;
+	    if (monitor->logical_height > max_height) max_height = monitor->logical_height;
+	}
+	ku_renderer_egl_init(max_width, max_height);
+    }
+
+    vmp.kuwindow = ku_window_create(monitor->logical_width, monitor->logical_height);
+
+    mt_time(NULL);
+    ui_init(monitor->logical_width, monitor->logical_height, monitor->scale, vmp.kuwindow); // DESTROY 3
+    mt_time("ui init");
 
     if (vmp.record)
     {
-	evrec_init_recorder(config_get("rec_path")); // DESTROY 4
+	ui_add_cursor();
+	evrec_init_recorder(vmp.rec_path); // DESTROY 4
     }
 
     if (vmp.replay)
     {
-	evrec_init_player(config_get("rep_path")); // DESTROY 5
 	ui_add_cursor();
+	evrec_init_player(vmp.rep_path); // DESTROY 5
     }
 
-    remote_listen(&vmp.remote);
-}
+    mt_map_t* fields = MNEW();
 
-void post_render_init()
-{
-    if (vmp.frames < 3) vmp.frames += 1;
-    else if (vmp.frames == 3)
+    MPUTR(fields, "artist", STRNC("artist"));
+    MPUTR(fields, "album", STRNC("album"));
+    MPUTR(fields, "title", STRNC("title"));
+    MPUTR(fields, "date", STRNC("date"));
+    MPUTR(fields, "genre", STRNC("genre"));
+    MPUTR(fields, "track", STRNC("track"));
+    MPUTR(fields, "disc", STRNC("disc"));
+    MPUTR(fields, "duration", STRNC("duration"));
+    MPUTR(fields, "channels", STRNC("channels"));
+    MPUTR(fields, "bitrate", STRNC("bitrate"));
+    MPUTR(fields, "samplerate", STRNC("samplerate"));
+    MPUTR(fields, "plays", STRNC("plays"));
+    MPUTR(fields, "skips", STRNC("skips"));
+    MPUTR(fields, "added", STRNC("added"));
+    MPUTR(fields, "played", STRNC("played"));
+    MPUTR(fields, "skipped", STRNC("skipped"));
+    MPUTR(fields, "type", STRNC("type"));
+    MPUTR(fields, "container", STRNC("container"));
+
+    mt_map_t* numfields = MNEW();
+
+    MPUTR(numfields, "track", STRNC("track"));
+    MPUTR(numfields, "disc", STRNC("disc"));
+    MPUTR(numfields, "duration", STRNC("duration"));
+    MPUTR(numfields, "channels", STRNC("channels"));
+    MPUTR(numfields, "bitrate", STRNC("bitrate"));
+    MPUTR(numfields, "samplerate", STRNC("samplerate"));
+    MPUTR(numfields, "plays", STRNC("plays"));
+    MPUTR(numfields, "skips", STRNC("skips"));
+    MPUTR(numfields, "added", STRNC("added"));
+    MPUTR(numfields, "played", STRNC("played"));
+    MPUTR(numfields, "skipped", STRNC("skipped"));
+
+    songlist_set_fields(fields);
+    songlist_set_numeric_fields(numfields);
+    songlist_set_filter(NULL);
+    songlist_set_sorting(config_get("sorting"));
+
+    REL(fields);
+    REL(numfields);
+
+    /* load database */
+
+    char* libpath = config_get("lib_path");
+
+    mt_time(NULL);
+    lib_init();        // destroy 1
+    lib_read(libpath); // read up database if exist
+    mt_time("parsing database");
+
+    /* load library */
+
+    mt_map_t* files = MNEW(); // REL 0
+
+    mt_time(NULL);
+    fm_read_files(config_get("lib_path"), files); // read all files under library path
+    mt_time("parsing library");
+
+    if (lib_count() == 0)
     {
-	vmp.frames = 4;
-
-	map_t* fields = MNEW();
-
-	MPUTR(fields, "artist", cstr_new_cstring("artist"));
-	MPUTR(fields, "album", cstr_new_cstring("album"));
-	MPUTR(fields, "title", cstr_new_cstring("title"));
-	MPUTR(fields, "date", cstr_new_cstring("date"));
-	MPUTR(fields, "genre", cstr_new_cstring("genre"));
-	MPUTR(fields, "track", cstr_new_cstring("track"));
-	MPUTR(fields, "disc", cstr_new_cstring("disc"));
-	MPUTR(fields, "duration", cstr_new_cstring("duration"));
-	MPUTR(fields, "channels", cstr_new_cstring("channels"));
-	MPUTR(fields, "bitrate", cstr_new_cstring("bitrate"));
-	MPUTR(fields, "samplerate", cstr_new_cstring("samplerate"));
-	MPUTR(fields, "plays", cstr_new_cstring("plays"));
-	MPUTR(fields, "skips", cstr_new_cstring("skips"));
-	MPUTR(fields, "added", cstr_new_cstring("added"));
-	MPUTR(fields, "played", cstr_new_cstring("played"));
-	MPUTR(fields, "skipped", cstr_new_cstring("skipped"));
-	MPUTR(fields, "type", cstr_new_cstring("type"));
-	MPUTR(fields, "container", cstr_new_cstring("container"));
-
-	map_t* numfields = MNEW();
-
-	MPUTR(numfields, "track", cstr_new_cstring("track"));
-	MPUTR(numfields, "disc", cstr_new_cstring("disc"));
-	MPUTR(numfields, "duration", cstr_new_cstring("duration"));
-	MPUTR(numfields, "channels", cstr_new_cstring("channels"));
-	MPUTR(numfields, "bitrate", cstr_new_cstring("bitrate"));
-	MPUTR(numfields, "samplerate", cstr_new_cstring("samplerate"));
-	MPUTR(numfields, "plays", cstr_new_cstring("plays"));
-	MPUTR(numfields, "skips", cstr_new_cstring("skips"));
-	MPUTR(numfields, "added", cstr_new_cstring("added"));
-	MPUTR(numfields, "played", cstr_new_cstring("played"));
-	MPUTR(numfields, "skipped", cstr_new_cstring("skipped"));
-
-	songlist_set_fields(fields);
-	songlist_set_numeric_fields(numfields);
-	songlist_set_filter(NULL);
-	songlist_set_sorting(config_get("sorting"));
-
-	REL(fields);
-	REL(numfields);
-
-	/* load database */
-
-	char* libpath = config_get("lib_path");
-
-	zc_time(NULL);
-	lib_init();        // destroy 1
-	lib_read(libpath); // read up database if exist
-	zc_time("parsing database");
-
-	/* load library */
-
-	map_t* files = MNEW(); // REL 0
-
-	zc_time(NULL);
-	fm_read_files(config_get("lib_path"), files); // read all files under library path
-	zc_time("parsing library");
-
-	if (lib_count() == 0)
-	{
-	    // add unanalyzed files to db to show something
-	    vec_t* songlist = VNEW();
-	    map_values(files, songlist);
-	    lib_add_entries(songlist);
-	    // analyze all
-	    vmp.analyzer = analyzer_run(songlist);
-	    REL(songlist);
-	}
-	else
-	{
-	    lib_remove_non_existing(files);
-	    lib_filter_existing(files);
-	    // analyze remaining
-	    vec_t* remaining = VNEW();
-	    map_values(files, remaining);
-	    vmp.analyzer = analyzer_run(remaining);
-	    REL(remaining);
-	}
-
-	REL(files);
-
-	ui_update_songlist();
+	// add unanalyzed files to db to show something
+	mt_vector_t* songlist = VNEW();
+	mt_map_values(files, songlist);
+	lib_add_entries(songlist);
+	// analyze all
+	vmp.analyzer = analyzer_run(songlist);
+	REL(songlist);
     }
+    else
+    {
+	lib_remove_non_existing(files);
+	lib_filter_existing(files);
+	// analyze remaining
+	mt_vector_t* remaining = VNEW();
+	mt_map_values(files, remaining);
+	vmp.analyzer = analyzer_run(remaining);
+	REL(remaining);
+    }
+
+    REL(files);
+
+    ui_update_songlist();
 }
 
-void update(ev_t ev)
+/* window update */
+
+void update(ku_event_t ev)
 {
-    if (ev.type == EV_TIME)
+    /* printf("UPDATE %i %u %i %i\n", ev.type, ev.time, ev.w, ev.h); */
+
+    if (ev.type == KU_EVENT_FRAME)
     {
-	/* check init */
-
-	if (vmp.frames < 4) post_render_init();
-
-	/* check remote */
+	/* check for remote commands */
 
 	if (vmp.remote.command > 0)
 	{
@@ -191,58 +223,182 @@ void update(ev_t ev)
 	}
 
 	ui_update_player();
+    }
 
-	if (vmp.replay)
+    ku_window_event(vmp.kuwindow, ev);
+
+    if (vmp.wlwindow->frame_cb == NULL)
+    {
+	ku_rect_t dirty = ku_window_update(vmp.kuwindow, 0);
+
+	if (dirty.w > 0 && dirty.h > 0)
 	{
-	    // get recorded events
-	    ev_t* recev = NULL;
-	    while ((recev = evrec_replay(ev.time)) != NULL)
-	    {
-		ui_manager_event(*recev);
-		ui_update_cursor((r2_t){recev->x, recev->y, 10, 10});
+	    ku_rect_t sum = ku_rect_add(dirty, vmp.dirtyrect);
 
-		if (recev->type == EV_KDOWN && recev->keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time);
-	    }
+	    /* mt_log_debug("drt %i %i %i %i", (int) dirty.x, (int) dirty.y, (int) dirty.w, (int) dirty.h); */
+	    /* mt_log_debug("drt prev %i %i %i %i", (int) vmp.dirtyrect.x, (int) vmp.dirtyrect.y, (int) vmp.dirtyrect.w, (int) vmp.dirtyrect.h); */
+	    /* mt_log_debug("sum aftr %i %i %i %i", (int) sum.x, (int) sum.y, (int) sum.w, (int) sum.h); */
+
+	    /* mt_time(NULL); */
+	    if (vmp.softrender) ku_renderer_software_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
+	    else ku_renderer_egl_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
+	    /* mt_time("Render"); */
+	    /* nanosleep((const struct timespec[]){{0, 100000000L}}, NULL); */
+
+	    ku_wayland_draw_window(vmp.wlwindow, (int) sum.x, (int) sum.y, (int) sum.w, (int) sum.h);
+
+	    vmp.dirtyrect = dirty;
 	}
+    }
+}
+
+void update_session(ku_event_t ev)
+{
+    if (ev.type == KU_EVENT_FRAME) ui_update_player();
+
+    ku_window_event(vmp.kuwindow, ev);
+    ku_window_update(vmp.kuwindow, 0);
+
+    if (vmp.softrender) ku_renderer_software_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, vmp.kuwindow->root->frame.local);
+    else ku_renderer_egl_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, vmp.kuwindow->root->frame.local);
+}
+
+/* save window buffer to png */
+
+void update_screenshot(uint32_t frame)
+{
+    static int shotindex = 0;
+
+    char* name = mt_string_new_format(20, "screenshot%.3i.png", shotindex++); // REL 1
+    char* path = "";
+
+    if (vmp.record) path = mt_path_new_append(vmp.rec_path, name); // REL 2
+    if (vmp.replay) path = mt_path_new_append(vmp.rep_path, name); // REL 2
+
+    if (vmp.softrender)
+    {
+	coder_write_png(path, &vmp.wlwindow->bitmap);
     }
     else
     {
-	if (vmp.record)
-	{
-	    evrec_record(ev);
-	    if (ev.type == EV_KDOWN && ev.keycode == SDLK_PRINTSCREEN) ui_screenshot(ev.time);
-	}
+	ku_bitmap_t* bitmap = ku_bitmap_new(vmp.wlwindow->width, vmp.wlwindow->height);
+	ku_gl_save_framebuffer(bitmap);
+	ku_bitmap_t* flipped = bm_new_flip_y(bitmap); // REL 3
+	coder_write_png(path, flipped);
+	REL(flipped);
+	REL(bitmap);
     }
+    ui_update_cursor((ku_rect_t){0, 0, vmp.wlwindow->width, vmp.wlwindow->height});
 
-    // in case of replay only send time events
-    if (!vmp.replay || ev.type == EV_TIME) ui_manager_event(ev);
+    printf("SCREENHSOT AT %u : %s\n", frame, path);
 }
 
-void render(uint32_t time)
+/* window update during recording */
+
+void update_record(ku_event_t ev)
 {
-    ui_manager_render(time);
+    /* normalize floats for deterministic movements during record/replay */
+    ev.dx         = floor(ev.dx * 10000) / 10000;
+    ev.dy         = floor(ev.dy * 10000) / 10000;
+    ev.ratio      = floor(ev.ratio * 10000) / 10000;
+    ev.time_frame = floor(ev.time_frame * 10000) / 10000;
+
+    if (ev.type == KU_EVENT_FRAME)
+    {
+	/* record and send waiting events */
+	for (int index = 0; index < vmp.eventqueue->length; index++)
+	{
+	    ku_event_t* event = (ku_event_t*) vmp.eventqueue->data[index];
+	    event->frame      = ev.frame;
+	    evrec_record(*event);
+
+	    update_session(*event);
+
+	    if (event->type == KU_EVENT_KDOWN && event->keycode == XKB_KEY_Print) update_screenshot(ev.frame);
+	    else ui_update_cursor((ku_rect_t){event->x, event->y, 10, 10});
+	}
+
+	mt_vector_reset(vmp.eventqueue);
+
+	/* send frame event */
+	update_session(ev);
+
+	/* force frame request if needed */
+	if (vmp.wlwindow->frame_cb == NULL)
+	{
+	    ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
+	}
+	else mt_log_error("FRAME CALLBACK NOT NULL!!");
+    }
+    else
+    {
+	/* queue event */
+	void* event = HEAP(ev);
+	VADD(vmp.eventqueue, event);
+    }
+}
+
+/* window update during replay */
+
+void update_replay(ku_event_t ev)
+{
+    if (ev.type == KU_EVENT_FRAME)
+    {
+	// get recorded events
+	ku_event_t* recev = NULL;
+	while ((recev = evrec_replay(ev.frame)) != NULL)
+	{
+	    update_session(*recev);
+
+	    if (recev->type == KU_EVENT_KDOWN && recev->keycode == XKB_KEY_Print) update_screenshot(ev.frame);
+	    else ui_update_cursor((ku_rect_t){recev->x, recev->y, 10, 10});
+	}
+
+	/* send frame event */
+	update_session(ev);
+
+	/* force frame request if needed */
+	if (vmp.wlwindow->frame_cb == NULL) ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
+	else mt_log_error("FRAME CALLBACK NOT NULL!!");
+    }
 }
 
 void destroy()
 {
-    if (vmp.replay) evrec_destroy(); // DESTROY 5
-    if (vmp.record) evrec_destroy(); // DESTROY 4
+    ku_wayland_delete_window(vmp.wlwindow);
 
-    ui_destroy(); // DESTROY 3
+    if (vmp.replay) evrec_destroy();
+    if (vmp.record) evrec_destroy();
 
-    lib_destroy();
-    songlist_destroy();
+    ui_destroy();
+
+    REL(vmp.kuwindow);
+
+    if (!vmp.softrender) ku_renderer_egl_destroy();
+
+    SDL_Quit();
+
+    if (vmp.rec_path) REL(vmp.rec_path); // REL 14
+    if (vmp.rep_path) REL(vmp.rep_path); // REL 15
 }
 
 int main(int argc, char* argv[])
 {
-    zc_log_use_colors(isatty(STDERR_FILENO));
-    zc_log_level_info();
-    zc_time(NULL);
+    mt_log_use_colors(isatty(STDERR_FILENO));
+    mt_log_level_info();
+    mt_time(NULL);
 
-    printf("Visual Music Player v" VMP_VERSION " by Milan Toth ( www.milgra.com )\n");
-    printf("If you like this app try Multimedia File Manager (github.com/milgra/vmp) or Sway Oveview ( github.com/milgra/sov )\n");
-    printf("Or my games : Cortex ( github.com/milgra/cortex ), Termite (github.com/milgra/termite) or Brawl (github.com/milgra/brawl)\n\n");
+    printf("Visual Music Player v" VMP_VERSION
+	   " by Milan Toth ( www.milgra.com )\n"
+	   "If you like this app try :\n"
+	   "- Sway Oveview ( github.com/milgra/sov )\n"
+	   "- Wayland Control Panel (github.com/milgra/wcp)\n"
+	   "- Multimedia File Manager (github.com/milgra/vmp)\n"
+	   "- SwayOS (swayos.github.io)\n"
+	   "Games :\n"
+	   "- Brawl (github.com/milgra/brawl)\n"
+	   "- Cortex ( github.com/milgra/cortex )\n"
+	   "- Termite (github.com/milgra/termite)\n\n");
 
     const char* usage =
 	"Usage: vmp [options]\n"
@@ -287,13 +443,13 @@ int main(int argc, char* argv[])
 	switch (option)
 	{
 	    case '?': printf("parsing option %c value: %s\n", option, optarg); break;
-	    case 'c': cfg_par = cstr_new_cstring(optarg); break; // REL 0
-	    case 'l': lib_par = cstr_new_cstring(optarg); break; // REL 1
+	    case 'c': cfg_par = STRNC(optarg); break; // REL 0
+	    case 'l': lib_par = STRNC(optarg); break; // REL 1
 	    case 'o': org_par = "true"; break;
-	    case 'r': res_par = cstr_new_cstring(optarg); break; // REL 1
-	    case 's': rec_par = cstr_new_cstring(optarg); break; // REL 2
-	    case 'p': rep_par = cstr_new_cstring(optarg); break; // REL 3
-	    case 'f': frm_par = cstr_new_cstring(optarg); break; // REL 4
+	    case 'r': res_par = STRNC(optarg); break; // REL 1
+	    case 's': rec_par = STRNC(optarg); break; // REL 2
+	    case 'p': rep_par = STRNC(optarg); break; // REL 3
+	    case 'f': frm_par = STRNC(optarg); break; // REL 4
 	    case 'v': verbose = 1; break;
 	    default: fprintf(stderr, "%s", usage); return EXIT_FAILURE;
 	}
@@ -307,24 +463,20 @@ int main(int argc, char* argv[])
     char cwd[PATH_MAX] = {"~"};
     getcwd(cwd, sizeof(cwd));
 
-    char* top_path = path_new_normalize(cwd, NULL); // REL 5
-    char* sdl_base = SDL_GetBasePath();
-    char* wrk_path = path_new_normalize(sdl_base, NULL); // REL 6
-    SDL_free(sdl_base);
-    char* lib_path    = lib_par ? path_new_normalize(lib_par, wrk_path) : path_new_normalize("~/Music", wrk_path);
-    char* res_path    = res_par ? path_new_normalize(res_par, wrk_path) : cstr_new_cstring(PKG_DATADIR);                       // REL 7
-    char* cfgdir_path = cfg_par ? path_new_normalize(cfg_par, wrk_path) : path_new_normalize("~/.config/vmp", getenv("HOME")); // REL 8
-    char* css_path    = path_new_append(res_path, "html/main.css");                                                            // REL 9
-    char* html_path   = path_new_append(res_path, "html/main.html");                                                           // REL 10
-    char* cfg_path    = path_new_append(cfgdir_path, "config.kvl");                                                            // REL 12
-    char* per_path    = path_new_append(cfgdir_path, "state.kvl");                                                             // REL 13
-    char* rec_path    = rec_par ? path_new_normalize(rec_par, wrk_path) : NULL;                                                // REL 14
-    char* rep_path    = rep_par ? path_new_normalize(rep_par, wrk_path) : NULL;                                                // REL 15
+    char* wrk_path    = mt_path_new_normalize(cwd, NULL); // REL 5
+    char* lib_path    = lib_par ? mt_path_new_normalize(lib_par, wrk_path) : mt_path_new_normalize("~/Music", wrk_path);
+    char* res_path    = res_par ? mt_path_new_normalize(res_par, wrk_path) : STRNC(PKG_DATADIR);                                     // REL 7
+    char* cfgdir_path = cfg_par ? mt_path_new_normalize(cfg_par, wrk_path) : mt_path_new_normalize("~/.config/vmp", getenv("HOME")); // REL 8
+    char* css_path    = mt_path_new_append(res_path, "html/main.css");                                                               // REL 9
+    char* html_path   = mt_path_new_append(res_path, "html/main.html");                                                              // REL 10
+    char* cfg_path    = mt_path_new_append(cfgdir_path, "config.kvl");                                                               // REL 12
+    char* per_path    = mt_path_new_append(cfgdir_path, "state.kvl");                                                                // REL 13
+    char* rec_path    = rec_par ? mt_path_new_normalize(rec_par, wrk_path) : NULL;                                                   // REL 14
+    char* rep_path    = rep_par ? mt_path_new_normalize(rep_par, wrk_path) : NULL;                                                   // REL 15
 
     // print path info to console
 
     printf("library path  : %s\n", lib_path);
-    printf("top path      : %s\n", top_path);
     printf("working path  : %s\n", wrk_path);
     printf("resource path : %s\n", res_path);
     printf("config path   : %s\n", cfg_path);
@@ -335,7 +487,7 @@ int main(int argc, char* argv[])
     printf("replay path   : %s\n", rep_path);
     printf("\n");
 
-    if (verbose) zc_log_inc_verbosity();
+    if (verbose) mt_log_inc_verbosity();
 
     // init config
 
@@ -362,9 +514,19 @@ int main(int argc, char* argv[])
     if (rec_path) config_set("rec_path", rec_path);
     if (rep_path) config_set("rep_path", rep_path);
 
-    zc_time("config parsing");
+    mt_time("config parsing");
 
-    wm_loop(init, update, render, destroy, frm_par);
+    /* this two shouldn't go into the config file because of record/replay */
+
+    vmp.rec_path = rec_path;
+    vmp.rep_path = rep_path;
+
+    if (rec_path) evrec_init_recorder(rec_path); // DESTROY 4
+    if (rep_path) evrec_init_player(rep_path);
+
+    if (rec_path != NULL) ku_wayland_init(init, update_record, destroy, 0);
+    else if (rep_path != NULL) ku_wayland_init(init, update_replay, destroy, 16);
+    else ku_wayland_init(init, update, destroy, 0);
 
     config_destroy(); // DESTROY 0
 
@@ -377,7 +539,6 @@ int main(int argc, char* argv[])
     if (rep_par) REL(rep_par); // REL 3
     if (frm_par) REL(frm_par); // REL 4
 
-    REL(top_path);    // REL 5
     REL(wrk_path);    // REL 6
     REL(lib_path);    // REL 7
     REL(res_path);    // REL 7
@@ -390,8 +551,8 @@ int main(int argc, char* argv[])
     if (rec_path) REL(rec_path); // REL 14
     if (rep_path) REL(rep_path); // REL 15
 
-#ifdef DEBUG
-    mem_stats();
+#ifdef MT_MEMORY_DEBUG
+    mt_memory_stats();
 #endif
 
     return 0;

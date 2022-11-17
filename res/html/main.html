@@ -3,15 +3,21 @@
   <div id="songs" class="colflex">
     <div id="songlisttop"/>
 
-    <div id="songlistbox" class="colflex">
-      <div id="songlisthead" class="tablehead"/>
-      <div id="songlist" class="fullscaleview">
-	<div id="songtable" class="tablebody fullscaleview"/>
-	<div id="songlistscroll" class="fullscaleview">
-	  <div id="songlistvertscroll" class="vertscroll"/>
-	  <div id="songlisthoriscroll" class="horiscroll"/>
+    <div id="songtable" class="colflex">
+      <div id="songtablehead" class="tablehead">
+	<div id="songtableheadrow" class="head rowtext"/>
+      </div>
+      <div id="songtablelayers" class="tableback fullscaleview">
+	<div id="songtablebody" class="tablebody fullscaleview">
+	  <div id="songtable_row_a" class="rowa rowtext" type="label" text="row a"/>
+	  <div id="songtable_row_b" class="rowb rowtext" type="label" text="row b"/>
+	  <div id="songtable_row_selected" class="rowselected rowtext" type="label" text="row selected"/>
 	</div>
-	<div id="songlistevt" class="fullscaleview"/>
+	<div id="songtablescroll" class="fullscaleview">
+	  <div id="songtablevertscroll" class="vertscroll"/>
+	  <div id="songtablehoriscroll" class="horiscroll"/>
+	</div>
+	<div id="songtableevt" class="fullscaleview"/>
       </div>
     </div>
     
@@ -37,14 +43,14 @@
 	    <div id="leftsearch" class="50px"/>
 	    <div id="filterbarbck">
 	      <div id="filterbar">
-		<div id="sortingbtn">
+		<div id="sortingbtn" type="button">
 		  <div id="sortingicon"/>
 		</div>
-		<div id="filterbtn">
+		<div id="filterbtn" type="button">
 		  <div id="filtericon"/>
 		</div>
 		<div id="filtertf"/>
-		<div id="clearbtn">
+		<div id="clearbtn" type="button">
 		  <div id="filterclearicon" class="closeiconblack"/>
 		</div>
 	      </div>
@@ -53,37 +59,37 @@
 	  </div>
 	  <div id="buttonsbck">
 	    <div id="gap0" class="50px"/>
-	    <div id="prevbtn" class="toolbtn">
+	    <div id="prevbtn" class="toolbtn" type="button">
 	      <div id="previcon"/>
 	    </div>
 	    <div id="gap1" class="gap"/>
-	    <div id="shufflebtn" class="toolbtn">
+	    <div id="shufflebtn" class="toolbtn" type="button">
 	      <div id="shuffleoff"/>
 	      <div id="shuffleon"/> 
 	      <div id="shuffleicon"/>
 	    </div>
 	    <div id="gap2" class="gap"/>
-	    <div id="nextbtn" class="toolbtn">
+	    <div id="nextbtn" class="toolbtn" type="button">
 	      <div id="nexticon" class="nexticon"/>
 	    </div>
 	    <div id="gap3" class="gap"/>
-	    <div id="metabtn" class="toolbtn">
+	    <div id="metabtn" class="toolbtn" type="button">
 	      <div id="metaicon"/>
 	    </div>
 	    <div id="timetf"/>
-	    <div id="visubtn" class="toolbtn">
+	    <div id="visubtn" class="toolbtn" type="button">
 	      <div id="visuicon"/>
 	    </div>
 	    <div id="gap5" class="gap"/>
-	    <div id="settingsbtn" class="toolbtn">
+	    <div id="settingsbtn" class="toolbtn" type="button">
 	      <div id="settingsicon"/>
 	    </div>
 	    <div id="gap6" class="gap"/>
-	    <div id="maxbtn" class="toolbtn">
+	    <div id="maxbtn" class="toolbtn" type="button">
 	      <div id="maxicon"/>
 	    </div>
 	    <div id="gap7" class="gap"/>
-	    <div id="exitbtn" class="toolbtn">
+	    <div id="exitbtn" class="toolbtn" type="button">
 	      <div id="appcloseicon" class="closeicon"/>
 	    </div>
 	    <div id="gap10" class="50px"/>
@@ -94,14 +100,14 @@
     </div>
     
     <div id="seekknob">
-      <div id="playbtn">
+      <div id="playbtn" type="button">
 	<div id="playicon"/>
 	<div id="pauseicon"/>
       </div>
     </div>
 
     <div id="volknob">
-      <div id="mutebtn">
+      <div id="mutebtn" type="button">
 	<div id="muteicon"/>
 	<div id="unmuteicon"/>
       </div>
@@ -112,13 +118,17 @@
   <div id="settingspopupcont" class="popupcontainer fullscaleview">
     <div id="settingspopup">
       <div id="settingsshadow" class="popupshadow">
-	<div id="settingslist">
-	  <div id="settingslistbck" class="fullscaleview">
-	    <div id="settingstable" class="tablebody textaligncenter fullscaleview"/>
-	    <div id="settingslistevt" class="fullscaleview"/>
+	<div id="settingstable" class="fullscale">
+	  <div id="settingstablelayers" class="fullscaleview">
+	    <div id="settingstablebody" class="tablebody textaligncenter fullscaleview">
+	      <div id="settingstable_row_a" class="rowa rowtextcenter" type="label" text="row a"/>
+	      <div id="settingstable_row_b" class="rowb rowtextcenter" type="label" text="row b"/>
+	      <div id="settingstable_row_selected" class="rowselected rowtextcenter" type="label" text="row selected"/>
+	    </div>
+	    <div id="settingstableevt" class="fullscaleview"/>
 	  </div>
 	</div>
-	<div id="settingsclosebtn" class="closebtn">
+	<div id="settingsclosebtn" class="closebtn" type="button">
 	  <div id="settingscloseicon" class="closeicon"/>
 	</div>
       </div>
@@ -129,21 +139,30 @@
     <div id="filterpopup">
       <div id="filtershadow" class="popupshadow">
 	<div id="filterflex" class="rowflex">
-	  <div id="genrelist">
-	    <div id="genrelistbck" class="fullscaleview">
-	      <div id="genretable" class="tablebody textalignright fullscaleview"/>
-	      <div id="genrelistevt" class="fullscaleview"/>
+	  <div id="genretable">
+	    <div id="genretablelayers" class="fullscaleview">
+	      <div id="genretablebody" class="tablebody textalignright fullscaleview">
+		<div id="genretable_row_a" class="rowa rowtext" type="label" text="row a"/>
+		<div id="genretable_row_b" class="rowb rowtext" type="label" text="row b"/>
+		<div id="genretable_row_selected" class="rowselected rowtext" type="label" text="row selected"/>
+	      </div>
+	      <div id="genretableevt" class="fullscaleview">
+	      </div>
 	    </div>
 	  </div>
 	  <div id="filtergap" class="gap"/>
-	  <div id="artistlist">
-	    <div id="artistlistbck" class="fullscaleview">
-	      <div id="artisttable" class="tablebody textalignleft fullscaleview"/>
-	      <div id="artistlistevt" class="fullscaleview"/>
+	  <div id="artisttable">
+	    <div id="artisttablelayers" class="fullscaleview">
+	      <div id="artisttablebody" class="tablebody textalignleft fullscaleview">
+		<div id="artistable_row_a" class="rowa rowtext" type="label" text="row a"/>
+		<div id="artistable_row_b" class="rowb rowtext" type="label" text="row b"/>
+		<div id="artistable_row_selected" class="rowselected rowtext" type="label" text="row selected"/>
+	      </div>
+	      <div id="artisttableevt" class="fullscaleview"/>
 	    </div>
 	  </div>
 	</div>
-	<div id="filterclosebtn" class="closebtn">
+	<div id="filterclosebtn" class="closebtn" type="button">
 	  <div id="filtercloseicon" class="closeicon"/>
 	</div>
       </div>
@@ -154,22 +173,26 @@
     <div id="metapopup">
       <div id="metashadow" class="popupshadow">
 	<div id="metaflex" class="rowflex">
-	  <div id="metalist">
-	    <div id="metalistbck" class="fullscaleview">
-	      <div id="metatable" class="tablebody fullscaleview"/>
-	      <div id="metalistevt" class="fullscaleview"/>
+	  <div id="metatable" class="fullscale">
+	    <div id="metatablelayers" class="fullscaleview">
+	      <div id="metatablebody" class="tablebody fullscaleview">
+		<div id="metatable_row_a" class="rowa rowtext" type="label" text="row a"/>
+		<div id="metatable_row_b" class="rowb rowtext" type="label" text="row b"/>
+		<div id="metatable_row_selected" class="rowselected rowtext" type="label" text="row selected"/>
+	      </div>
+	      <div id="metatableevt" class="fullscaleview"/>
 	    </div>
 	  </div>
 	  <div id="metacover">
-	    <div id="metacoverbtn">
+	    <div id="metacoverbtn" type="button">
 	      <div id="metacovericon"/>
 	    </div>
 	  </div>
 	</div>
-	<div id="metaclosebtn" class="closebtn">
+	<div id="metaclosebtn" class="closebtn" type="button">
 	  <div id="metacloseicon" class="closeicon"/>
 	</div>
-	<div id="metaacceptbtn" class="acceptbtn">
+	<div id="metaacceptbtn" class="acceptbtn" type="button">
 	  <div id="metaaccepticon" class="accepticon"/>
 	</div>
       </div>
@@ -180,7 +203,7 @@
     <div id="inputbck">
       <div id="inputbar">
 	<div id="inputtf"/>
-	<div id="inputclearbtn">
+	<div id="inputclearbtn" type="button">
 	  <div id="inputclearicon" class="closeiconblack"/>
 	</div>
       </div>
@@ -190,10 +213,14 @@
   <div id="contextpopupcont" class="popupcontainer fullscaleview">
     <div id="contextpopup">
       <div id="contextshadow" class="popupshadow">
-	<div id="contextlist">
-	  <div id="contextlistbck" class="fullscaleview">
-	    <div id="contexttable" class="contexttablebody fullscaleview"/>
-	    <div id="contextlistevt" class="fullscaleview"/>
+	<div id="contexttable" class="fullscale">
+	  <div id="contexttablelayers" class="fullscaleview">
+	    <div id="contexttablebody" class="contexttablebody fullscaleview">
+	      <div id="contexttable_row_a" class="contextrowa rowtext" type="label" text="row a"/>
+	      <div id="contexttable_row_b" class="contextrowb rowtext" type="label" text="row b"/>
+	      <div id="contexttable_row_selected" class="contextrowselected rowtext" type="label" text="row selected"/>
+	    </div>
+	    <div id="contexttableevt" class="fullscaleview"/>
 	  </div>
 	</div>
       </div>

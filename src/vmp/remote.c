@@ -1,7 +1,7 @@
 #ifndef remote_h
 #define remote_h
 
-#include "zc_channel.c"
+#include "mt_channel.c"
 
 typedef struct _remote_t
 {
@@ -16,7 +16,7 @@ void remote_listen(remote_t* remote);
 
 #if __INCLUDE_LEVEL__ == 0
 
-#include "zc_log.c"
+#include "mt_log.c"
 #include <errno.h>
 #include <error.h>
 #include <fcntl.h>
@@ -58,10 +58,10 @@ void* remote_thread(void* data)
 		    break;
 		}
 	    }
-	    else zc_log_error("Fifo open error");
+	    else mt_log_error("Fifo open error");
 	}
     }
-    else zc_log_error("Fifo creation error");
+    else mt_log_error("Fifo creation error");
 
     return NULL;
 }

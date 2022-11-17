@@ -1,12 +1,12 @@
 #ifndef filemanager_h
 #define filemanager_h
 
-#include "zc_channel.c"
-#include "zc_map.c"
+#include "mt_channel.c"
+#include "mt_map.c"
 
-void fm_read_files(char* libpath, map_t* db);
+void fm_read_files(char* libpath, mt_map_t* db);
 int  fm_create(char* file_path, mode_t mode);
-void fm_delete_file(char* libpath, map_t* entry);
+void fm_delete_file(char* libpath, mt_map_t* entry);
 int  fm_rename_file(char* old, char* new, char* new_dirs);
 
 #endif
@@ -18,9 +18,9 @@ int  fm_rename_file(char* old, char* new, char* new_dirs);
 
 #include "coder.c"
 #include "filemanager.c"
-#include "zc_cstring.c"
-#include "zc_log.c"
-#include "zc_path.c"
+#include "mt_log.c"
+#include "mt_path.c"
+#include "mt_string.c"
 #include <SDL.h>
 #include <errno.h>
 #include <limits.h>
@@ -32,13 +32,13 @@ int        analyzer_thread(void* chptr);
 
 struct fm_t
 {
-    map_t* files;
-    vec_t* paths;
-    char   lock;
-    char*  path;
+    mt_map_t*    files;
+    mt_vector_t* paths;
+    char         lock;
+    char*        path;
 } lib = {0};
 
-void fm_read_files(char* fm_path, map_t* files)
+void fm_read_files(char* fm_path, mt_map_t* files)
 {
     assert(fm_path != NULL);
 
@@ -47,7 +47,7 @@ void fm_read_files(char* fm_path, map_t* files)
 
     nftw(fm_path, fm_file_data_step, 20, FTW_PHYS);
 
-    zc_log_debug("lib : scanned, files : %i", files->count);
+    mt_log_debug("lib : scanned, files : %i", files->count);
 }
 
 static int fm_file_data_step(const char* fpath, const struct stat* sb, int tflag, struct FTW* ftwbuf)
@@ -62,23 +62,23 @@ static int fm_file_data_step(const char* fpath, const struct stat* sb, int tflag
 
     if (tflag == FTW_F)
     {
-	map_t* song = MNEW();
+	mt_map_t* song = MNEW();
 
-	char* path = cstr_new_cstring((char*) fpath + strlen(lib.path) + 1);
-	char* size = cstr_new_format(20, "%li", sb->st_size); // REL 0
+	char* path = STRNC((char*) fpath + strlen(lib.path) + 1);
+	char* size = STRNF(20, "%li", sb->st_size); // REL 0
 
 	// add file data
 
 	MPUTR(song, "path", path);
 	MPUTR(song, "size", size);
-	MPUTR(song, "added", cstr_new_cstring("..."));
-	MPUTR(song, "played", cstr_new_cstring("..."));
-	MPUTR(song, "skipped", cstr_new_cstring("..."));
-	MPUTR(song, "plays", cstr_new_cstring("..."));
-	MPUTR(song, "skips", cstr_new_cstring("..."));
-	MPUTR(song, "artist", cstr_new_cstring("..."));
-	MPUTR(song, "album", cstr_new_cstring("..."));
-	MPUTR(song, "title", path_new_filename(path));
+	MPUTR(song, "added", STRNC("..."));
+	MPUTR(song, "played", STRNC("..."));
+	MPUTR(song, "skipped", STRNC("..."));
+	MPUTR(song, "plays", STRNC("..."));
+	MPUTR(song, "skips", STRNC("..."));
+	MPUTR(song, "artist", STRNC("..."));
+	MPUTR(song, "album", STRNC("..."));
+	MPUTR(song, "title", mt_path_new_filename(path));
 
 	MPUTR(lib.files, fpath + strlen(lib.path) + 1, song); // use relative path as path
 
@@ -111,25 +111,25 @@ int fm_create(char* file_path, mode_t mode)
     return 0;
 }
 
-void fm_delete_file(char* fm_path, map_t* entry)
+void fm_delete_file(char* fm_path, mt_map_t* entry)
 {
     assert(fm_path != NULL);
 
     char* rel_path  = MGET(entry, "path");
-    char* file_path = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s", fm_path, rel_path); // REL 0
+    char* file_path = STRNF(PATH_MAX + NAME_MAX, "%s/%s", fm_path, rel_path); // REL 0
 
     int error = remove(file_path);
     if (error)
-	zc_log_debug("lib : cannot remove file %s : %s", file_path, strerror(errno));
+	mt_log_debug("lib : cannot remove file %s : %s", file_path, strerror(errno));
     else
-	zc_log_debug("lib : file %s removed.", file_path);
+	mt_log_debug("lib : file %s removed.", file_path);
 
     REL(file_path); // REL 0
 }
 
 int fm_rename_file(char* old_path, char* new_path, char* new_dirs)
 {
-    zc_log_debug("lib : renaming %s to %s", old_path, new_path);
+    mt_log_debug("lib : renaming %s to %s", old_path, new_path);
 
     int error = fm_create(new_dirs, 0777);
 

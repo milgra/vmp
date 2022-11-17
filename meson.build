@@ -1,13 +1,14 @@
 project(
   'vmp',
   'c',
-  version: '0.83',
+  version: '0.4b',
   license: 'MIT',
   default_options: ['c_std=gnu99']
 )
 
 cc = meson.get_compiler('c')
 
+png = cc.find_library('png',static:false)
 freetype = cc.find_library('freetype',static:false)
 math = cc.find_library('m',static:false)
 z = cc.find_library('z',static:false)
@@ -16,6 +17,7 @@ rt = cc.find_library('rt',static:false)
 gl = cc.find_library('GL',static:false)
 glew = cc.find_library('GLEW',static:false)
 sdl2 = cc.find_library('SDL2',static:false)
+wegl = cc.find_library('wayland-egl',static:false)
 swscale = cc.find_library('swscale',static:false)
 pthread = cc.find_library('pthread',static:false)
 jpeg = cc.find_library('jpeg',static:false)
@@ -29,16 +31,88 @@ avdevice = cc.find_library('avdevice',static:false)
 avformat = cc.find_library('avformat',static:false)
 avfilter = cc.find_library('avfilter',static:false)
 swresample = cc.find_library('swresample',static:false)
+egl = cc.find_library('EGL',static:false)
+
+xkbcommon = dependency('xkbcommon')
 
 # for ffmpeg
-va = cc.find_library('va',static:false)
-x11 = cc.find_library('X11',static:false)
-lvadrm = cc.find_library('va-drm',static:false)
-lvax11 = cc.find_library('va-x11',static:false)
-lzma = cc.find_library('lzma',static:false)
-lvdpau = cc.find_library('vdpau',static:false)
+#va = cc.find_library('va',static:false)
+#x11 = cc.find_library('X11',static:false)
+#lvadrm = cc.find_library('va-drm',static:false)
+#lvax11 = cc.find_library('va-x11',static:false)
+#lzma = cc.find_library('lzma',static:false)
+#lvdpau = cc.find_library('vdpau',static:false)
 
-vmp_dependencies = [rt,freetype, math,gl,glew,sdl2,avutil,avcodec,avdevice,avformat,avfilter,swresample,swscale,pthread,jpeg,ojpeg,jbig,hb,z,bz2,x11,va,gumbo,lzma,lvadrm,lvax11,lvdpau]
+mupdf = cc.find_library('mupdf')
+mupdfthird = cc.find_library('mupdf-third')
+
+wayland_client      = dependency('wayland-client')
+wayland_cursor      = dependency('wayland-cursor')
+wayland_protos      = dependency('wayland-protocols')
+wayland_scanner_dep = dependency('wayland-scanner')
+wayland_scanner     = find_program(
+  wayland_scanner_dep.get_pkgconfig_variable('wayland_scanner')
+)
+
+wl_protocol_dir = wayland_protos.get_pkgconfig_variable('pkgdatadir')
+
+protocols = [
+  [wl_protocol_dir, 'stable/xdg-shell/xdg-shell.xml'],
+  [wl_protocol_dir, 'unstable/xdg-output/xdg-output-unstable-v1.xml'],
+  [wl_protocol_dir, 'unstable/pointer-gestures/pointer-gestures-unstable-v1.xml'],
+  'wlr-layer-shell-unstable-v1.xml'
+]
+
+protos_src = []
+protos_headers = []
+
+foreach p : protocols
+  xml = join_paths(p)
+  protos_src += custom_target(
+    xml.underscorify() + '_client_c',
+    input: xml,
+    output: '@BASENAME@-protocol.c',
+    command: [wayland_scanner, 'public-code', '@INPUT@', '@OUTPUT@'],
+  )
+  protos_headers += custom_target(
+    xml.underscorify() + '_client_h',
+    input: xml,
+    output: '@BASENAME@-client-protocol.h',
+    command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+  )
+endforeach
+
+
+vmp_dependencies = [
+		  wayland_client,
+		  wayland_cursor,
+		  png,
+		  rt,
+		  freetype,
+		  math,
+		  gl,
+		  glew,
+		  sdl2,
+		  avutil,
+		  avcodec,
+		  avdevice,
+		  avformat,
+		  avfilter,
+		  swresample,
+		  swscale,
+		  pthread,
+		  jpeg,
+		  ojpeg,
+		  jbig,
+		  hb,
+		  z,
+		  bz2,
+		  gumbo,
+		  mupdf,
+		  mupdfthird,
+		  xkbcommon,
+		  egl,
+		  wegl]
 
 vmp_version = '"@0@"'.format(meson.project_version())
 pkg_datadir = join_paths(get_option('prefix'), get_option('datadir')) / 'vmp'
@@ -53,61 +127,56 @@ endif
 
 vmp_inc = include_directories(
 	'/usr/include',
-	'/usr/include/GL',
+	'/usr/include/GLES2',
+	'/usr/include/EGL',
 	'/usr/include/SDL2',
+	'/usr/include/mupdf',
 	'/usr/include/freetype2',
-	'src/zen_math',
-	'src/zen_gfx',
-	'src/zen_core',
-	'src/zen_wm',
+	'src/mt_math',
+	'src/mt_core',
 	'src/media_player',
 	'src/media_coder',
-	'src/zen_ui',
-	'src/zen_ui/gl',
-	'src/zen_ui/view',
-	'src/zen_ui/html',
+	'src/kinetic_ui',
+	'src/kinetic_ui/egl',
+	'src/kinetic_ui/handler',
+	'src/kinetic_ui/texture',
 	'src/vmp',
-	'src/vmp/ui',
-	'src/vmp/utils')
+	'src/mt_core_ext')
 
 
-com_sources = ['src/vmp/ui/ui.c',
+com_sources = ['src/vmp/analyzer.c',
 	       'src/vmp/config.c',
 	       'src/vmp/evrecorder.c',
 	       'src/vmp/filemanager.c',
+	       'src/vmp/kvlist.c',
 	       'src/vmp/library.c',
-	       'src/vmp/analyzer.c',
 	       'src/vmp/remote.c',
 	       'src/vmp/songlist.c',
-	       'src/vmp/kvlist.c',
+	       'src/vmp/ui.c',
 	       'src/vmp/vmp.c',
-	       'src/vmp/fontconfig.c',
-	       'src/vmp/utils/bm_rgba_util.c',
-	       'src/vmp/utils/cstr_util.c',
-	       'src/vmp/utils/map_util.c',
+	       
+	       'src/mt_core_ext/mt_bitmap_ext.c',
+	       'src/mt_core_ext/mt_string_ext.c',
+	       'src/mt_core_ext/mt_map_ext.c',
 
-	       'src/zen_core/zc_bm_rgba.c',
-	       'src/zen_core/zc_channel.c',
-	       'src/zen_core/zc_cstring.c',
-	       'src/zen_core/zc_path.c',
-	       'src/zen_core/zc_log.c',
-	       'src/zen_core/zc_map.c',
-	       'src/zen_core/zc_memory.c',
-	       'src/zen_core/zc_number.c',
-	       'src/zen_core/zc_time.c',
-	       'src/zen_core/zc_vector.c',
-	       'src/zen_core/zc_wrapper.c',
+	       'src/mt_core/mt_channel.c',
+	       'src/mt_core/mt_string.c',
+	       'src/mt_core/mt_path.c',
+	       'src/mt_core/mt_log.c',
+	       'src/mt_core/mt_map.c',
+	       'src/mt_core/mt_memory.c',
+	       'src/mt_core/mt_number.c',
+	       'src/mt_core/mt_time.c',
+	       'src/mt_core/mt_vector.c',
+	       'src/mt_core/mt_wrapper.c',
 
-	       'src/zen_math/zc_mat3.c',
-	       'src/zen_math/zc_mat4.c',
-	       'src/zen_math/zc_vec2.c',
-	       'src/zen_math/zc_vec3.c',
-	       'src/zen_math/zc_vec4.c',
-	       'src/zen_math/zc_util2.c',
-	       'src/zen_math/zc_util3.c',
-
-	       'src/zen_gfx/zc_draw.c',
-	       'src/zen_gfx/zc_text.c',
+	       'src/mt_math/mt_matrix_3d.c',
+	       'src/mt_math/mt_matrix_4d.c',
+	       'src/mt_math/mt_vector_2d.c',
+	       'src/mt_math/mt_vector_3d.c',
+	       'src/mt_math/mt_vector_4d.c',
+	       'src/mt_math/mt_math_2d.c',
+	       'src/mt_math/mt_math_3d.c',
 
 	       'src/media_coder/coder.c',
 	       'src/media_player/decoder.c',
@@ -116,54 +185,56 @@ com_sources = ['src/vmp/ui/ui.c',
 	       'src/media_player/clock.c',
 	       'src/media_player/mediaplayer.c',
 
-	       'src/zen_wm/wm_connector.c',
-	       'src/zen_wm/wm_event.c',
-
-	       'src/zen_ui/gl/gl_connector.c',
-	       'src/zen_ui/gl/gl_floatbuffer.c',
-	       'src/zen_ui/gl/gl_shader.c',
-	       'src/zen_ui/html/html.c',
-	       'src/zen_ui/html/css.c',
-	       'src/zen_ui/view/tg_css.c',
-	       'src/zen_ui/view/tg_knob.c',
-	       'src/zen_ui/view/tg_text.c',
-	       'src/zen_ui/view/tg_scaledimg.c',
-	       'src/zen_ui/view/vh_anim.c',
-	       'src/zen_ui/view/vh_button.c',
-	       'src/zen_ui/view/vh_drag.c',
-	       'src/zen_ui/view/vh_key.c',
-	       'src/zen_ui/view/vh_knob.c',
-	       'src/zen_ui/view/vh_roll.c',
-	       'src/zen_ui/view/vh_textinput.c',
-	       'src/zen_ui/view/vh_touch.c',
-	       'src/zen_ui/view/vh_cv_body.c',
-	       'src/zen_ui/view/vh_cv_scrl.c',
-	       'src/zen_ui/view/vh_cv_evnt.c',
-	       'src/zen_ui/view/vh_tbl_body.c',
-	       'src/zen_ui/view/vh_tbl_evnt.c',
-	       'src/zen_ui/view/vh_tbl_scrl.c',
-	       'src/zen_ui/view/vh_tbl_head.c',
-	       'src/zen_ui/view/view.c',
-	       'src/zen_ui/view/viewgen_html.c',
-	       'src/zen_ui/view/viewgen_css.c',
-	       'src/zen_ui/view/viewgen_type.c',
-	       'src/zen_ui/view/view_layout.c',
-	       'src/zen_ui/view/views.c',
-	       'src/zen_ui/ui_compositor.c',
-	       'src/zen_ui/ui_generator.c',
-	       'src/zen_ui/ui_manager.c',
-	       'src/zen_ui/ui_texmap.c',
-	       'src/zen_ui/ui_table.c',
-	       'src/zen_ui/ui_util.c']
+	       'src/kinetic_ui/ku_event.c',
+	       'src/kinetic_ui/ku_html.c',
+	       'src/kinetic_ui/ku_css.c',
+	       'src/kinetic_ui/egl/ku_gl.c',
+	       'src/kinetic_ui/ku_rect.c',
+	       'src/kinetic_ui/ku_bitmap.c',
+	       'src/kinetic_ui/texture/tg_css.c',
+	       'src/kinetic_ui/texture/tg_knob.c',
+	       'src/kinetic_ui/texture/tg_text.c',
+	       'src/kinetic_ui/texture/tg_scaledimg.c',
+	       'src/kinetic_ui/handler/vh_anim.c',
+	       'src/kinetic_ui/handler/vh_button.c',
+	       'src/kinetic_ui/handler/vh_drag.c',
+	       'src/kinetic_ui/handler/vh_key.c',
+	       'src/kinetic_ui/handler/vh_knob.c',
+	       'src/kinetic_ui/handler/vh_roll.c',
+	       'src/kinetic_ui/handler/vh_slider.c',
+	       'src/kinetic_ui/handler/vh_textinput.c',
+	       'src/kinetic_ui/handler/vh_touch.c',
+	       'src/kinetic_ui/handler/vh_cv_body.c',
+	       'src/kinetic_ui/handler/vh_cv_scrl.c',
+	       'src/kinetic_ui/handler/vh_cv_evnt.c',
+	       'src/kinetic_ui/handler/vh_tbl_body.c',
+	       'src/kinetic_ui/handler/vh_tbl_evnt.c',
+	       'src/kinetic_ui/handler/vh_tbl_scrl.c',
+	       'src/kinetic_ui/handler/vh_tbl_head.c',
+	       'src/kinetic_ui/ku_view.c',
+	       'src/kinetic_ui/egl/ku_gl_atlas.c',
+	       'src/kinetic_ui/egl/ku_gl_floatbuffer.c',
+	       'src/kinetic_ui/egl/ku_gl_shader.c',
+	       'src/kinetic_ui/ku_gen_html.c',
+	       'src/kinetic_ui/ku_gen_css.c',
+	       'src/kinetic_ui/ku_gen_type.c',
+	       'src/kinetic_ui/ku_renderer_egl.c',
+	       'src/kinetic_ui/ku_renderer_soft.c',
+	       'src/kinetic_ui/ku_fontconfig.c',
+	       'src/kinetic_ui/ku_connector_wayland.c',
+	       'src/kinetic_ui/ku_window.c',
+	       'src/kinetic_ui/ku_png.c',
+	       'src/kinetic_ui/ku_draw.c',
+	       'src/kinetic_ui/ku_text.c',
+	       'src/kinetic_ui/ku_table.c',
+	       'src/kinetic_ui/ku_gen_textstyle.c'] + protos_src + protos_headers
 
 pkg_datadir = join_paths(get_option('prefix'), get_option('datadir')) / 'vmp'
 install_data('res/html/main.html', install_dir : pkg_datadir / 'html' )
 install_data('res/html/main.css', install_dir : pkg_datadir / 'html' )
-install_data('res/img/close.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/accept.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/close.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/closeblack.png', install_dir : pkg_datadir / 'img' )
-install_data('res/img/donate.png', install_dir : pkg_datadir / 'img' )
-install_data('res/img/filter.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/max.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/meta.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/mute.png', install_dir : pkg_datadir / 'img' )
@@ -185,3 +256,9 @@ executable(
   dependencies: vmp_dependencies,
   install: true,
 )
+
+e = executable('maintest', 'src/tests/test.c')
+testrun = find_program('tst/test_run.sh')
+
+test('MAIN TEST', e)
+test('TESTRUN', testrun, timeout: 0)

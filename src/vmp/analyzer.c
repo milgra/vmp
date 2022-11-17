@@ -1,17 +1,17 @@
 #ifndef analyzer_h
 #define analyzer_h
 
-#include "zc_vector.c"
+#include "mt_vector.c"
 #include <linux/limits.h>
 #include <stdlib.h>
 
 typedef struct _analyzer_t
 {
-    vec_t* songs;
-    float  ratio;
+    mt_vector_t* songs;
+    float        ratio;
 } analyzer_t;
 
-analyzer_t* analyzer_run(vec_t* songs);
+analyzer_t* analyzer_run(mt_vector_t* songs);
 
 #endif
 
@@ -19,23 +19,23 @@ analyzer_t* analyzer_run(vec_t* songs);
 
 #include "coder.c"
 #include "config.c"
-#include "zc_cstring.c"
-#include "zc_map.c"
-#include "zc_path.c"
+#include "mt_map.c"
+#include "mt_path.c"
+#include "mt_string.c"
 #include <SDL.h>
 #include <time.h>
 
 int analyzer_thread(void* chptr)
 {
-    analyzer_t* analyzer = chptr;
-    vec_t*      trash    = VNEW();
-    char*       libpath  = config_get("lib_path");
+    analyzer_t*  analyzer = chptr;
+    mt_vector_t* trash    = VNEW();
+    char*        libpath  = config_get("lib_path");
 
     for (int index = 0; index < analyzer->songs->length; index++)
     {
-	map_t* song     = analyzer->songs->data[index];
-	char*  path     = MGET(song, "path");
-	char*  time_str = CAL(80, NULL, cstr_describe); // REL 0
+	mt_map_t* song     = analyzer->songs->data[index];
+	char*     path     = MGET(song, "path");
+	char*     time_str = CAL(80, NULL, mt_string_describe); // REL 0
 
 	time_t now;
 	time(&now);
@@ -45,12 +45,12 @@ int analyzer_thread(void* chptr)
 	// add file data
 
 	MPUT(song, "added", time_str);
-	MPUTR(song, "played", cstr_new_cstring("0"));
-	MPUTR(song, "skipped", cstr_new_cstring("0"));
-	MPUTR(song, "plays", cstr_new_cstring("0"));
-	MPUTR(song, "skips", cstr_new_cstring("0"));
+	MPUTR(song, "played", STRNC("0"));
+	MPUTR(song, "skipped", STRNC("0"));
+	MPUTR(song, "plays", STRNC("0"));
+	MPUTR(song, "skips", STRNC("0"));
 
-	char* real = cstr_new_format(PATH_MAX + NAME_MAX, "%s/%s", libpath, path); // REL 1
+	char* real = STRNF(PATH_MAX + NAME_MAX, "%s/%s", libpath, path); // REL 1
 
 	// read and add file and meta data
 
@@ -61,9 +61,9 @@ int analyzer_thread(void* chptr)
 	    char* artist = MGET(song, "artist");
 	    char* album  = MGET(song, "album");
 	    char* title  = MGET(song, "title");
-	    if (strcmp(artist, "...") == 0) MPUTR(song, "artist", cstr_new_cstring("Unknown"));
-	    if (strcmp(album, "...") == 0) MPUTR(song, "album", cstr_new_cstring("Unknown"));
-	    if (strcmp(title, "...") == 0) MPUTR(song, "title", path_new_filename(path));
+	    if (strcmp(artist, "...") == 0) MPUTR(song, "artist", STRNC("Unknown"));
+	    if (strcmp(album, "...") == 0) MPUTR(song, "album", STRNC("Unknown"));
+	    if (strcmp(title, "...") == 0) MPUTR(song, "title", mt_path_new_filename(path));
 	}
 	else
 	{
@@ -79,7 +79,7 @@ int analyzer_thread(void* chptr)
 	analyzer->ratio = (float) index / (float) analyzer->songs->length;
     }
 
-    vec_rem_in_vector(analyzer->songs, trash);
+    mt_vector_rem_in_vector(analyzer->songs, trash);
 
     REL(trash);
 
@@ -95,7 +95,7 @@ void analyzer_del(void* pointer)
     REL(analyzer->songs);
 }
 
-analyzer_t* analyzer_run(vec_t* songs)
+analyzer_t* analyzer_run(mt_vector_t* songs)
 {
     analyzer_t* analyzer = CAL(sizeof(analyzer_t), analyzer_del, NULL);
 
