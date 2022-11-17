@@ -49,6 +49,8 @@ struct _vh_table_t
     ku_view_t*   body_v;
     ku_view_t*   evnt_v;
     ku_view_t*   scrl_v;
+    ku_view_t*   head_v;
+    ku_view_t*   layr_v;
 
     textstyle_t rowastyle; // alternating row a style
     textstyle_t rowbstyle; // alternating row b style
@@ -556,6 +558,8 @@ void vh_table_del(
     if (vh->body_v) REL(vh->body_v);
     if (vh->evnt_v) REL(vh->evnt_v);
     if (vh->scrl_v) REL(vh->scrl_v);
+    if (vh->layr_v) REL(vh->layr_v);
+    if (vh->head_v) REL(vh->head_v);
 }
 
 void vh_table_desc(
@@ -638,6 +642,12 @@ void vh_table_attach(
 	ku_view_t* head_v = NULL;
 	if (view->views->length == 6) head_v = ku_view_new(headid, headrow->frame.local);
 
+	REL(headid);
+	REL(layrid);
+	REL(bodyid);
+	REL(scrlid);
+	REL(evntid);
+
 	/* set fullscale */
 	layr_v->style.w_per = 1.0;
 	layr_v->style.h_per = 1.0;
@@ -688,6 +698,12 @@ void vh_table_attach(
 
 	view->handler_data = vh;
 
+	vh->layr_v = layr_v;
+	vh->body_v = body_v;
+	vh->evnt_v = evnt_v;
+	vh->scrl_v = scrl_v;
+	vh->head_v = head_v;
+
 	if (rowastyle.line_height == 0) rowastyle.line_height = 20;
 	if (rowbstyle.line_height == 0) rowbstyle.line_height = 20;
 	if (rowsstyle.line_height == 0) rowsstyle.line_height = 20;
@@ -698,12 +714,24 @@ void vh_table_attach(
 	vh->rowsstyle = rowsstyle;
 	vh->headstyle = headstyle;
 
-	vh->body_v = RET(body_v);
-
 	vh_tbl_body_attach(
 	    body_v,
 	    vh_table_item_create,
 	    vh_table_item_recycle,
+	    vh);
+
+	vh_tbl_scrl_attach(
+	    scrl_v,
+	    body_v,
+	    head_v,
+	    vh);
+
+	vh_tbl_evnt_attach(
+	    evnt_v,
+	    body_v,
+	    scrl_v,
+	    head_v,
+	    vh_table_evnt_event,
 	    vh);
 
 	if (head_v)
@@ -714,29 +742,6 @@ void vh_table_attach(
 		vh_table_head_move,
 		vh_table_head_resize,
 		vh_table_head_reorder,
-		vh);
-	}
-
-	if (scrl_v)
-	{
-	    vh->scrl_v = RET(scrl_v);
-
-	    vh_tbl_scrl_attach(
-		scrl_v,
-		body_v,
-		head_v,
-		vh);
-	}
-
-	if (evnt_v)
-	{
-	    vh->evnt_v = RET(evnt_v);
-	    vh_tbl_evnt_attach(
-		evnt_v,
-		body_v,
-		scrl_v,
-		head_v,
-		vh_table_evnt_event,
 		vh);
 	}
     }

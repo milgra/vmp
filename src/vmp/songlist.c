@@ -159,7 +159,7 @@ void songlist_set_filter(char* filter)
 
     if (sl.filter)
     {
-	mt_vector_t* words = mt_string_split(sl.filter, " ");
+	mt_vector_t* words = mt_string_split(sl.filter, " "); // REL WORDS
 
 	if (sl.filtermap) REL(sl.filtermap);
 	sl.filtermap = MNEW();

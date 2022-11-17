@@ -14,7 +14,7 @@ For database and persistent storage it uses simple key-value text files.
 Graphics stack :
 
 ```
-[OS][GPU] -> [SDL2] -> [ZEN_WM] -> [ZEN UI] -> ui.c -> ui controllers
+[OS][GPU] -> [SDL2] -> [MT_WM] -> [ZEN UI] -> ui.c -> ui controllers
 ```
 
 Media stack :
@@ -73,7 +73,7 @@ Use your preferred IDE. It's advised that you hook clang-format to file save.
 Please follow these guidelines :
 
 - use clang format before commiting/after file save
-- use zen_core functions and containers and memory handling
+- use mt_core functions and containers and memory handling
 - create a new test for any new feature you add
 - if you modify existing code be sure that a test covers your modification
 - always run all tests before push
