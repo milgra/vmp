@@ -673,19 +673,6 @@ void on_table_event(vh_table_event_t event)
 	else if (event.id == VH_TABLE_EVENT_DRAG)
 	{
 	}
-	else if (event.id == VH_TABLE_EVENT_KEY_DOWN)
-	{
-	    ku_event_t ev = event.ev;
-
-	    if (ev.keycode == XKB_KEY_Down || ev.keycode == XKB_KEY_Up)
-	    {
-		int32_t index = event.table->selected_index;
-
-		if (ev.keycode == XKB_KEY_Down) index += 1;
-		if (ev.keycode == XKB_KEY_Up) index -= 1;
-		vh_table_select(event.view, index, 0);
-	    }
-	}
 	else if (event.id == VH_TABLE_EVENT_DROP)
 	{
 	}
@@ -833,6 +820,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     vh_key_add(ui.view_base, ui_on_key_down);
     ui.view_base->needs_key = 1;
+    ku_window_activate(ui.window, ui.view_base);
 
     /* knobs */
 
