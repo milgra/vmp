@@ -144,6 +144,7 @@ void songlist_apply_filter()
 
 	mt_vector_add_in_vector(sl.visible_songs, filtered);
 	REL(filtered);
+	REL(fields);
     }
     else
     {
@@ -181,7 +182,7 @@ void songlist_set_filter(char* filter)
 		if (currentfield) REL(currentfield);
 
 		// store as field
-		currentfield = word;
+		currentfield = RET(word);
 		currentword  = STRNC("");
 	    }
 	    else
@@ -198,6 +199,8 @@ void songlist_set_filter(char* filter)
 
 	if (currentword) REL(currentword);
 	if (currentfield) REL(currentfield);
+
+	REL(words);
     }
 }
 
