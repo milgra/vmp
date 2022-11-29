@@ -3,7 +3,17 @@
 exe="$1/vmp"
 
 sh tst/test_rep.sh tst/ui_file $exe
-sh tst/test_rep.sh tst/ui_keyboard $exe
-sh tst/test_rep.sh tst/ui_mouse $exe
 
-exit 1
+error=$?
+if [ $error -eq 0 ]
+then
+    echo "No differences found between master and result images"
+    exit 0
+elif [ $error -eq 1 ]
+then
+    echo "Differences found between master and result images"
+    exit 1
+else
+    echo "Differences found between master and result images"
+    exit 1
+fi
