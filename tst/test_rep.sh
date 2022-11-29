@@ -12,6 +12,7 @@ else
     rm -rf $testdir
     cp -r $basedir $testdir 
     # copy session record
+    mkdir -p $savedir
     cp "$masterdir/record/session.rec" "$savedir/"
     cd $savedir
     rm -rf *.kvl
