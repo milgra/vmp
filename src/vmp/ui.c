@@ -876,8 +876,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 	char* field = words->data[index];
 	char* value = words->data[index + 1];
 
-	printf("field %s %s\n", field, value);
-
 	VADD(fields, field);
 	VADDR(fields, mt_number_new_int(atoi(value)));
     }

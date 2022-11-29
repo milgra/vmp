@@ -54,15 +54,16 @@ void init(wl_event_t event)
 
     vmp.eventqueue = VNEW();
 
-    struct monitor_info* monitor = event.monitors[0];
-
     if (vmp.softrender)
     {
 	vmp.wlwindow = ku_wayland_create_window("vmp", 1200, 600);
+	/* vmp.wlwindow = ku_wayland_create_generic_layer(event.monitors[0], 1200, 600, 0, ""); */
+	ku_wayland_show_window(vmp.wlwindow);
     }
     else
     {
 	vmp.wlwindow = ku_wayland_create_eglwindow("vmp", 1200, 600);
+	ku_wayland_show_window(vmp.wlwindow);
 
 	int max_width  = 0;
 	int max_height = 0;
@@ -73,124 +74,9 @@ void init(wl_event_t event)
 	    if (monitor->logical_width > max_width) max_width = monitor->logical_width;
 	    if (monitor->logical_height > max_height) max_height = monitor->logical_height;
 	}
+
 	ku_renderer_egl_init(max_width, max_height);
     }
-
-    vmp.kuwindow = ku_window_create(monitor->logical_width, monitor->logical_height, monitor->scale);
-
-    mt_time(NULL);
-    ui_init(monitor->logical_width, monitor->logical_height, monitor->scale, vmp.kuwindow); // DESTROY 3
-    mt_time("ui init");
-
-    if (vmp.record)
-    {
-	ui_add_cursor();
-	evrec_init_recorder(vmp.rec_path); // DESTROY 4
-    }
-
-    if (vmp.replay)
-    {
-	ui_add_cursor();
-	evrec_init_player(vmp.rep_path); // DESTROY 5
-    }
-
-    mt_map_t* fields = MNEW();
-
-    MPUTR(fields, "artist", STRNC("artist"));
-    MPUTR(fields, "album", STRNC("album"));
-    MPUTR(fields, "title", STRNC("title"));
-    MPUTR(fields, "date", STRNC("date"));
-    MPUTR(fields, "genre", STRNC("genre"));
-    MPUTR(fields, "track", STRNC("track"));
-    MPUTR(fields, "disc", STRNC("disc"));
-    MPUTR(fields, "duration", STRNC("duration"));
-    MPUTR(fields, "channels", STRNC("channels"));
-    MPUTR(fields, "bitrate", STRNC("bitrate"));
-    MPUTR(fields, "samplerate", STRNC("samplerate"));
-    MPUTR(fields, "plays", STRNC("plays"));
-    MPUTR(fields, "skips", STRNC("skips"));
-    MPUTR(fields, "added", STRNC("added"));
-    MPUTR(fields, "played", STRNC("played"));
-    MPUTR(fields, "skipped", STRNC("skipped"));
-    MPUTR(fields, "type", STRNC("type"));
-    MPUTR(fields, "container", STRNC("container"));
-
-    mt_map_t* numfields = MNEW();
-
-    MPUTR(numfields, "track", STRNC("track"));
-    MPUTR(numfields, "disc", STRNC("disc"));
-    MPUTR(numfields, "duration", STRNC("duration"));
-    MPUTR(numfields, "channels", STRNC("channels"));
-    MPUTR(numfields, "bitrate", STRNC("bitrate"));
-    MPUTR(numfields, "samplerate", STRNC("samplerate"));
-    MPUTR(numfields, "plays", STRNC("plays"));
-    MPUTR(numfields, "skips", STRNC("skips"));
-    MPUTR(numfields, "added", STRNC("added"));
-    MPUTR(numfields, "played", STRNC("played"));
-    MPUTR(numfields, "skipped", STRNC("skipped"));
-
-    songlist_set_fields(fields);
-    songlist_set_numeric_fields(numfields);
-    songlist_set_filter(NULL);
-    songlist_set_sorting(config_get("sorting"));
-
-    REL(fields);
-    REL(numfields);
-
-    /* load database */
-
-    char* libpath = config_get("lib_path");
-
-    mt_time(NULL);
-    lib_init();        // destroy 1
-    lib_read(libpath); // read up database if exist
-    mt_time("parsing database");
-
-    /* load library */
-
-    mt_map_t* files = MNEW(); // REL 0
-
-    mt_time(NULL);
-    fm_read_files(config_get("lib_path"), files); // read all files under library path
-    mt_time("parsing library");
-
-    if (lib_count() == 0)
-    {
-	// add unanalyzed files to db to show something
-	mt_vector_t* songlist = VNEW();
-	mt_map_values(files, songlist);
-	lib_add_entries(songlist);
-	// analyze all
-	vmp.analyzer = analyzer_run(songlist);
-	REL(songlist);
-    }
-    else
-    {
-	lib_remove_non_existing(files);
-	lib_filter_existing(files);
-	// analyze remaining
-	mt_vector_t* remaining = VNEW();
-	mt_map_values(files, remaining);
-	vmp.analyzer = analyzer_run(remaining);
-	REL(remaining);
-    }
-
-    REL(files);
-
-    ui_update_songlist();
-
-    /* start drawing */
-
-    // TODO avoid starting resize, layout, frame request and draw
-    ku_event_t ev = {0};
-    ev.type       = KU_EVENT_RESIZE;
-    ev.w          = vmp.wlwindow->width;
-    ev.h          = vmp.wlwindow->height;
-
-    ku_window_event(vmp.kuwindow, ev);
-
-    ku_wayland_request_frame(vmp.wlwindow);
-    ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
 }
 
 /* window update */
@@ -198,6 +84,116 @@ void init(wl_event_t event)
 void update(ku_event_t ev)
 {
     /* printf("UPDATE %i %u %i %i\n", ev.type, ev.time, ev.w, ev.h); */
+
+    if (ev.type == KU_EVENT_WINDOW_SHOWN)
+    {
+	printf("Window shown, buffer size %i %i\n", ev.w, ev.h);
+
+	wl_window_t* info = (wl_window_t*) ev.window;
+
+	vmp.kuwindow = ku_window_create(info->buffer_width, info->buffer_height, info->scale);
+
+	mt_time(NULL);
+	ui_init(info->buffer_width, info->buffer_height, info->scale, vmp.kuwindow); // DESTROY 3
+	mt_time("ui init");
+
+	if (vmp.record)
+	{
+	    ui_add_cursor();
+	    evrec_init_recorder(vmp.rec_path); // DESTROY 4
+	}
+
+	if (vmp.replay)
+	{
+	    ui_add_cursor();
+	    evrec_init_player(vmp.rep_path); // DESTROY 5
+	}
+
+	mt_map_t* fields = MNEW();
+
+	MPUTR(fields, "artist", STRNC("artist"));
+	MPUTR(fields, "album", STRNC("album"));
+	MPUTR(fields, "title", STRNC("title"));
+	MPUTR(fields, "date", STRNC("date"));
+	MPUTR(fields, "genre", STRNC("genre"));
+	MPUTR(fields, "track", STRNC("track"));
+	MPUTR(fields, "disc", STRNC("disc"));
+	MPUTR(fields, "duration", STRNC("duration"));
+	MPUTR(fields, "channels", STRNC("channels"));
+	MPUTR(fields, "bitrate", STRNC("bitrate"));
+	MPUTR(fields, "samplerate", STRNC("samplerate"));
+	MPUTR(fields, "plays", STRNC("plays"));
+	MPUTR(fields, "skips", STRNC("skips"));
+	MPUTR(fields, "added", STRNC("added"));
+	MPUTR(fields, "played", STRNC("played"));
+	MPUTR(fields, "skipped", STRNC("skipped"));
+	MPUTR(fields, "type", STRNC("type"));
+	MPUTR(fields, "container", STRNC("container"));
+
+	mt_map_t* numfields = MNEW();
+
+	MPUTR(numfields, "track", STRNC("track"));
+	MPUTR(numfields, "disc", STRNC("disc"));
+	MPUTR(numfields, "duration", STRNC("duration"));
+	MPUTR(numfields, "channels", STRNC("channels"));
+	MPUTR(numfields, "bitrate", STRNC("bitrate"));
+	MPUTR(numfields, "samplerate", STRNC("samplerate"));
+	MPUTR(numfields, "plays", STRNC("plays"));
+	MPUTR(numfields, "skips", STRNC("skips"));
+	MPUTR(numfields, "added", STRNC("added"));
+	MPUTR(numfields, "played", STRNC("played"));
+	MPUTR(numfields, "skipped", STRNC("skipped"));
+
+	songlist_set_fields(fields);
+	songlist_set_numeric_fields(numfields);
+	songlist_set_filter(NULL);
+	songlist_set_sorting(config_get("sorting"));
+
+	REL(fields);
+	REL(numfields);
+
+	/* load database */
+
+	char* libpath = config_get("lib_path");
+
+	mt_time(NULL);
+	lib_init();        // destroy 1
+	lib_read(libpath); // read up database if exist
+	mt_time("parsing database");
+
+	/* load library */
+
+	mt_map_t* files = MNEW(); // REL 0
+
+	mt_time(NULL);
+	fm_read_files(config_get("lib_path"), files); // read all files under library path
+	mt_time("parsing library");
+
+	if (lib_count() == 0)
+	{
+	    // add unanalyzed files to db to show something
+	    mt_vector_t* songlist = VNEW();
+	    mt_map_values(files, songlist);
+	    lib_add_entries(songlist);
+	    // analyze all
+	    vmp.analyzer = analyzer_run(songlist);
+	    REL(songlist);
+	}
+	else
+	{
+	    lib_remove_non_existing(files);
+	    lib_filter_existing(files);
+	    // analyze remaining
+	    mt_vector_t* remaining = VNEW();
+	    mt_map_values(files, remaining);
+	    vmp.analyzer = analyzer_run(remaining);
+	    REL(remaining);
+	}
+
+	REL(files);
+
+	ui_update_songlist();
+    }
 
     if (ev.type == KU_EVENT_FRAME)
     {
@@ -441,6 +437,7 @@ int main(int argc, char* argv[])
 	    {"library", optional_argument, 0, 'l'},
 	    {"organize", optional_argument, 0, 'l'},
 	    {"resources", optional_argument, 0, 'r'},
+	    {"software_renderer", optional_argument, 0, 0},
 	    {"record", optional_argument, 0, 's'},
 	    {"replay", optional_argument, 0, 'p'},
 	    {"config", optional_argument, 0, 'c'},
@@ -462,6 +459,11 @@ int main(int argc, char* argv[])
     {
 	switch (option)
 	{
+	    case 0:
+		if (option_index == 5) vmp.softrender = 1;
+		/* printf("option %i %s", option_index, long_options[option_index].name); */
+		/* if (optarg) printf(" with arg %s", optarg); */
+		break;
 	    case '?': printf("parsing option %c value: %s\n", option, optarg); break;
 	    case 'c': cfg_par = STRNC(optarg); break; // REL 0
 	    case 'l': lib_par = STRNC(optarg); break; // REL 1

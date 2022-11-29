@@ -110,10 +110,15 @@ struct _wl_window_t
     int  scale;
     int  width;
     int  height;
+    int  buffer_width;
+    int  buffer_height;
     int  fullscreen;
     int  hidden;
     int  margin;
     char anchor[4];
+
+    int shown;  /* surface_enter is called, scaling is set */
+    int inited; /* egl is swapped or buffer is attached for the first time to trigger surface_enter event */
 
     enum wl_window_type type;
 
@@ -164,7 +169,7 @@ void ku_wayland_delete_window(wl_window_t* info);
 
 void ku_wayland_request_frame(wl_window_t* info);
 
-wl_window_t* ku_wayland_create_generic_layer(struct monitor_info* monitor, int width, int height, int margin, char* anchor, int show);
+wl_window_t* ku_wayland_create_generic_layer(struct monitor_info* monitor, int width, int height, int margin, char* anchor);
 
 void ku_wayland_delete_layer();
 
@@ -438,34 +443,52 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 
 static void ku_wayland_layer_surface_configure(void* data, struct zwlr_layer_surface_v1* surface, uint32_t serial, uint32_t width, uint32_t height)
 {
-    /* mt_log_debug("layer surface configure serial %u width %i height %i", serial, width, height); */
+    mt_log_debug("layer surface configure serial %u width %i height %i", serial, width, height);
 
     zwlr_layer_surface_v1_ack_configure(surface, serial);
 
     wl_window_t* info = data;
 
-    if (info->width != info->new_width && info->height != info->new_height)
+    if (info->inited == 0)
     {
-	if (info->type == WL_WINDOW_NATIVE || info->type == WL_WINDOW_LAYER)
-	{
-	    /* resize native buffer */
-	    ku_wayland_resize_window_buffer(info);
-	}
+	info->inited = 1;
+
+	ku_wayland_create_buffer(info, info->buffer_width, info->buffer_height);
 
 	ku_event_t event = init_event();
-	event.type       = KU_EVENT_RESIZE;
-	event.w          = info->new_width * info->scale;
-	event.h          = info->new_height * info->scale;
+	event.type       = KU_EVENT_WINDOW_SHOWN;
+	event.w          = info->buffer_width;
+	event.h          = info->buffer_height;
 	event.window     = (void*) info;
 
 	(*wlc.update)(event);
     }
 
-    if (info->hidden == 1 && info->buffer)
+    if (info->shown == 1)
     {
-	info->hidden = 0; // WHY?
-	wl_surface_attach(info->surface, info->buffer, 0, 0);
-	wl_surface_commit(info->surface);
+	if (info->width != info->new_width && info->height != info->new_height)
+	{
+	    if (info->type == WL_WINDOW_NATIVE || info->type == WL_WINDOW_LAYER)
+	    {
+		/* resize native buffer */
+		ku_wayland_resize_window_buffer(info);
+	    }
+
+	    ku_event_t event = init_event();
+	    event.type       = KU_EVENT_RESIZE;
+	    event.w          = info->new_width * info->scale;
+	    event.h          = info->new_height * info->scale;
+	    event.window     = (void*) info;
+
+	    (*wlc.update)(event);
+	}
+
+	if (info->hidden == 1 && info->buffer)
+	{
+	    info->hidden = 0; // WHY?
+	    wl_surface_attach(info->surface, info->buffer, 0, 0);
+	    wl_surface_commit(info->surface);
+	}
     }
 }
 
@@ -483,7 +506,7 @@ struct zwlr_layer_surface_v1_listener layer_surface_listener = {
 
 void xdg_toplevel_configure(void* data, struct xdg_toplevel* xdg_toplevel, int32_t width, int32_t height, struct wl_array* states)
 {
-    /* mt_log_debug("xdg toplevel configure w %i h %i", width, height); */
+    mt_log_debug("xdg toplevel configure w %i h %i", width, height);
 
     wl_window_t* info = data;
 
@@ -502,7 +525,7 @@ void xdg_toplevel_close(void* data, struct xdg_toplevel* xdg_toplevel)
 
 void xdg_toplevel_configure_bounds(void* data, struct xdg_toplevel* xdg_toplevel, int32_t width, int32_t height)
 {
-    /* mt_log_debug("xdg toplevel configure bounds w %i h %i", width, height); */
+    mt_log_debug("xdg toplevel configure bounds w %i h %i", width, height);
 }
 
 void xdg_toplevel_wm_capabilities(void* data, struct xdg_toplevel* xdg_toplevel, struct wl_array* capabilities)
@@ -521,67 +544,26 @@ static const struct xdg_toplevel_listener xdg_toplevel_listener = {
 
 static void xdg_surface_configure(void* data, struct xdg_surface* xdg_surface, uint32_t serial)
 {
-    mt_log_debug("xdg surface configure");
-
     xdg_surface_ack_configure(xdg_surface, serial);
 
     wl_window_t* info = data;
 
-    if (info->width != info->new_width && info->height != info->new_height)
+    mt_log_debug("xdg surface configure %i", info->type);
+
+    if (info->inited == 0)
     {
-	ku_event_t event = init_event();
-	event.type       = KU_EVENT_RESIZE;
-	event.w          = info->new_width * info->scale;
-	event.h          = info->new_height * info->scale;
+	info->inited = 1;
 
-	event.window = (void*) info;
-
-	// TODO this is not good, create window shouldn't trigger configure or figure out something more sophisticated here
-	if (info->width > 0 && info->height > 0) (*wlc.update)(event);
-    }
-
-    if (info->type == WL_WINDOW_NATIVE || info->type == WL_WINDOW_LAYER)
-    {
-	/* resize native buffer */
-	ku_wayland_resize_window_buffer(info);
-
-	info->width  = info->new_width;
-	info->height = info->new_height;
-    }
-    else if (info->type == WL_WINDOW_EGL)
-    {
-	if (info->width != info->new_width &&
-	    info->height != info->new_height)
+	if (info->type == WL_WINDOW_EGL) eglSwapBuffers(wlc.windows[0]->egldisplay, wlc.windows[0]->eglsurface);
+	if (info->type == WL_WINDOW_NATIVE)
 	{
-	    info->width  = info->new_width;
-	    info->height = info->new_height;
+	    ku_wayland_create_buffer(info, info->width, info->height);
 
-	    info->bitmap.w = info->width;
-	    info->bitmap.h = info->height;
-
-	    /* resize egl window */
-	    wl_egl_window_resize(info->eglwindow, info->width, info->height, 0, 0);
-
-	    /* set opaque */
-	    wl_region_add(info->region, 0, 0, info->width, info->height);
-	    wl_surface_set_opaque_region(info->surface, info->region);
-
-	    /* swap buffers */
-	    eglSwapBuffers(wlc.windows[0]->egldisplay, wlc.windows[0]->eglsurface);
-
-	    /* dispath frame event to render */
-	    ku_event_t event = init_event();
-	    event.type       = KU_EVENT_FRAME;
-	    event.time_frame = (float) (event.time - wlc.frame_event.time) / 1000.0;
-	    event.frame      = wlc.frame_index++;
-	    event.window     = (void*) info;
-
-	    /* Store event to be able to calculate frame delta */
-	    wlc.frame_event = event;
+	    wl_surface_attach(info->surface, info->buffer, 0, 0);
+	    wl_surface_damage(info->surface, 0, 0, info->width, info->height);
+	    wl_surface_commit(info->surface);
 	}
     }
-
-    /* ku_wayland_resize_window_buffer(info); */
 }
 
 static const struct xdg_surface_listener xdg_surface_listener = {
@@ -592,9 +574,11 @@ static const struct xdg_surface_listener xdg_surface_listener = {
 
 static void wl_surface_enter(void* userData, struct wl_surface* surface, struct wl_output* output)
 {
-    /* mt_log_debug("wl surface enter"); */
+    mt_log_debug("wl surface enter");
 
     wl_window_t* info = userData;
+
+    info->shown = 1;
 
     for (int index = 0; index < wlc.monitor_count; index++)
     {
@@ -604,16 +588,28 @@ static void wl_surface_enter(void* userData, struct wl_surface* surface, struct 
 	{
 	    mt_log_debug("output name %s %i %i", monitor->name, monitor->scale, info->scale);
 
-	    if (monitor->scale != info->scale)
+	    info->monitor       = monitor;
+	    info->scale         = monitor->scale;
+	    info->buffer_width  = info->width * info->scale;
+	    info->buffer_height = info->height * info->scale;
+
+	    wl_surface_set_buffer_scale(info->surface, info->scale);
+
+	    if (info->type == WL_WINDOW_EGL)
 	    {
-		info->monitor   = monitor;
-		info->new_scale = monitor->scale;
-
-		/* request re-scale with resizing */
-		if (info->type == WL_WINDOW_NATIVE || info->type == WL_WINDOW_LAYER) ku_wayland_resize_window_buffer(info);
-
-		/* TODO re-scale in case of EGL window also */
+		wl_egl_window_resize(info->eglwindow, info->buffer_width, info->buffer_height, 0, 0);
+		info->bitmap.w = info->buffer_width;
+		info->bitmap.h = info->buffer_height;
 	    }
+	    if (info->type == WL_WINDOW_NATIVE && info->buffer_width != info->bitmap.w) ku_wayland_create_buffer(info, info->buffer_width, info->buffer_height);
+
+	    ku_event_t event = init_event();
+	    event.type       = KU_EVENT_WINDOW_SHOWN;
+	    event.w          = info->buffer_width;
+	    event.h          = info->buffer_height;
+	    event.window     = (void*) info;
+
+	    (*wlc.update)(event);
 	}
     }
 }
@@ -628,13 +624,15 @@ static const struct wl_surface_listener wl_surface_listener = {
     .leave = wl_surface_leave,
 };
 
-wl_window_t* ku_wayland_create_generic_window(char* title, int width, int height)
+wl_window_t* ku_wayland_create_generic_window(char* title, int width, int height, int type)
 {
     wl_window_t* info = CAL(sizeof(wl_window_t), NULL, NULL);
 
-    info->new_scale  = 1;
-    info->new_width  = width;
-    info->new_height = height;
+    info->type   = type;
+    info->scale  = 1;
+    info->width  = width;
+    info->height = height;
+    info->hidden = 1;
 
     info->surface      = wl_compositor_create_surface(wlc.compositor);
     info->xdg_surface  = xdg_wm_base_get_xdg_surface(wlc.xdg_wm_base, info->surface);
@@ -647,9 +645,6 @@ wl_window_t* ku_wayland_create_generic_window(char* title, int width, int height
     xdg_toplevel_set_title(info->xdg_toplevel, title);
     xdg_toplevel_set_app_id(info->xdg_toplevel, title);
 
-    wl_surface_commit(info->surface);
-    wl_display_roundtrip(wlc.display);
-
     return info;
 }
 
@@ -657,19 +652,27 @@ wl_window_t* ku_wayland_create_generic_window(char* title, int width, int height
 
 wl_window_t* ku_wayland_create_window(char* title, int width, int height)
 {
-    wl_window_t* info = ku_wayland_create_generic_window(title, width, height);
+    wl_window_t* info = ku_wayland_create_generic_window(title, width, height, WL_WINDOW_NATIVE);
 
-    info->type     = WL_WINDOW_NATIVE;
     wlc.windows[0] = info;
+
+    wl_surface_commit(info->surface);
+    wl_display_roundtrip(wlc.display);
 
     return info;
 }
 
+/* creates egl window
+   window won't be shown, you have to show it with ku_wayland_show_window
+   when shown, a KU_EVENT_WINDOW_SHOWN will be dispatched
+
+   after this function an xdg_surface_configure event will be called
+*/
+
 wl_window_t* ku_wayland_create_eglwindow(char* title, int width, int height)
 {
-    wl_window_t* info = ku_wayland_create_generic_window(title, width, height);
+    wl_window_t* info = ku_wayland_create_generic_window(title, width, height, WL_WINDOW_EGL);
 
-    info->type     = WL_WINDOW_EGL;
     wlc.windows[0] = info;
 
     /* set opaque region */
@@ -770,6 +773,9 @@ wl_window_t* ku_wayland_create_eglwindow(char* title, int width, int height)
 	printf("Could not make the current window current !\n");
     }
 
+    wl_surface_commit(info->surface);
+    wl_display_roundtrip(wlc.display);
+
     return info;
 }
 
@@ -846,11 +852,12 @@ void ku_wayland_show_window(wl_window_t* info)
 {
     if (info->hidden == 1)
     {
-	info->surface = wl_compositor_create_surface(wlc.compositor);
+	info->hidden = 0;
 
 	if (info->type == WL_WINDOW_LAYER)
 	{
-	    wl_surface_set_buffer_scale(info->surface, info->new_scale);
+	    info->surface = wl_compositor_create_surface(wlc.compositor);
+	    wl_surface_set_buffer_scale(info->surface, info->scale);
 
 	    info->layer_surface = zwlr_layer_shell_v1_get_layer_surface(
 		wlc.layer_shell,
@@ -861,8 +868,8 @@ void ku_wayland_show_window(wl_window_t* info)
 
 	    zwlr_layer_surface_v1_set_size(
 		info->layer_surface,
-		info->new_width,
-		info->new_height);
+		info->width,
+		info->height);
 
 	    uint  af     = 0;
 	    char* anchor = info->anchor;
@@ -891,31 +898,36 @@ void ku_wayland_show_window(wl_window_t* info)
 	    /* zwlr_layer_surface_v1_set_keyboard_interactivity(info->layer_surface, 1); */
 
 	    wl_surface_commit(info->surface);
-	    wl_display_roundtrip(wlc.display);
+	    /* wl_display_roundtrip(wlc.display); */
 
 	    /* info->frame_cb = wl_surface_frame(info->surface); */
 	    /* wl_callback_add_listener(info->frame_cb, &wl_surface_frame_listener, info); */
 	}
+	else
+	{
+	    wl_surface_commit(info->surface);
+	    wl_display_roundtrip(wlc.display);
+	}
     }
 }
 
-wl_window_t* ku_wayland_create_generic_layer(struct monitor_info* monitor, int width, int height, int margin, char* anchor, int show)
+wl_window_t* ku_wayland_create_generic_layer(struct monitor_info* monitor, int width, int height, int margin, char* anchor)
 {
     wl_window_t* info = CAL(sizeof(wl_window_t), NULL, NULL);
 
     wlc.windows[0] = info;
 
-    info->new_scale  = monitor->scale;
-    info->new_width  = width;
-    info->new_height = height;
-    info->margin     = margin;
-    info->monitor    = monitor;
-    info->hidden     = 1;
+    info->scale         = monitor->scale;
+    info->width         = width;
+    info->height        = height;
+    info->buffer_width  = width * info->scale;
+    info->buffer_height = height * info->scale;
+    info->margin        = margin;
+    info->monitor       = monitor;
+    info->hidden        = 1;
     memcpy(info->anchor, anchor, 4);
 
     info->type = WL_WINDOW_LAYER;
-
-    if (show) ku_wayland_show_window(info);
 
     return info;
 }
