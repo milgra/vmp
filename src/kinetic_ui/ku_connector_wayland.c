@@ -1049,11 +1049,37 @@ void ku_wayland_pointer_handle_enter(void* data, struct wl_pointer* wl_pointer, 
 	wl_surface_damage(wlc.cursor_surface, 0, 0, image->width, image->height);
 	wl_surface_commit(wlc.cursor_surface);
     }
+
+    ku_event_t event = init_event();
+    event.type       = KU_EVENT_MMOVE;
+    event.drag       = wlc.pointer.drag;
+    event.x          = (int) wl_fixed_to_double(surface_x) * wlc.monitor->scale;
+    event.y          = (int) wl_fixed_to_double(surface_y) * wlc.monitor->scale;
+    event.ctrl_down  = wlc.keyboard.control;
+    event.shift_down = wlc.keyboard.shift;
+
+    wlc.pointer.px = event.x;
+    wlc.pointer.py = event.y;
+
+    (*wlc.update)(event);
 }
 void ku_wayland_pointer_handle_leave(void* data, struct wl_pointer* wl_pointer, uint serial, struct wl_surface* surface)
 {
-    /* mt_log_debug("pointer handle leave"); */
+    mt_log_debug("pointer handle leave");
     /* TODO assign pointer to surface and dispatch to corresponding window/layer */
+
+    ku_event_t event = init_event();
+    event.type       = KU_EVENT_MMOVE;
+    event.drag       = wlc.pointer.drag;
+    event.x          = -100;
+    event.y          = -100;
+    event.ctrl_down  = wlc.keyboard.control;
+    event.shift_down = wlc.keyboard.shift;
+
+    wlc.pointer.px = event.x;
+    wlc.pointer.py = event.y;
+
+    (*wlc.update)(event);
 }
 void ku_wayland_pointer_handle_motion(void* data, struct wl_pointer* wl_pointer, uint time, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {

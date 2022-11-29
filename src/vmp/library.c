@@ -77,7 +77,7 @@ void lib_write(char* libpath)
 
     if (res < 0) mt_log_debug("ERROR lib_write cannot write database %s\n", dbpath);
 
-    mt_log_info("%i ENTRIED WRITTEN", db->count);
+    mt_log_info("%i ENTRIES WRITTEN", db->count);
 
     REL(dbpath); // REL 0
 }

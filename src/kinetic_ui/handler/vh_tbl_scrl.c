@@ -188,6 +188,9 @@ void vh_tbl_scrl_hide(ku_view_t* view)
     vh_tbl_scrl_t* vh = view->handler_data;
     vh->state         = 2;
     vh->steps         = 0;
+    /* make rects dirty for possible frame requests */
+    vh->hori_v->frame.dim_changed = 1;
+    vh->vert_v->frame.dim_changed = 1;
 }
 
 void vh_tbl_scrl_scroll_v(ku_view_t* view, int y)
