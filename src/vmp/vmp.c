@@ -28,10 +28,10 @@
 
 struct
 {
-    char              replay;
-    char              record;
-    struct wl_window* wlwindow;
-    ku_window_t*      kuwindow;
+    char         replay;
+    char         record;
+    wl_window_t* wlwindow;
+    ku_window_t* kuwindow;
 
     ku_rect_t    dirtyrect;
     int          softrender;
@@ -76,7 +76,7 @@ void init(wl_event_t event)
 	ku_renderer_egl_init(max_width, max_height);
     }
 
-    vmp.kuwindow = ku_window_create(monitor->logical_width, monitor->logical_height);
+    vmp.kuwindow = ku_window_create(monitor->logical_width, monitor->logical_height, monitor->scale);
 
     mt_time(NULL);
     ui_init(monitor->logical_width, monitor->logical_height, monitor->scale, vmp.kuwindow); // DESTROY 3
@@ -178,6 +178,19 @@ void init(wl_event_t event)
     REL(files);
 
     ui_update_songlist();
+
+    /* start drawing */
+
+    // TODO avoid starting resize, layout, frame request and draw
+    ku_event_t ev = {0};
+    ev.type       = KU_EVENT_RESIZE;
+    ev.w          = vmp.wlwindow->width;
+    ev.h          = vmp.wlwindow->height;
+
+    ku_window_event(vmp.kuwindow, ev);
+
+    ku_wayland_request_frame(vmp.wlwindow);
+    ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
 }
 
 /* window update */
@@ -245,6 +258,8 @@ void update(ku_event_t ev)
 	    /* mt_time("Render"); */
 	    /* nanosleep((const struct timespec[]){{0, 100000000L}}, NULL); */
 
+	    // TODO this can be confusing to call frame first and draw after. do something with it
+	    ku_wayland_request_frame(vmp.wlwindow);
 	    ku_wayland_draw_window(vmp.wlwindow, (int) sum.x, (int) sum.y, (int) sum.w, (int) sum.h);
 
 	    vmp.dirtyrect = dirty;
@@ -467,6 +482,7 @@ int main(int argc, char* argv[])
     char* lib_path    = lib_par ? mt_path_new_normalize(lib_par, wrk_path) : mt_path_new_normalize("~/Music", wrk_path);
     char* res_path    = res_par ? mt_path_new_normalize(res_par, wrk_path) : STRNC(PKG_DATADIR);                                     // REL 7
     char* cfgdir_path = cfg_par ? mt_path_new_normalize(cfg_par, wrk_path) : mt_path_new_normalize("~/.config/vmp", getenv("HOME")); // REL 8
+    char* img_path    = mt_path_new_append(res_path, "img");                                                                         // REL 9
     char* css_path    = mt_path_new_append(res_path, "html/main.css");                                                               // REL 9
     char* html_path   = mt_path_new_append(res_path, "html/main.html");                                                              // REL 10
     char* cfg_path    = mt_path_new_append(cfgdir_path, "config.kvl");                                                               // REL 12
@@ -481,6 +497,7 @@ int main(int argc, char* argv[])
     printf("resource path : %s\n", res_path);
     printf("config path   : %s\n", cfg_path);
     printf("state path    : %s\n", per_path);
+    printf("img path      : %s\n", img_path);
     printf("css path      : %s\n", css_path);
     printf("html path     : %s\n", html_path);
     printf("record path   : %s\n", rec_path);
@@ -504,6 +521,7 @@ int main(int argc, char* argv[])
 
     // init non-configurable defaults
 
+    config_set("img_path", img_path);
     config_set("cfg_path", cfg_path);
     config_set("res_path", res_path);
     config_set("lib_path", lib_path);
@@ -539,6 +557,7 @@ int main(int argc, char* argv[])
     if (rep_par) REL(rep_par); // REL 3
     if (frm_par) REL(frm_par); // REL 4
 
+    REL(img_path);
     REL(wrk_path);    // REL 6
     REL(lib_path);    // REL 7
     REL(res_path);    // REL 7

@@ -238,7 +238,7 @@ void ui_open_metadata_editor()
 	    REL(pairs);
 	    REL(keys);
 
-	    ku_view_layout(ui.view_base);
+	    ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
 	    ui.edited_song = info;
 	}
@@ -330,7 +330,7 @@ void ui_on_btn_event(vh_button_event_t event)
 	if (!ui.settingspopupcont->parent)
 	{
 	    ku_view_add_subview(ui.view_base, ui.settingspopupcont);
-	    ku_view_layout(ui.view_base);
+	    ku_view_layout(ui.view_base, ui.view_base->style.scale);
 	}
     };
     if (strcmp(event.view->id, "visubtn") == 0)
@@ -349,7 +349,7 @@ void ui_on_btn_event(vh_button_event_t event)
 	    ku_view_insert_subview(songs, ui.songlisttop, 0);
 	    ku_view_add_subview(ui.view_base, ui.visuals);
 	}
-	ku_view_layout(ui.view_base);
+	ku_view_layout(ui.view_base, ui.view_base->style.scale);
     };
     if (strcmp(event.view->id, "metabtn") == 0)
     {
@@ -373,7 +373,7 @@ void ui_on_btn_event(vh_button_event_t event)
 	    REL(genres);
 	    REL(artists);
 
-	    ku_view_layout(ui.view_base);
+	    ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
 	    ku_window_activate(ui.window, ui.filtertf);
 	    vh_textinput_activate(ui.filtertf, 1);
@@ -389,7 +389,7 @@ void ui_on_btn_event(vh_button_event_t event)
 
 	ku_view_set_frame(ui.inputbck, iframe);
 	ku_view_add_subview(ui.view_base, ui.inputarea);
-	ku_view_layout(ui.view_base);
+	ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
 	ku_window_activate(ui.window, ui.inputtf);
 	vh_textinput_activate(ui.inputtf, 1);
@@ -456,7 +456,7 @@ void ui_on_btn_event(vh_button_event_t event)
 
 	ku_view_set_frame(ui.inputbck, iframe);
 	ku_view_add_subview(ui.view_base, ui.inputarea);
-	ku_view_layout(ui.view_base);
+	ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
 	ku_window_activate(ui.window, ui.inputtf);
 	vh_textinput_activate(ui.inputtf, 1);
@@ -660,7 +660,7 @@ void on_table_event(vh_table_event_t event)
 	    if (ui.contextpopupcont->parent == NULL)
 	    {
 		ku_view_add_subview(ui.view_base, ui.contextpopupcont);
-		ku_view_layout(ui.view_base);
+		ku_view_layout(ui.view_base, ui.view_base->style.scale);
 	    }
 	}
 	else if (event.id == VH_TABLE_EVENT_OPEN)
@@ -772,7 +772,7 @@ void on_table_event(vh_table_event_t event)
 
 		    ku_view_add_subview(ui.view_base, ui.inputarea);
 
-		    ku_view_layout(ui.view_base);
+		    ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
 		    ku_window_activate(ui.window, ui.inputtf);
 		    vh_textinput_activate(ui.inputtf, 1);
@@ -806,7 +806,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     mt_vector_t* view_list = VNEW();
 
     ku_gen_html_parse(config_get("html_path"), view_list);
-    ku_gen_css_apply(view_list, config_get("css_path"), config_get("res_path"), 1.0);
+    ku_gen_css_apply(view_list, config_get("css_path"), config_get("img_path"));
     ku_gen_type_apply(view_list, ui_on_btn_event, NULL);
 
     ku_view_t* bv = mt_vector_head(view_list);

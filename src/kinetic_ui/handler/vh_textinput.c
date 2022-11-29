@@ -325,7 +325,6 @@ void vh_textinput_evt(ku_view_t* view, ku_event_t ev)
     }
     else if (ev.type == KU_EVENT_MDOWN_OUT)
     {
-	printf("MDOWN OUT\n");
 	if (data->mouse_out_deact)
 	{
 	    ku_rect_t frame = view->frame.global;
