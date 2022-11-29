@@ -257,8 +257,10 @@ executable(
   install: true,
 )
 
-e = executable('maintest', 'src/tests/test.c')
-testrun = find_program('tst/test_run.sh')
+e = executable('maintest', 'src/tests/test_analyzer.c')
 
 test('MAIN TEST', e)
-test('TESTRUN', testrun, timeout: 0)
+
+scripttests = find_program('tst/test_run.sh')
+
+test('SCRIPTED TESTS', scripttests, timeout: 0, workdir : meson.current_source_dir(), args : [meson.current_build_dir(),meson.current_source_dir()])

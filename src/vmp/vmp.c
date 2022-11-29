@@ -341,6 +341,7 @@ void update_record(ku_event_t ev)
 	/* force frame request if needed */
 	if (vmp.wlwindow->frame_cb == NULL)
 	{
+	    ku_wayland_request_frame(vmp.wlwindow);
 	    ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
 	}
 	else mt_log_error("FRAME CALLBACK NOT NULL!!");
@@ -373,7 +374,11 @@ void update_replay(ku_event_t ev)
 	update_session(ev);
 
 	/* force frame request if needed */
-	if (vmp.wlwindow->frame_cb == NULL) ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
+	if (vmp.wlwindow->frame_cb == NULL)
+	{
+	    ku_wayland_request_frame(vmp.wlwindow);
+	    ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
+	}
 	else mt_log_error("FRAME CALLBACK NOT NULL!!");
     }
 }

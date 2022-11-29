@@ -17,7 +17,7 @@ else
     rm -rf *.kvl
     rm -rf screenshot*
     cd ../../..
-    build/vmp -r res -v -p $savedir -l $testdir -c $savedir    
+    $2 -r res -v -p $savedir -l $testdir -c $savedir    
     echo "REPLAY FINISHED, DIFFING"
     diff -r $masterdir $testdir
 fi
