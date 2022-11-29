@@ -7,7 +7,7 @@ else
     testdir="$1_test"
     savedir="$1_test/record"
     masterdir="$1_master"
-    echo "REPLAYING $1, TESTDIR $testdir"
+    echo "REPLAYING $1, BASEDIR $basedir TESTDIR $testdir SAVEDIR $savedir MASTERDIR $masterdir EXE $2"
     # cleanup
     rm -rf $testdir
     cp -r $basedir $testdir 
