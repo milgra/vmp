@@ -536,7 +536,7 @@ static void xdg_surface_configure(void* data, struct xdg_surface* xdg_surface, u
 
     wl_window_t* info = data;
 
-    mt_log_debug("xdg surface configure %i", info->type);
+    mt_log_debug("xdg surface configure %i %i %i", info->type, info->width, info->height);
 
     if (info->inited == 0)
     {
@@ -567,13 +567,17 @@ static void xdg_surface_configure(void* data, struct xdg_surface* xdg_surface, u
 	}
 	if (info->type == WL_WINDOW_NATIVE) ku_wayland_create_buffer(info, info->buffer_width, info->buffer_height);
 
-	ku_event_t event = init_event();
-	event.type       = KU_EVENT_RESIZE;
-	event.w          = info->buffer_width;
-	event.h          = info->buffer_height;
-	event.window     = (void*) info;
+	/* we shouldn't send events before surface enter ( and ku_event_window_shown ) event */
+	if (info->shown)
+	{
+	    ku_event_t event = init_event();
+	    event.type       = KU_EVENT_RESIZE;
+	    event.w          = info->buffer_width;
+	    event.h          = info->buffer_height;
+	    event.window     = (void*) info;
 
-	(*wlc.update)(event);
+	    (*wlc.update)(event);
+	}
     }
 }
 
@@ -1061,7 +1065,7 @@ void ku_wayland_pointer_handle_enter(void* data, struct wl_pointer* wl_pointer, 
 	    mt_log_debug("output name");
 
 	    ku_event_t event = init_event();
-	    event.type       = KU_EVENT_MMOVE;
+	    event.type       = KU_EVENT_MOUSE_MOVE;
 	    event.drag       = wlc.pointer.drag;
 	    event.x          = (int) wl_fixed_to_double(surface_x) * wlc.monitor->scale;
 	    event.y          = (int) wl_fixed_to_double(surface_y) * wlc.monitor->scale;
@@ -1088,7 +1092,7 @@ void ku_wayland_pointer_handle_leave(void* data, struct wl_pointer* wl_pointer, 
 	if (window->surface == surface)
 	{
 	    ku_event_t event = init_event();
-	    event.type       = KU_EVENT_MMOVE;
+	    event.type       = KU_EVENT_MOUSE_MOVE;
 	    event.drag       = wlc.pointer.drag;
 	    event.x          = -100;
 	    event.y          = -100;
@@ -1111,7 +1115,7 @@ void ku_wayland_pointer_handle_motion(void* data, struct wl_pointer* wl_pointer,
     wlc.pointer.drag = wlc.pointer.down;
 
     ku_event_t event = init_event();
-    event.type       = KU_EVENT_MMOVE;
+    event.type       = KU_EVENT_MOUSE_MOVE;
     event.drag       = wlc.pointer.drag;
     event.x          = (int) wl_fixed_to_double(surface_x) * wlc.monitor->scale;
     event.y          = (int) wl_fixed_to_double(surface_y) * wlc.monitor->scale;
@@ -1141,12 +1145,12 @@ void ku_wayland_pointer_handle_button(void* data, struct wl_pointer* wl_pointer,
 	wlc.pointer.lastdown = time;
 
 	event.dclick     = delay < 300;
-	event.type       = KU_EVENT_MDOWN;
+	event.type       = KU_EVENT_MOUSE_DOWN;
 	wlc.pointer.down = 1;
     }
     else
     {
-	event.type       = KU_EVENT_MUP;
+	event.type       = KU_EVENT_MOUSE_UP;
 	event.drag       = wlc.pointer.drag;
 	wlc.pointer.drag = 0;
 	wlc.pointer.down = 0;
@@ -1295,7 +1299,7 @@ static void keyboard_key(void* data, struct wl_keyboard* wl_keyboard, uint32_t s
 
     ku_event_t event = init_event();
     event.keycode    = sym;
-    event.type       = key_state == WL_KEYBOARD_KEY_STATE_PRESSED ? KU_EVENT_KDOWN : KU_EVENT_KUP;
+    event.type       = key_state == WL_KEYBOARD_KEY_STATE_PRESSED ? KU_EVENT_KEY_DOWN : KU_EVENT_KEY_UP;
     event.ctrl_down  = wlc.keyboard.control;
     event.shift_down = wlc.keyboard.shift;
     (*wlc.update)(event);

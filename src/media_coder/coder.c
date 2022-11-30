@@ -349,8 +349,8 @@ int coder_load_metadata_into(const char* path, mt_map_t* map)
 			memcpy(media_type, format->mime_type, slash - format->mime_type);
 			memcpy(container, slash + 1, strlen(format->mime_type) - (slash - format->mime_type));
 
-			MPUT(map, "media/type", media_type);
-			MPUT(map, "media/container", container);
+			MPUT(map, "type", media_type);
+			MPUT(map, "container", container);
 
 			REL(media_type); // REL 0
 			REL(container);  // REL 1
@@ -365,8 +365,8 @@ int coder_load_metadata_into(const char* path, mt_map_t* map)
 
 		while ((tag = av_dict_get(pFormatCtx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
 		{
-		    char* value = mt_string_new_cstring(tag->value);                    // REL 0
-		    char* key   = mt_string_new_format(100, "%s/%s", "meta", tag->key); // REL 1
+		    char* value = mt_string_new_cstring(tag->value);         // REL 0
+		    char* key   = mt_string_new_format(100, "%s", tag->key); // REL 1
 
 		    MPUT(map, key, value);
 
@@ -383,16 +383,16 @@ int coder_load_metadata_into(const char* path, mt_map_t* map)
 		    if (dur < 0) dur = 0;
 		    char* dur_s = CAL(20, NULL, mt_string_describe);
 		    snprintf(dur_s, 20, "%i:%.2i", (short) dur / 60, dur - (short) (dur / 60) * 60);
-		    MPUT(map, "media/duration", dur_s);
+		    MPUT(map, "duration", dur_s);
 		    REL(dur_s);
 		}
 		else
 		{
 		    mt_log_debug("coder_get_metadata no stream information found!!!\n");
-		    MPUTR(map, "media/duration", mt_string_new_cstring("0"));
+		    MPUTR(map, "duration", mt_string_new_cstring("0"));
 		}
 
-		MPUTR(map, "media/streams", mt_string_new_format(10, "%i", pFormatCtx->nb_streams));
+		MPUTR(map, "streams", mt_string_new_format(10, "%i", pFormatCtx->nb_streams));
 
 		for (unsigned i = 0; i < pFormatCtx->nb_streams; i++)
 		{

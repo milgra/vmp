@@ -154,8 +154,8 @@ com_sources = ['src/vmp/analyzer.c',
 	       'src/vmp/songlist.c',
 	       'src/vmp/ui.c',
 	       'src/vmp/vmp.c',
+	       'src/vmp/ku_bitmap_ext.c',
 	       
-	       'src/mt_core_ext/mt_bitmap_ext.c',
 	       'src/mt_core_ext/mt_string_ext.c',
 	       'src/mt_core_ext/mt_map_ext.c',
 
@@ -235,6 +235,7 @@ install_data('res/html/main.css', install_dir : pkg_datadir / 'html' )
 install_data('res/img/accept.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/close.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/closeblack.png', install_dir : pkg_datadir / 'img' )
+install_data('res/img/filter.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/max.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/meta.png', install_dir : pkg_datadir / 'img' )
 install_data('res/img/mute.png', install_dir : pkg_datadir / 'img' )

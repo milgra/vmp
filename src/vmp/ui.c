@@ -35,7 +35,6 @@ void ui_update_cursor(ku_rect_t frame);
 #include "ku_text.c"
 #include "library.c"
 #include "mediaplayer.c"
-#include "mt_bitmap_ext.c"
 #include "mt_log.c"
 #include "mt_map_ext.c"
 #include "mt_number.c"
@@ -375,7 +374,7 @@ void ui_on_btn_event(vh_button_event_t event)
 
 	    ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
-	    ku_window_activate(ui.window, ui.filtertf);
+	    ku_window_activate(ui.window, ui.filtertf, 1);
 	    vh_textinput_activate(ui.filtertf, 1);
 	}
     };
@@ -391,7 +390,7 @@ void ui_on_btn_event(vh_button_event_t event)
 	ku_view_add_subview(ui.view_base, ui.inputarea);
 	ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
-	ku_window_activate(ui.window, ui.inputtf);
+	ku_window_activate(ui.window, ui.inputtf, 1);
 	vh_textinput_activate(ui.inputtf, 1);
 
 	vh_textinput_set_text(ui.inputtf, config_get("sorting"));
@@ -401,7 +400,7 @@ void ui_on_btn_event(vh_button_event_t event)
     if (strcmp(event.view->id, "clearbtn") == 0)
     {
 	vh_textinput_set_text(ui.filtertf, "");
-	ku_window_activate(ui.window, ui.filtertf);
+	ku_window_activate(ui.window, ui.filtertf, 1);
 	vh_textinput_activate(ui.filtertf, 1);
 
 	songlist_set_filter(NULL);
@@ -410,7 +409,7 @@ void ui_on_btn_event(vh_button_event_t event)
     if (strcmp(event.view->id, "inputclearbtn") == 0)
     {
 	vh_textinput_set_text(ui.inputtf, "");
-	ku_window_activate(ui.window, ui.inputtf);
+	ku_window_activate(ui.window, ui.inputtf, 1);
 	vh_textinput_activate(ui.inputtf, 1);
     };
     if (strcmp(event.view->id, "exitbtn") == 0) ku_wayland_exit();
@@ -458,7 +457,7 @@ void ui_on_btn_event(vh_button_event_t event)
 	ku_view_add_subview(ui.view_base, ui.inputarea);
 	ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
-	ku_window_activate(ui.window, ui.inputtf);
+	ku_window_activate(ui.window, ui.inputtf, 1);
 	vh_textinput_activate(ui.inputtf, 1);
 
 	vh_textinput_set_text(ui.inputtf, "/home/path_to_image/image.png");
@@ -474,7 +473,7 @@ void ui_on_text_event(vh_textinput_event_t event)
 	if (event.id == VH_TEXTINPUT_DEACTIVATE)
 	{
 	    vh_textinput_activate(event.view, 0);
-	    ku_window_deactivate(ui.window, event.view);
+	    ku_window_activate(ui.window, event.view, 0);
 	}
 
 	songlist_set_filter(event.text);
@@ -573,7 +572,7 @@ void ui_pos_change(ku_view_t* view, float angle)
 	ratio = (angle - (3.14 * 3 / 2)) / 6.28;
     }
 
-    mp_set_position(ui.ms, ratio);
+    if (ui.ms) mp_set_position(ui.ms, ratio);
 }
 
 void ui_vol_change(ku_view_t* view, float angle)
@@ -589,7 +588,7 @@ void ui_vol_change(ku_view_t* view, float angle)
     }
 
     ui.volume = ratio;
-    mp_set_volume(ui.ms, ui.volume);
+    if (ui.ms) mp_set_volume(ui.ms, ui.volume);
 }
 
 void ui_update_songlist()
@@ -652,9 +651,6 @@ void on_table_event(vh_table_event_t event)
 
 	    ui_update_songlist();
 	}
-	else if (event.id == VH_TABLE_EVENT_SELECT)
-	{
-	}
 	else if (event.id == VH_TABLE_EVENT_CONTEXT)
 	{
 	    if (ui.contextpopupcont->parent == NULL)
@@ -669,12 +665,6 @@ void on_table_event(vh_table_event_t event)
 	    mt_map_t*    info     = selected->data[0];
 
 	    ui_play_song(info);
-	}
-	else if (event.id == VH_TABLE_EVENT_DRAG)
-	{
-	}
-	else if (event.id == VH_TABLE_EVENT_DROP)
-	{
 	}
     }
     else if (strcmp(event.view->id, "contexttable") == 0)
@@ -710,7 +700,6 @@ void on_table_event(vh_table_event_t event)
 	}
     }
     else if (strcmp(event.view->id, "genretable") == 0)
-
     {
 	if (event.id == VH_TABLE_EVENT_SELECT)
 	{
@@ -774,7 +763,7 @@ void on_table_event(vh_table_event_t event)
 
 		    ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
-		    ku_window_activate(ui.window, ui.inputtf);
+		    ku_window_activate(ui.window, ui.inputtf, 1);
 		    vh_textinput_activate(ui.inputtf, 1);
 
 		    char* value = MGET(info, "value");
@@ -820,7 +809,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     vh_key_add(ui.view_base, ui_on_key_down);
     ui.view_base->needs_key = 1;
-    ku_window_activate(ui.window, ui.view_base);
+    ku_window_activate(ui.window, ui.view_base, 1);
 
     /* knobs */
 
@@ -889,7 +878,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
     REL(fields);
 
     vh_table_t* vh = ui.songtablev->handler_data;
-    ku_window_activate(ui.window, vh->evnt_v);
+    ku_window_activate(ui.window, vh->evnt_v, 1);
 
     /* settings list */
 
@@ -908,6 +897,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     ku_view_t* settingstablev = GETV(bv, "settingstable");
     vh_table_attach(settingstablev, fields, on_table_event);
+    vh_table_show_scrollbar(settingstablev, 0);
 
     REL(fields);
 
@@ -1002,6 +992,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     ku_view_t* contexttablev = GETV(bv, "contexttable");
     vh_table_attach(contexttablev, fields, on_table_event);
+    vh_table_show_scrollbar(contexttablev, 0);
 
     REL(fields);
 

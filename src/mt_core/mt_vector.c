@@ -4,6 +4,7 @@
 /* TODO separate unit tests */
 
 #include "mt_memory.c"
+#include "mt_time.c"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

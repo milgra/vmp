@@ -3,13 +3,13 @@
 #include "config.c"
 #include "evrecorder.c"
 #include "filemanager.c"
+#include "ku_bitmap_ext.c"
 #include "ku_connector_wayland.c"
 #include "ku_gl.c"
 #include "ku_renderer_egl.c"
 #include "ku_renderer_soft.c"
 #include "ku_window.c"
 #include "library.c"
-#include "mt_bitmap_ext.c"
 #include "mt_log.c"
 #include "mt_map.c"
 #include "mt_path.c"
@@ -193,9 +193,11 @@ void update(ku_event_t ev)
 	REL(files);
 
 	ui_update_songlist();
+
+	ku_window_layout(vmp.kuwindow);
     }
 
-    if (ev.type == KU_EVENT_FRAME)
+    if (ev.type == KU_EVENT_FRAME || ev.type == KU_EVENT_TIME)
     {
 	/* check for remote commands */
 
@@ -251,7 +253,6 @@ void update(ku_event_t ev)
 	    /* mt_time(NULL); */
 	    if (vmp.softrender) ku_renderer_software_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
 	    else ku_renderer_egl_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
-	    /* mt_time("Render"); */
 	    /* nanosleep((const struct timespec[]){{0, 100000000L}}, NULL); */
 
 	    // TODO this can be confusing to call frame first and draw after. do something with it
@@ -325,7 +326,7 @@ void update_record(ku_event_t ev)
 
 	    update_session(*event);
 
-	    if (event->type == KU_EVENT_KDOWN && event->keycode == XKB_KEY_Print) update_screenshot(ev.frame);
+	    if (event->type == KU_EVENT_KEY_DOWN && event->keycode == XKB_KEY_Print) update_screenshot(ev.frame);
 	    else ui_update_cursor((ku_rect_t){event->x, event->y, 10, 10});
 	}
 
@@ -362,7 +363,7 @@ void update_replay(ku_event_t ev)
 	{
 	    update_session(*recev);
 
-	    if (recev->type == KU_EVENT_KDOWN && recev->keycode == XKB_KEY_Print) update_screenshot(ev.frame);
+	    if (recev->type == KU_EVENT_KEY_DOWN && recev->keycode == XKB_KEY_Print) update_screenshot(ev.frame);
 	    else ui_update_cursor((ku_rect_t){recev->x, recev->y, 10, 10});
 	}
 
@@ -551,7 +552,7 @@ int main(int argc, char* argv[])
 
     if (rec_path != NULL) ku_wayland_init(init, update_record, destroy, 0);
     else if (rep_path != NULL) ku_wayland_init(init, update_replay, destroy, 16);
-    else ku_wayland_init(init, update, destroy, 0);
+    else ku_wayland_init(init, update, destroy, 1000); // needs second updates because of time field
 
     config_destroy(); // DESTROY 0
 

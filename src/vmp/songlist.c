@@ -25,6 +25,7 @@ mt_vector_t* songlist_get_visible_songs();
 
 #include "mt_string.c"
 #include "mt_string_ext.c"
+#include "mt_time.c"
 #include "utf8.h"
 #include <stdlib.h>
 
