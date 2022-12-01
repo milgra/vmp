@@ -10,9 +10,10 @@ Visuam Music Player is a music player, visualizer and organizer inspired by the 
 - retro-minimalistic UI
 - beautiful and smooth UX experience
 - frequency and scope analyzer visualizers
-- library auto-organization ( if enabled )
+- library auto-organization ( if enabled in the command line )
 - activity window and human-readable database for transparent operation
 - super lightwight, no GTK/QT
+- super fast headerless C power
 
 ## Installation ##
 

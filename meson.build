@@ -1,7 +1,7 @@
 project(
   'vmp',
   'c',
-  version: '0.84b',
+  version: '0.85b',
   license: 'MIT',
   default_options: ['c_std=gnu99']
 )
@@ -27,7 +27,7 @@ ojpeg = cc.find_library('openjp2',static:false)
 hb = cc.find_library('harfbuzz',static:false)
 avutil = cc.find_library('avutil',static:false)
 avcodec = cc.find_library('avcodec',static:false)
-avdevice = cc.find_library('avdevice',static:false)
+vavdevice = cc.find_library('avdevice',static:false)
 avformat = cc.find_library('avformat',static:false)
 avfilter = cc.find_library('avfilter',static:false)
 swresample = cc.find_library('swresample',static:false)
