@@ -196,7 +196,7 @@ void load(wl_window_t* info)
 
 void update(ku_event_t ev)
 {
-    printf("UPDATE %i %u %i %i\n", ev.type, ev.time, ev.w, ev.h);
+    /* printf("UPDATE %i %u %i %i\n", ev.type, ev.time, ev.w, ev.h); */
 
     if (ev.type == KU_EVENT_WINDOW_SHOWN) load(ev.window);
 
@@ -312,7 +312,6 @@ void update_screenshot(uint32_t frame)
 
 void update_record(ku_event_t ev)
 {
-    printf("RECORD EVENT %i\n", ev.type);
     if (ev.type == KU_EVENT_WINDOW_SHOWN) load(ev.window);
 
     /* normalize floats for deterministic movements during record/replay */
