@@ -627,8 +627,6 @@ void vh_textinput_set_text(ku_view_t* view, char* text)
 	}
     }
 
-    mt_string_describe_utf(data->glyphchain.text);
-
     vh_textinput_upd(view);
 
     vh_textinput_event_t event = {.id = VH_TEXTINPUT_TEXT, .vh = data, .text = data->glyphchain.text, .view = view};

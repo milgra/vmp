@@ -17,6 +17,7 @@ rt = cc.find_library('rt',static:false)
 gl = cc.find_library('GL',static:false)
 glew = cc.find_library('GLEW',static:false)
 sdl2 = cc.find_library('SDL2',static:false)
+egl = cc.find_library('EGL',static:false)
 wegl = cc.find_library('wayland-egl',static:false)
 swscale = cc.find_library('swscale',static:false)
 pthread = cc.find_library('pthread',static:false)
@@ -24,27 +25,14 @@ jpeg = cc.find_library('jpeg',static:false)
 jbig = cc.find_library('jbig2dec',static:false)
 ojpeg = cc.find_library('openjp2',static:false)
 hb = cc.find_library('harfbuzz',static:false)
-gumbo = cc.find_library('gumbo',static:false)
 avutil = cc.find_library('avutil',static:false)
 avcodec = cc.find_library('avcodec',static:false)
 avdevice = cc.find_library('avdevice',static:false)
 avformat = cc.find_library('avformat',static:false)
 avfilter = cc.find_library('avfilter',static:false)
 swresample = cc.find_library('swresample',static:false)
-egl = cc.find_library('EGL',static:false)
 
 xkbcommon = dependency('xkbcommon')
-
-# for ffmpeg
-#va = cc.find_library('va',static:false)
-#x11 = cc.find_library('X11',static:false)
-#lvadrm = cc.find_library('va-drm',static:false)
-#lvax11 = cc.find_library('va-x11',static:false)
-#lzma = cc.find_library('lzma',static:false)
-#lvdpau = cc.find_library('vdpau',static:false)
-
-mupdf = cc.find_library('mupdf')
-mupdfthird = cc.find_library('mupdf-third')
 
 wayland_client      = dependency('wayland-client')
 wayland_cursor      = dependency('wayland-cursor')
@@ -107,9 +95,6 @@ vmp_dependencies = [
 		  hb,
 		  z,
 		  bz2,
-		  gumbo,
-		  mupdf,
-		  mupdfthird,
 		  xkbcommon,
 		  egl,
 		  wegl]
@@ -130,7 +115,6 @@ vmp_inc = include_directories(
 	'/usr/include/GLES2',
 	'/usr/include/EGL',
 	'/usr/include/SDL2',
-	'/usr/include/mupdf',
 	'/usr/include/freetype2',
 	'src/mt_math',
 	'src/mt_core',
@@ -159,7 +143,7 @@ com_sources = ['src/vmp/analyzer.c',
 	       'src/mt_core_ext/mt_string_ext.c',
 	       'src/mt_core_ext/mt_map_ext.c',
 
-	       'src/mt_core/mt_channel.c',
+#	       'src/mt_core/mt_channel.c',
 	       'src/mt_core/mt_string.c',
 	       'src/mt_core/mt_path.c',
 	       'src/mt_core/mt_log.c',
@@ -170,13 +154,13 @@ com_sources = ['src/vmp/analyzer.c',
 	       'src/mt_core/mt_vector.c',
 	       'src/mt_core/mt_wrapper.c',
 
-	       'src/mt_math/mt_matrix_3d.c',
+#	       'src/mt_math/mt_matrix_3d.c',
 	       'src/mt_math/mt_matrix_4d.c',
-	       'src/mt_math/mt_vector_2d.c',
-	       'src/mt_math/mt_vector_3d.c',
-	       'src/mt_math/mt_vector_4d.c',
-	       'src/mt_math/mt_math_2d.c',
-	       'src/mt_math/mt_math_3d.c',
+#	       'src/mt_math/mt_vector_2d.c',
+#	       'src/mt_math/mt_vector_3d.c',
+#	       'src/mt_math/mt_vector_4d.c',
+#	       'src/mt_math/mt_math_2d.c',
+#	       'src/mt_math/mt_math_3d.c',
 
 	       'src/media_coder/coder.c',
 	       'src/media_player/decoder.c',
@@ -200,7 +184,7 @@ com_sources = ['src/vmp/analyzer.c',
 	       'src/kinetic_ui/handler/vh_drag.c',
 	       'src/kinetic_ui/handler/vh_key.c',
 	       'src/kinetic_ui/handler/vh_knob.c',
-	       'src/kinetic_ui/handler/vh_roll.c',
+#	       'src/kinetic_ui/handler/vh_roll.c',
 	       'src/kinetic_ui/handler/vh_slider.c',
 	       'src/kinetic_ui/handler/vh_textinput.c',
 	       'src/kinetic_ui/handler/vh_touch.c',
