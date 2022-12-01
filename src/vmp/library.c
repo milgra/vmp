@@ -57,11 +57,9 @@ void lib_read(char* libpath)
 
     char* dbpath = mt_path_new_append(libpath, "vmp.kvl"); // REL 0
 
-    mt_log_info("READING DB %s", dbpath);
-
     kvlist_read(dbpath, db, "path");
 
-    mt_log_info("%i ENTRIES LOADED", db->count);
+    mt_log_debug("%i entries loaded", db->count);
 
     REL(dbpath); // REL 0
 }
@@ -76,7 +74,7 @@ void lib_write(char* libpath)
 
     if (res < 0) mt_log_debug("ERROR lib_write cannot write database %s\n", dbpath);
 
-    mt_log_info("%i ENTRIES WRITTEN", db->count);
+    mt_log_debug("%i entries written", db->count);
 
     REL(dbpath); // REL 0
 }

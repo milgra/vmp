@@ -318,6 +318,9 @@ void mt_vector_sort_ord(mtvn_t* node, mt_vector_t* vector, int* index)
 
 void mt_vector_sort(mt_vector_t* vector, int (*comp)(void* left, void* right))
 {
+    /* create cache */
+    mtvn_t* cache = CAL(sizeof(mtvn_t) * vector->length, NULL, NULL);
+
     mtvn_t* node = CAL(sizeof(mtvn_t), NULL, mt_vector_describe_mtvn);
     for (int index = 0; index < vector->length; index++)
     {

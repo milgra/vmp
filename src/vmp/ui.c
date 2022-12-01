@@ -488,13 +488,15 @@ void ui_on_text_event(vh_textinput_event_t event)
 	{
 	    if (ui.inputmode == UI_IM_EDITING)
 	    {
+		printf("EDITING ENDED, %s %s\n", ui.edited_key, event.text);
+
 		// save value of inputtf
 
 		ku_view_add_subview(ui.metashadow, ui.metaacceptbtn);
 		ui_cancel_input();
 
-		MPUT(ui.edited_song, ui.edited_key, event.text);
-		MPUT(ui.edited_changed, ui.edited_key, event.text);
+		MPUTR(ui.edited_song, ui.edited_key, STRNC(event.text));
+		MPUTR(ui.edited_changed, ui.edited_key, STRNC(event.text));
 
 		mt_vector_t* pairs = VNEW();
 		mt_vector_t* keys  = VNEW();
@@ -513,6 +515,9 @@ void ui_on_text_event(vh_textinput_event_t event)
 		mt_vector_sort(pairs, ui_comp_value);
 
 		vh_table_set_data(ui.metatablev, pairs);
+
+		REL(pairs);
+		REL(keys);
 	    }
 	    else if (ui.inputmode == UI_IM_SORTING)
 	    {
@@ -772,6 +777,9 @@ void on_table_event(vh_table_event_t event)
 
 		    char* value = MGET(info, "value");
 		    if (!value) value = "";
+
+		    printf("EDITED SONG BEFORE:\n");
+		    mt_memory_describe(ui.edited_song, 0);
 
 		    if (value)
 		    {

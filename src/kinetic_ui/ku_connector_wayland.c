@@ -1062,8 +1062,6 @@ void ku_wayland_pointer_handle_enter(void* data, struct wl_pointer* wl_pointer, 
 
 	if (window->surface == surface)
 	{
-	    mt_log_debug("output name");
-
 	    ku_event_t event = init_event();
 	    event.type       = KU_EVENT_MOUSE_MOVE;
 	    event.drag       = wlc.pointer.drag;

@@ -87,8 +87,6 @@ void update(ku_event_t ev)
 
     if (ev.type == KU_EVENT_WINDOW_SHOWN)
     {
-	printf("Window shown, buffer size %i %i\n", ev.w, ev.h);
-
 	wl_window_t* info = (wl_window_t*) ev.window;
 
 	vmp.kuwindow = ku_window_create(info->buffer_width, info->buffer_height, info->scale);

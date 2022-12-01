@@ -153,7 +153,7 @@ void songlist_apply_filter()
     {
 	mt_vector_add_in_vector(sl.visible_songs, sl.songs);
     }
-    mt_time("FILTERING");
+    mt_time("filtering");
 }
 
 void songlist_set_filter(char* filter)
@@ -218,10 +218,10 @@ int songlist_comp_entry(void* left, void* right)
     for (int index = 0; index < sl.sortvec->length; index += 2)
     {
 	char* field = sl.sortvec->data[index];
+	char* sorts = sl.sortvec->data[index + 1];
 
-	int dir = atoi(sl.sortvec->data[index + 1]);
-
-	if (dir == 0) dir = -1;
+	int dir = -1;
+	if (sorts[0] == '1') dir = 1;
 
 	char* la = MGET(l, field);
 	char* ra = MGET(r, field);
@@ -257,7 +257,7 @@ void songlist_apply_sorting()
     {
 	mt_time(NULL);
 	mt_vector_sort(sl.songs, songlist_comp_entry);
-	mt_time("SORTING");
+	mt_time("sorting");
     }
 }
 

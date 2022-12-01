@@ -197,7 +197,7 @@ void ku_gl_init(int max_dev_width, int max_dev_height)
 
     if (binsize > value) binsize = value;
 
-    mt_log_info("Texture size will be %i", binsize);
+    mt_log_debug("texture size will be %i", binsize);
 
     kugl.texturesize = binsize;
 

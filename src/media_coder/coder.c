@@ -452,7 +452,7 @@ int coder_load_metadata_into(const char* path, mt_map_t* map)
 
 	avformat_close_input(&pFormatCtx); // CLOSE 0
     }
-    else mt_log_info("coder : skipping %s, probably not a media file", path);
+    /* else mt_log_info("coder : skipping %s, probably not a media file", path); */
 
     if (format_opts) av_dict_free(&format_opts);
 
@@ -544,21 +544,21 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 	    if (avformat_alloc_output_context2(&enc_ctx, enc_fmt, NULL, new_path) >= 0) // FREE 1
 	    {
-		mt_log_debug("Output context allocated\n");
+		mt_log_debug("Output context allocated");
 
 		if (!(enc_ctx->oformat->flags & AVFMT_NOFILE))
 		{
-		    mt_log_debug("Output file will be provided by caller.\n");
+		    mt_log_debug("Output file will be provided by caller.");
 
 		    if (avio_open(&enc_ctx->pb, new_path, AVIO_FLAG_WRITE) >= 0) // CLOSE 0
 		    {
-			mt_log_debug("Output file created.\n");
+			mt_log_debug("Output file created.");
 
 			//
 			// create all streams in the encoder context that are present in the decoder context
 			//
 
-			mt_log_debug("Copying stream structure...\n");
+			mt_log_debug("Copying stream structure...");
 
 			int dec_enc_strm[10]   = {0};
 			int dec_cov_strm_index = -1;
@@ -571,19 +571,19 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 			    if (codec)
 			    {
-				mt_log_debug("Stream no %i Codec %s ID %d bit_rate %ld\n", si, codec->long_name, codec->id, param->bit_rate);
+				mt_log_debug("Stream no %i Codec %s ID %d bit_rate %ld", si, codec->long_name, codec->id, param->bit_rate);
 
 				switch (param->codec_type)
 				{
-				    case AVMEDIA_TYPE_VIDEO: mt_log_debug("Video Codec: resolution %d x %d\n", param->width, param->height); break;
-				    case AVMEDIA_TYPE_AUDIO: mt_log_debug("Audio Codec: %d channels, sample rate %d\n", param->ch_layout.nb_channels, param->sample_rate); break;
-				    default: mt_log_debug("Other codec: %i\n", param->codec_type); break;
+				    case AVMEDIA_TYPE_VIDEO: mt_log_debug("Video Codec: resolution %d x %d", param->width, param->height); break;
+				    case AVMEDIA_TYPE_AUDIO: mt_log_debug("Audio Codec: %d channels, sample rate %d", param->ch_layout.nb_channels, param->sample_rate); break;
+				    default: mt_log_debug("Other codec: %i", param->codec_type); break;
 				}
 
 				if (cover_path && cover)
 				{
 				    dec_cov_strm_index = si;
-				    mt_log_debug("Skipping cover stream, index : %i\n", dec_cov_strm_index);
+				    mt_log_debug("skipping cover stream, index : %i", dec_cov_strm_index);
 				}
 				else
 				{
@@ -597,10 +597,10 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 				    dec_enc_strm[si] = enc_stream->index;
 
-				    mt_log_debug("Mapping decoder stream index %i to encoder stream index %i\n", si, enc_stream->index);
+				    mt_log_debug("Mapping decoder stream index %i to encoder stream index %i", si, enc_stream->index);
 				}
 			    }
-			    else mt_log_error("No encoder found for stream no %i\n", si);
+			    else mt_log_error("No encoder found for stream no %i", si);
 			}
 
 			//
@@ -617,11 +617,11 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 			    if (avformat_open_input(&cov_ctx, cover_path, 0, 0) >= 0)
 			    {
-				mt_log_debug("Cover opened for decoding\n");
+				mt_log_debug("Cover opened for decoding");
 
 				if (avformat_find_stream_info(cov_ctx, 0) >= 0)
 				{
-				    mt_log_debug("Cover stream info found, stream count %i\n", cov_ctx->nb_streams);
+				    mt_log_debug("Cover stream info found, stream count %i", cov_ctx->nb_streams);
 
 				    // find stream info
 
@@ -632,12 +632,12 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 					if (codec)
 					{
-					    mt_log_debug("Cover stream no %i Codec %s ID %d bit_rate %ld\n", si, codec->long_name, codec->id, param->bit_rate);
+					    mt_log_debug("Cover stream no %i Codec %s ID %d bit_rate %ld", si, codec->long_name, codec->id, param->bit_rate);
 
 					    switch (param->codec_type)
 					    {
-						case AVMEDIA_TYPE_VIDEO: mt_log_debug("Video Codec: resolution %d x %d\n", param->width, param->height); break;
-						case AVMEDIA_TYPE_AUDIO: mt_log_debug("Audio Codec: %d channels, sample rate %d\n", param->ch_layout.nb_channels, param->sample_rate); break;
+						case AVMEDIA_TYPE_VIDEO: mt_log_debug("Video Codec: resolution %d x %d", param->width, param->height); break;
+						case AVMEDIA_TYPE_AUDIO: mt_log_debug("Audio Codec: %d channels, sample rate %d", param->ch_layout.nb_channels, param->sample_rate); break;
 						default: mt_log_debug("Other codec: %i\n", param->codec_type); break;
 					    }
 
@@ -653,10 +653,10 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 						cov_dec_index = si;
 						cov_enc_index = enc_stream->index;
 
-						mt_log_debug("Mapping cover stream index %i to encoder stream index %i\n", cov_dec_index, cov_enc_index);
+						mt_log_debug("Mapping cover stream index %i to encoder stream index %i", cov_dec_index, cov_enc_index);
 					    }
 					}
-					else mt_log_error("No encoder found for stream no %i\n", si);
+					else mt_log_error("No encoder found for stream no %i", si);
 				    }
 				}
 			    }
@@ -671,8 +671,8 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 			AVDictionaryEntry* tag    = NULL;
 			mt_vector_t*       fields = VNEW(); // REL 0
 
-			mt_log_debug("Existing tags:\n");
-			while ((tag = av_dict_get(enc_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) mt_log_debug("%s : %s\n", tag->key, tag->value);
+			mt_log_debug("Existing tags:");
+			while ((tag = av_dict_get(enc_ctx->metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) mt_log_debug("%s : %s", tag->key, tag->value);
 
 			mt_map_keys(changed, fields);
 
@@ -681,7 +681,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 			    char* field = fields->data[fi];
 			    char* value = MGET(changed, field);
 			    av_dict_set(&enc_ctx->metadata, field, value, 0);
-			    mt_log_debug("added/updated %s to %s\n", field, value);
+			    mt_log_debug("added/updated %s to %s", field, value);
 			}
 
 			REL(fields);
@@ -690,18 +690,18 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 			{
 			    char* field = drop->data[fi];
 			    av_dict_set(&enc_ctx->metadata, field, NULL, 0);
-			    mt_log_debug("removed %s\n", field);
+			    mt_log_debug("removed %s", field);
 			}
 
 			if (avformat_init_output(enc_ctx, NULL) > 0)
 			{
-			    mt_log_debug("Output inited.\n");
+			    mt_log_debug("Output inited.");
 
 			    // write header
 
 			    if (avformat_write_header(enc_ctx, NULL) >= 0)
 			    {
-				mt_log_debug("Header written\n");
+				mt_log_debug("Header written");
 
 				// copy packets from decoder context to encoder context
 
@@ -723,7 +723,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 				{
 				    if (cover_path && dec_pkt->stream_index == dec_cov_strm_index)
 				    {
-					mt_log_debug("Skipping original cover packets.\n");
+					mt_log_debug("skipping original cover packets.");
 				    }
 				    else
 				    {
@@ -740,7 +740,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 					}
 					else
 					{
-					    mt_log_debug("Stream written, dec index : %i enc index : %i packets : %i sum : %i bytes\n", last_di, last_ei, last_pc, last_by);
+					    mt_log_debug("Stream written, dec index : %i enc index : %i packets : %i sum : %i bytes", last_di, last_ei, last_pc, last_by);
 					    last_di = dec_pkt->stream_index;
 					    last_ei = enc_index;
 					    last_pc = 0;
@@ -754,7 +754,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 				    }
 				}
 
-				mt_log_debug("Stream written, dec index : %i enc index : %i packets : %i sum : %i bytes\n", last_di, last_ei, last_pc, last_by);
+				mt_log_debug("Stream written, dec index : %i enc index : %i packets : %i sum : %i bytes", last_di, last_ei, last_pc, last_by);
 
 				last_pc = 0;
 				last_by = 0;
@@ -776,7 +776,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 					dec_pkt->data = NULL;
 					dec_pkt->size = 0;
 				    }
-				    mt_log_debug("Cover stream written, dec index : %i enc index : %i packets : %i sum : %i bytes\n", cov_dec_index, cov_enc_index, last_pc, last_by);
+				    mt_log_debug("Cover stream written, dec index : %i enc index : %i packets : %i sum : %i bytes", cov_dec_index, cov_enc_index, last_pc, last_by);
 				}
 
 				// close output file and cleanup
@@ -786,33 +786,33 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 				success = 1;
 			    }
-			    else mt_log_error("Cannot write header.\n");
+			    else mt_log_error("Cannot write header.");
 			}
-			else mt_log_error("Cannot init output.\n");
+			else mt_log_error("Cannot init output.");
 
 			if (cov_ctx) avformat_free_context(cov_ctx);
 
-			if (avio_close(enc_ctx->pb) >= 0) mt_log_debug("Closed target file.\n"); // CLOSE 0
+			if (avio_close(enc_ctx->pb) >= 0) mt_log_debug("Closed target file."); // CLOSE 0
 
 			if (success)
 			{
-			    if (rename(new_path, old_path) == 0) mt_log_debug("Temporary file renamed to original file.\n");
-			    else mt_log_error("Couldn't rename temporary file to original file.\n");
+			    if (rename(new_path, old_path) == 0) mt_log_debug("Temporary file renamed to original file.");
+			    else mt_log_error("Couldn't rename temporary file to original file.");
 			}
 		    }
-		    else mt_log_error("Cannot open file for encode %s\n", new_path);
+		    else mt_log_error("Cannot open file for encode %s", new_path);
 		}
 		else mt_log_error("Output is a fileless codec.");
 
 		avformat_free_context(enc_ctx); // FREE 1
 	    }
-	    else mt_log_error("Cannot allocate output context for %s\n", old_name);
+	    else mt_log_error("Cannot allocate output context for %s", old_name);
 	}
-	else mt_log_error("Cannot find stream info\n");
+	else mt_log_error("Cannot find stream info");
 
 	avformat_close_input(&dec_ctx);
     }
-    else mt_log_error("Cannot open file for decode %s\n", old_path);
+    else mt_log_error("Cannot open file for decode %s", old_path);
 
     avformat_free_context(dec_ctx); // FREE 0
 
