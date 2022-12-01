@@ -1747,7 +1747,7 @@ void ku_wayland_init(
 	    mt_log_error("compositor not found");
 
 	for (int m = 0; m < wlc.monitor_count; m++) free(wlc.monitors[m]);
-	for (int w = 0; w < wlc.window_count; w++) free(wlc.windows[w]);
+	for (int w = 0; w < wlc.window_count; w++) REL(wlc.windows[w]);
 
 	wl_display_disconnect(wlc.display);
     }

@@ -108,6 +108,8 @@ void songlist_apply_filter()
     if (sl.visible_songs) mt_vector_reset(sl.visible_songs);
     else sl.visible_songs = VNEW();
 
+    mt_time(NULL);
+
     if (sl.filter != NULL)
     {
 	mt_vector_t* filtered = VNEW();
@@ -151,6 +153,7 @@ void songlist_apply_filter()
     {
 	mt_vector_add_in_vector(sl.visible_songs, sl.songs);
     }
+    mt_time("FILTERING");
 }
 
 void songlist_set_filter(char* filter)
@@ -203,6 +206,8 @@ void songlist_set_filter(char* filter)
 
 	REL(words);
     }
+
+    if (sl.songs) songlist_apply_filter();
 }
 
 int songlist_comp_entry(void* left, void* right)
@@ -250,7 +255,9 @@ void songlist_apply_sorting()
 {
     if (sl.sorting)
     {
-	mt_vector_sort(sl.visible_songs, songlist_comp_entry);
+	mt_time(NULL);
+	mt_vector_sort(sl.songs, songlist_comp_entry);
+	mt_time("SORTING");
     }
 }
 
@@ -264,16 +271,21 @@ void songlist_set_sorting(char* sorting)
 	if (sl.sortvec) REL(sl.sortvec);
 	sl.sortvec = mt_string_split(sl.sorting, " ");
     }
+    if (sl.songs) songlist_apply_sorting();
+    if (sl.songs) songlist_apply_filter();
 }
 
 void songlist_set_songs(mt_vector_t* songs)
 {
+    if (sl.visible_songs) mt_vector_reset(sl.visible_songs);
+    else sl.visible_songs = VNEW();
+
     if (sl.songs) REL(sl.songs);
     sl.songs = NULL;
     if (songs) sl.songs = RET(songs);
 
-    songlist_apply_filter();
     songlist_apply_sorting();
+    songlist_apply_filter();
 }
 
 void songlist_set_fields(mt_map_t* fields)

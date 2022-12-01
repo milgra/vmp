@@ -28,6 +28,7 @@ void ui_update_cursor(ku_rect_t frame);
 #include "ku_bitmap.c"
 #include "ku_connector_wayland.c"
 #include "ku_draw.c"
+#include "ku_fontconfig.c"
 #include "ku_gen_css.c"
 #include "ku_gen_html.c"
 #include "ku_gen_textstyle.c"
@@ -593,11 +594,7 @@ void ui_vol_change(ku_view_t* view, float angle)
 
 void ui_update_songlist()
 {
-    mt_vector_t* entries = VNEW();
-    lib_get_entries(entries);
-    songlist_set_songs(entries);
     vh_table_set_data(ui.songtablev, songlist_get_visible_songs());
-    REL(entries);
 }
 
 void on_table_event(vh_table_event_t event)
@@ -621,8 +618,9 @@ void on_table_event(vh_table_event_t event)
 	}
 	else if (event.id == VH_TABLE_EVENT_FIELD_SELECT)
 	{
-	    char* field   = event.field;
-	    char* sorting = mt_string_new_cstring(songlist_get_sorting());
+	    char* field      = event.field;
+	    char* sorting    = mt_string_new_cstring(songlist_get_sorting());
+	    char* newsorting = NULL;
 
 	    if (strstr(sorting, field) != NULL)
 	    {
@@ -630,16 +628,22 @@ void on_table_event(vh_table_event_t event)
 		char  value = part[strlen(field) + 1];
 
 		if (strcmp(field, "artist") == 0)
-		    sorting = STRNF(100, "%s %c album 1 track 1", field, value == '0' ? '1' : '0');
+		    newsorting = STRNF(100, "%s %c album 1 track 1", field, value == '0' ? '1' : '0');
 		else
-		    sorting = STRNF(100, "%s %c", field, value == '0' ? '1' : '0');
+		    newsorting = STRNF(100, "%s %c", field, value == '0' ? '1' : '0');
 	    }
 	    else
 	    {
 		if (strcmp(field, "artist") == 0)
-		    sorting = STRNF(100, "%s 1 album 1 track 1", field);
+		    newsorting = STRNF(100, "%s 1 album 1 track 1", field);
 		else
-		    sorting = STRNF(100, "%s 1", field);
+		    newsorting = STRNF(100, "%s 1", field);
+	    }
+
+	    if (newsorting)
+	    {
+		REL(sorting);
+		sorting = newsorting;
 	    }
 
 	    songlist_set_sorting(sorting);
@@ -1063,6 +1067,10 @@ void ui_destroy()
 
     REL(ui.edited_changed);
     REL(ui.edited_deleted);
+
+    songlist_destroy();
+
+    ku_fontconfig_delete();
 
     ku_text_destroy(); // DESTROY 0
 }

@@ -192,6 +192,11 @@ void update(ku_event_t ev)
 
 	REL(files);
 
+	mt_vector_t* entries = VNEW();
+	lib_get_entries(entries);
+	songlist_set_songs(entries);
+	REL(entries);
+
 	ui_update_songlist();
 
 	ku_window_layout(vmp.kuwindow);
@@ -388,6 +393,10 @@ void destroy()
     if (vmp.record) evrec_destroy();
 
     ui_destroy();
+
+    lib_destroy();
+
+    REL(vmp.eventqueue);
 
     REL(vmp.kuwindow);
 

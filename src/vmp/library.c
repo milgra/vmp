@@ -47,8 +47,7 @@ void lib_init()
 
 void lib_destroy()
 {
-    // mem_describe(db, 0);
-
+    mt_map_reset(db);
     REL(db); // REL 1
 }
 
