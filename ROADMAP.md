@@ -1,9 +1,13 @@
 # Visual Music Player development roadmap
 
+- video on github page
+- tech video, automated ui/full test, logban meg a leakek is lathatoak
+- clear makepkg errors
 - goto current song doesn't work
 - create test case for library organization
 - animated positioned context menu like in mmfm
 - working settingslist
+- auto test with 2x scaling
 - user manual update
 - ui table selectable/non selectable 
 - reset config in settings (delete)

@@ -6,6 +6,7 @@
 #include "ku_bitmap_ext.c"
 #include "ku_connector_wayland.c"
 #include "ku_gl.c"
+#include "ku_recorder.c"
 #include "ku_renderer_egl.c"
 #include "ku_renderer_soft.c"
 #include "ku_window.c"
@@ -28,14 +29,11 @@
 
 struct
 {
-    char         replay;
-    char         record;
     wl_window_t* wlwindow;
     ku_window_t* kuwindow;
 
-    ku_rect_t    dirtyrect;
-    int          softrender;
-    mt_vector_t* eventqueue;
+    ku_rect_t dirtyrect;
+    int       softrender;
 
     float       analyzer_ratio;
     analyzer_t* analyzer;
@@ -43,8 +41,11 @@ struct
     int      frames;
     remote_t remote;
 
-    char* rec_path;
-    char* rep_path;
+    int   autotest;
+    char* pngpath;
+
+    int width;
+    int height;
 } vmp = {0};
 
 void init(wl_event_t event)
@@ -52,17 +53,14 @@ void init(wl_event_t event)
     SDL_SetHint(SDL_HINT_NO_SIGNAL_HANDLERS, "1");
     SDL_Init(SDL_INIT_AUDIO);
 
-    vmp.eventqueue = VNEW();
-
     if (vmp.softrender)
     {
-	vmp.wlwindow = ku_wayland_create_window("vmp", 1200, 600);
-	/* vmp.wlwindow = ku_wayland_create_generic_layer(event.monitors[0], 1200, 600, 0, ""); */
+	vmp.wlwindow = ku_wayland_create_window("vmp", vmp.width, vmp.height);
 	ku_wayland_show_window(vmp.wlwindow);
     }
     else
     {
-	vmp.wlwindow = ku_wayland_create_eglwindow("vmp", 1200, 600);
+	vmp.wlwindow = ku_wayland_create_eglwindow("vmp", vmp.width, vmp.height);
 	ku_wayland_show_window(vmp.wlwindow);
 
 	int max_width  = 0;
@@ -83,21 +81,9 @@ void load(wl_window_t* info)
 {
     vmp.kuwindow = ku_window_create(info->buffer_width, info->buffer_height, info->scale);
 
-    mt_time(NULL);
     ui_init(info->buffer_width, info->buffer_height, info->scale, vmp.kuwindow); // DESTROY 3
-    mt_time("ui init");
 
-    if (vmp.record)
-    {
-	ui_add_cursor();
-	evrec_init_recorder(vmp.rec_path); // DESTROY 4
-    }
-
-    if (vmp.replay)
-    {
-	ui_add_cursor();
-	evrec_init_player(vmp.rep_path); // DESTROY 5
-    }
+    if (vmp.autotest) ui_add_cursor();
 
     mt_map_t* fields = MNEW();
 
@@ -241,173 +227,61 @@ void update(ku_event_t ev)
 
     ku_window_event(vmp.kuwindow, ev);
 
+    if (vmp.autotest)
+    {
+	/* create screenshot if needed */
+	if (ev.type == KU_EVENT_KEY_DOWN && ev.keycode == XKB_KEY_Print)
+	{
+	    static int shotindex = 0;
+
+	    char* name = mt_string_new_format(20, "screenshot%.3i.png", shotindex++);
+	    char* path = mt_path_new_append(vmp.pngpath, name);
+
+	    if (vmp.softrender) ku_renderer_soft_screenshot(&vmp.wlwindow->bitmap, path);
+	    else ku_renderer_egl_screenshot(&vmp.wlwindow->bitmap, path);
+
+	    ui_update_cursor((ku_rect_t){0, 0, vmp.wlwindow->width, vmp.wlwindow->height});
+
+	    printf("SCREENHSOT AT %u : %s\n", ev.frame, path);
+	}
+	else if (ev.x > 0 && ev.y > 0) ui_update_cursor((ku_rect_t){ev.x, ev.y, 10, 10}); /* update virtual cursor if needed */
+    }
+
     if (vmp.wlwindow->frame_cb == NULL)
     {
 	ku_rect_t dirty = ku_window_update(vmp.kuwindow, 0);
+
+	/* in case of record/replay force continuous draw by full size dirty rect */
+	if (vmp.autotest) dirty = vmp.kuwindow->root->frame.local;
 
 	if (dirty.w > 0 && dirty.h > 0)
 	{
 	    ku_rect_t sum = ku_rect_add(dirty, vmp.dirtyrect);
 
-	    /* mt_log_debug("drt %i %i %i %i", (int) dirty.x, (int) dirty.y, (int) dirty.w, (int) dirty.h); */
-	    /* mt_log_debug("drt prev %i %i %i %i", (int) vmp.dirtyrect.x, (int) vmp.dirtyrect.y, (int) vmp.dirtyrect.w, (int) vmp.dirtyrect.h); */
-	    /* mt_log_debug("sum aftr %i %i %i %i", (int) sum.x, (int) sum.y, (int) sum.w, (int) sum.h); */
-
-	    /* mt_time(NULL); */
 	    if (vmp.softrender) ku_renderer_software_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
 	    else ku_renderer_egl_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
-	    /* nanosleep((const struct timespec[]){{0, 100000000L}}, NULL); */
 
-	    // TODO this can be confusing to call frame first and draw after. do something with it
+	    /* frame done request must be requested before draw */
 	    ku_wayland_request_frame(vmp.wlwindow);
 	    ku_wayland_draw_window(vmp.wlwindow, (int) sum.x, (int) sum.y, (int) sum.w, (int) sum.h);
 
+	    /* store current dirty rect for next draw */
 	    vmp.dirtyrect = dirty;
 	}
     }
 }
 
-void update_session(ku_event_t ev)
-{
-    if (ev.type == KU_EVENT_FRAME) ui_update_player();
-
-    ku_window_event(vmp.kuwindow, ev);
-    ku_window_update(vmp.kuwindow, 0);
-
-    if (vmp.softrender) ku_renderer_software_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, vmp.kuwindow->root->frame.local);
-    else ku_renderer_egl_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, vmp.kuwindow->root->frame.local);
-}
-
-/* save window buffer to png */
-
-void update_screenshot(uint32_t frame)
-{
-    static int shotindex = 0;
-
-    char* name = mt_string_new_format(20, "screenshot%.3i.png", shotindex++); // REL 1
-    char* path = "";
-
-    if (vmp.record) path = mt_path_new_append(vmp.rec_path, name); // REL 2
-    if (vmp.replay) path = mt_path_new_append(vmp.rep_path, name); // REL 2
-
-    if (vmp.softrender)
-    {
-	coder_write_png(path, &vmp.wlwindow->bitmap);
-    }
-    else
-    {
-	ku_bitmap_t* bitmap = ku_bitmap_new(vmp.wlwindow->width, vmp.wlwindow->height);
-	ku_gl_save_framebuffer(bitmap);
-	ku_bitmap_t* flipped = bm_new_flip_y(bitmap); // REL 3
-	coder_write_png(path, flipped);
-	REL(flipped);
-	REL(bitmap);
-    }
-    ui_update_cursor((ku_rect_t){0, 0, vmp.wlwindow->width, vmp.wlwindow->height});
-
-    printf("SCREENHSOT AT %u : %s\n", frame, path);
-}
-
-/* window update during recording */
-
-void update_record(ku_event_t ev)
-{
-    if (ev.type == KU_EVENT_WINDOW_SHOWN) load(ev.window);
-
-    /* normalize floats for deterministic movements during record/replay */
-    ev.dx         = floor(ev.dx * 10000) / 10000;
-    ev.dy         = floor(ev.dy * 10000) / 10000;
-    ev.ratio      = floor(ev.ratio * 10000) / 10000;
-    ev.time_frame = floor(ev.time_frame * 10000) / 10000;
-
-    if (ev.type == KU_EVENT_FRAME || ev.type == KU_EVENT_WINDOW_SHOWN)
-    {
-	/* record and send waiting events */
-	for (int index = 0; index < vmp.eventqueue->length; index++)
-	{
-	    ku_event_t* event = (ku_event_t*) vmp.eventqueue->data[index];
-	    event->frame      = ev.frame;
-	    evrec_record(*event);
-
-	    update_session(*event);
-
-	    if (event->type == KU_EVENT_KEY_DOWN && event->keycode == XKB_KEY_Print) update_screenshot(ev.frame);
-	    else ui_update_cursor((ku_rect_t){event->x, event->y, 10, 10});
-	}
-
-	mt_vector_reset(vmp.eventqueue);
-
-	/* send frame event */
-	update_session(ev);
-
-	/* force frame request if needed */
-	if (vmp.wlwindow->frame_cb == NULL)
-	{
-	    ku_wayland_request_frame(vmp.wlwindow);
-	    ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
-	}
-	else mt_log_error("FRAME CALLBACK NOT NULL!!");
-    }
-    else
-    {
-	/* queue event */
-	void* event = HEAP(ev);
-	VADD(vmp.eventqueue, event);
-    }
-}
-
-/* window update during replay */
-
-void update_replay(ku_event_t ev)
-{
-    if (ev.type == KU_EVENT_WINDOW_SHOWN) load(ev.window);
-
-    if (ev.type == KU_EVENT_FRAME || ev.type == KU_EVENT_WINDOW_SHOWN)
-    {
-	// get recorded events
-	ku_event_t* recev = NULL;
-	while ((recev = evrec_replay(ev.frame)) != NULL)
-	{
-	    update_session(*recev);
-
-	    if (recev->type == KU_EVENT_KEY_DOWN && recev->keycode == XKB_KEY_Print) update_screenshot(ev.frame);
-	    else ui_update_cursor((ku_rect_t){recev->x, recev->y, 10, 10});
-	}
-
-	/* send frame event */
-	update_session(ev);
-
-	/* force frame request if needed */
-	if (vmp.wlwindow->frame_cb == NULL)
-	{
-	    ku_wayland_request_frame(vmp.wlwindow);
-	    ku_wayland_draw_window(vmp.wlwindow, 0, 0, vmp.wlwindow->width, vmp.wlwindow->height);
-	}
-	else mt_log_error("FRAME CALLBACK NOT NULL!!");
-    }
-}
-
 void destroy()
 {
+    ui_destroy();
+    REL(vmp.kuwindow);
     ku_wayland_delete_window(vmp.wlwindow);
 
-    if (vmp.replay) evrec_destroy();
-    if (vmp.record) evrec_destroy();
-
-    ui_destroy();
-
     lib_destroy();
-
-    REL(vmp.eventqueue);
-
-    REL(vmp.kuwindow);
 
     if (!vmp.softrender) ku_renderer_egl_destroy();
 
     SDL_Quit();
-
-    if (vmp.rec_path) REL(vmp.rec_path); // REL 14
-    if (vmp.rep_path) REL(vmp.rep_path); // REL 15
 }
 
 int main(int argc, char* argv[])
@@ -489,9 +363,6 @@ int main(int argc, char* argv[])
 	}
     }
 
-    if (rec_par) vmp.record = 1;
-    if (rep_par) vmp.replay = 1;
-
     srand((unsigned int) time(NULL));
 
     char cwd[PATH_MAX] = {"~"};
@@ -548,26 +419,45 @@ int main(int argc, char* argv[])
     config_set("css_path", css_path);
     config_set("html_path", html_path);
 
-    if (rec_path) config_set("rec_path", rec_path);
-    if (rep_path) config_set("rep_path", rep_path);
+    if (frm_par != NULL)
+    {
+	vmp.width  = atoi(frm_par);
+	char* next = strstr(frm_par, "x");
+	vmp.height = atoi(next + 1);
+    }
+    else
+    {
+	/* TODO calc this based on output size */
+	vmp.width  = 1200;
+	vmp.height = 600;
+    }
 
-    mt_time("config parsing");
+    if (rec_path || rep_path) ku_recorder_init(update);
+    if (rec_path || rep_path) vmp.autotest = 1;
+    if (rec_path)
+    {
+	char* tgt_path = mt_path_new_append(rec_path, "session.rec");
+	ku_recorder_record(tgt_path);
+	REL(tgt_path);
+	vmp.pngpath = rec_path;
+    }
+    if (rep_path)
+    {
+	char* tgt_path = mt_path_new_append(rep_path, "session.rec");
+	ku_recorder_replay(tgt_path);
+	REL(tgt_path);
+	vmp.pngpath = rep_path;
+    }
 
-    /* this two shouldn't go into the config file because of record/replay */
-
-    vmp.rec_path = rec_path;
-    vmp.rep_path = rep_path;
-
-    if (rec_path) evrec_init_recorder(rec_path); // DESTROY 4
-    if (rep_path) evrec_init_player(rep_path);
-
-    if (rec_path != NULL) ku_wayland_init(init, update_record, destroy, 0);
-    else if (rep_path != NULL) ku_wayland_init(init, update_replay, destroy, 16);
+    /* proxy events through the recorder in case of record/replay */
+    if (rec_path || rep_path) ku_wayland_init(init, ku_recorder_update, destroy, 0);
     else ku_wayland_init(init, update, destroy, 1000); // needs second updates because of time field
 
     config_destroy(); // DESTROY 0
 
     // cleanup
+
+    ku_recorder_destroy();
 
     if (cfg_par) REL(cfg_par); // REL 0
     if (lib_par) REL(lib_par); // REL 1
