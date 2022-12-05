@@ -85,6 +85,11 @@ void load(wl_window_t* info)
 
     if (vmp.autotest) ui_add_cursor();
 
+    ku_window_layout(vmp.kuwindow);
+}
+
+void load_data()
+{
     mt_map_t* fields = MNEW();
 
     MPUTR(fields, "artist", STRNC("artist"));
@@ -216,14 +221,16 @@ void update(ku_event_t ev)
 
 		if (config_get_bool("lib_organize")) lib_organize(config_get("lib_path"), lib_get_db());
 
-		lib_write(config_get("lib_path"));
+		if (lib_write(config_get("lib_path")))
+		{
 
-		mt_vector_t* entries = VNEW();
-		lib_get_entries(entries);
-		songlist_set_songs(entries);
-		REL(entries);
+		    mt_vector_t* entries = VNEW();
+		    lib_get_entries(entries);
+		    songlist_set_songs(entries);
+		    REL(entries);
 
-		ui_update_songlist();
+		    ui_update_songlist();
+		}
 
 		REL(vmp.analyzer);
 		vmp.analyzer       = NULL;
@@ -278,6 +285,8 @@ void update(ku_event_t ev)
 	    vmp.dirtyrect = dirty;
 	}
     }
+
+    if (ev.type == KU_EVENT_WINDOW_SHOWN) load_data();
 }
 
 void destroy()

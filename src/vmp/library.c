@@ -6,15 +6,15 @@
 void lib_init();
 void lib_destroy();
 void lib_read(char* libpath);
-void lib_write(char* libpath);
+int  lib_write(char* libpath);
 void lib_add_entries(mt_vector_t* entries);
 void lib_remove_entries(mt_vector_t* entries);
 void lib_add_entry(char* path, mt_map_t* entry);
 void lib_remove_entry(mt_map_t* entry);
 void lib_remove_non_existing(mt_map_t* files);
 void lib_filter_existing(mt_map_t* files);
-int  lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry);
-int  lib_organize(char* libpath, mt_map_t* db);
+void lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry);
+void lib_organize(char* libpath, mt_map_t* db);
 
 void lib_get_genres(mt_vector_t* vec);
 void lib_get_artists(mt_vector_t* vec);
@@ -40,6 +40,7 @@ void lib_update_metadata(char* path, mt_map_t* changed, mt_vector_t* removed);
 #include <limits.h>
 
 mt_map_t* db;
+int       db_changed = 0;
 
 void lib_init()
 {
@@ -65,30 +66,40 @@ void lib_read(char* libpath)
     REL(dbpath); // REL 0
 }
 
-void lib_write(char* libpath)
+int lib_write(char* libpath)
 {
     assert(libpath != NULL);
 
-    char* dbpath = STRNF(PATH_MAX + NAME_MAX, "/%s/vmp.kvl", libpath); // REL 0
+    if (db_changed)
+    {
+	char* dbpath = STRNF(PATH_MAX + NAME_MAX, "/%s/vmp.kvl", libpath); // REL 0
 
-    int res = kvlist_write(dbpath, db);
+	int res = kvlist_write(dbpath, db);
 
-    if (res < 0) mt_log_debug("ERROR lib_write cannot write database %s\n", dbpath);
+	if (res < 0) mt_log_debug("ERROR lib_write cannot write database %s\n", dbpath);
 
-    mt_log_debug("%i entries written", db->count);
+	mt_log_debug("%i entries written", db->count);
 
-    REL(dbpath); // REL 0
+	REL(dbpath); // REL 0
+
+	db_changed = 0;
+
+	return 1;
+    }
+    return 0;
 }
 
 void lib_add_entry(char* path, mt_map_t* entry)
 {
     MPUT(db, path, entry);
+    db_changed = 1;
 }
 
 void lib_remove_entry(mt_map_t* entry)
 {
     char* path = MGET(entry, "path");
     MDEL(db, path);
+    db_changed = 1;
 }
 
 void lib_add_entries(mt_vector_t* entries)
@@ -107,13 +118,14 @@ void lib_remove_entries(mt_vector_t* entries)
     {
 	mt_map_t* entry = entries->data[index];
 	char*     path  = MGET(entry, "path");
-	if (path) lib_remove_entry(entry);
+	if (path && MGET(db, path)) lib_remove_entry(entry);
     }
 }
 
 void lib_reset()
 {
     mt_map_reset(db);
+    db_changed = 1;
 }
 
 mt_map_t* lib_get_db()
@@ -182,11 +194,9 @@ char* lib_replace_char(char* str, char find, char replace)
     return str;
 }
 
-int lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry)
+void lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry)
 {
     assert(libpath != NULL);
-
-    int changed = 0;
 
     char* path   = MGET(entry, "path");
     char* artist = MGET(entry, "artist");
@@ -229,7 +239,7 @@ int lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry)
 	    MPUT(entry, "path", new_path_rel);
 	    MPUT(db, new_path_rel, entry);
 	    MDEL(db, path);
-	    changed = 1;
+	    db_changed = 1;
 	}
     }
 
@@ -238,18 +248,15 @@ int lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry)
     REL(new_dirs);     // REL 1
     REL(new_path);     // REL 2
     REL(new_path_rel); // REL 3
-
-    return 0;
 }
 
-int lib_organize(char* libpath, mt_map_t* db)
+void lib_organize(char* libpath, mt_map_t* db)
 {
     mt_log_debug("db : organizing database");
 
     // go through all db entries, check path, move if needed
 
-    int          changed = 0;
-    mt_vector_t* paths   = VNEW(); // REL 0
+    mt_vector_t* paths = VNEW(); // REL 0
 
     mt_map_keys(db, paths);
 
@@ -258,15 +265,10 @@ int lib_organize(char* libpath, mt_map_t* db)
 	char*     path  = paths->data[index];
 	mt_map_t* entry = MGET(db, path);
 
-	if (entry)
-	{
-	    changed |= lib_organize_entry(libpath, db, entry);
-	}
+	if (entry) lib_organize_entry(libpath, db, entry);
     }
 
     REL(paths); // REL 0
-
-    return changed;
 }
 
 int lib_comp_genre(void* left, void* right)

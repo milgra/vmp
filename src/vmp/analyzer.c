@@ -29,9 +29,8 @@ analyzer_t* analyzer_run(mt_vector_t* songs);
 
 int analyzer_thread(void* chptr)
 {
-    analyzer_t*  analyzer = chptr;
-    mt_vector_t* trash    = VNEW();
-    char*        libpath  = config_get("lib_path");
+    analyzer_t* analyzer = chptr;
+    char*       libpath  = config_get("lib_path");
 
     for (int index = 0; index < analyzer->songs->length; index++)
     {

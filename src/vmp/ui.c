@@ -429,17 +429,16 @@ void ui_on_btn_event(vh_button_event_t event)
     }
     if (strcmp(event.view->id, "metaacceptbtn") == 0)
     {
-	printf("CAHNEGED\n");
-
 	mt_memory_describe(ui.edited_changed, 0);
 
 	char* path   = MGET(ui.edited_song, "path");
 	int   result = coder_write_metadata(config_get("lib_path"), path, ui.edited_cover, ui.edited_changed, ui.edited_deleted);
 	if (result >= 0)
 	{
-	    printf("metadata upadted\n");
+	    printf("metadata udated\n");
 	    // modify song in db also if metadata is successfully written into file
-	    // db_update_metadata(path, ep.changed, ep.removed);
+	    lib_update_metadata(path, ui.edited_changed, ui.edited_deleted);
+	    if (config_get_bool("lib_organize")) lib_organize_entry(config_get("lib_path"), lib_get_db(), ui.edited_song);
 	}
 
 	ku_view_remove_from_parent(ui.metapopupcont);
