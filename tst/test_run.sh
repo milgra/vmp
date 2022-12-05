@@ -2,7 +2,14 @@
 
 exe="$1/vmp"
 
-sh tst/test_rep.sh tst/ui_file $exe
+echo "Test metadata editing in a non-organized library"
+sh tst/test_rep.sh tst/ui_non_organized_meta $exe
+
+echo "Test metadata editing in an organized library"
+sh tst/test_rep.sh tst/ui_organized_meta $exe -o
+
+echo "Test delete"
+sh tst/test_rep.sh tst/ui_delete $exe -o
 
 error=$?
 if [ $error -eq 0 ]

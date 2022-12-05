@@ -365,6 +365,8 @@ void lib_update_metadata(char* path, mt_map_t* changed, mt_vector_t* removed)
     }
 
     REL(keys); // REL 0
+
+    db_changed = 1;
 }
 
 #endif

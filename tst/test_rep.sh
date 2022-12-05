@@ -19,7 +19,7 @@ else
     rm -rf screenshot*
     cd ../../..
     echo "COMMAND: $2 -r res -v -p $savedir -l $testdir -c $savedir -f 1200x800"
-    $2 -r res -v -p $savedir -l $testdir -c $savedir -f 1200x800
+    $2 -r res -v -p $savedir -l $testdir -c $savedir -f 1200x800 $3
     echo "REPLAY FINISHED, DIFFING"
     diff -r $masterdir $testdir
     

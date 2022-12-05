@@ -11,7 +11,8 @@ else
     rm -rf $testdir
     cp -r $basedir $testdir 
     echo "(RE-)RECORDING $1"
-    build/vmp -r res -v -s $savedir -l $testdir -c $savedir -f 1200x800
+    echo "COMMAND: build/vmp -r res -v -p $savedir -l $testdir -c $savedir -f 1200x800 $3"
+    build/vmp -r res -v -s $savedir -l $testdir -c $savedir -f 1200x800 $3
     echo "RECORDING FINISHED"
     rm -rf $masterdir
     cp -r $testdir $masterdir

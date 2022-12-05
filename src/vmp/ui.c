@@ -777,9 +777,6 @@ void on_table_event(vh_table_event_t event)
 		    char* value = MGET(info, "value");
 		    if (!value) value = "";
 
-		    printf("EDITED SONG BEFORE:\n");
-		    mt_memory_describe(ui.edited_song, 0);
-
 		    if (value)
 		    {
 			vh_textinput_set_text(ui.inputtf, value);
