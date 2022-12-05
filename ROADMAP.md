@@ -1,5 +1,10 @@
 # Visual Music Player development roadmap
 
+- aac metadata not saved during test
+- test organization eseten dupla file
+- test diff eseten added date nem jo
+- genre/artist filternel input text problem
+- field sortingnal nem tnuik el popup
 - video on github page
 - tech video, automated ui/full test, logban meg a leakek is lathatoak
 - clear makepkg errors
