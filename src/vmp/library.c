@@ -8,6 +8,7 @@ void lib_destroy();
 void lib_read(char* libpath);
 void lib_write(char* libpath);
 void lib_add_entries(mt_vector_t* entries);
+void lib_remove_entries(mt_vector_t* entries);
 void lib_add_entry(char* path, mt_map_t* entry);
 void lib_remove_entry(mt_map_t* entry);
 void lib_remove_non_existing(mt_map_t* files);
@@ -81,7 +82,6 @@ void lib_write(char* libpath)
 
 void lib_add_entry(char* path, mt_map_t* entry)
 {
-    printf("adding entry %s\n", path);
     MPUT(db, path, entry);
 }
 
@@ -98,6 +98,16 @@ void lib_add_entries(mt_vector_t* entries)
 	mt_map_t* entry = entries->data[index];
 	char*     path  = MGET(entry, "path");
 	if (path) lib_add_entry(path, entry);
+    }
+}
+
+void lib_remove_entries(mt_vector_t* entries)
+{
+    for (int index = 0; index < entries->length; index++)
+    {
+	mt_map_t* entry = entries->data[index];
+	char*     path  = MGET(entry, "path");
+	if (path) lib_remove_entry(entry);
     }
 }
 

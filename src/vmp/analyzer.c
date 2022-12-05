@@ -8,6 +8,8 @@
 typedef struct _analyzer_t
 {
     mt_vector_t* songs;
+    mt_vector_t* add;
+    mt_vector_t* remove;
     float        ratio;
 } analyzer_t;
 
@@ -64,11 +66,21 @@ int analyzer_thread(void* chptr)
 	    if (strcmp(artist, "...") == 0) MPUTR(song, "artist", STRNC("Unknown"));
 	    if (strcmp(album, "...") == 0) MPUTR(song, "album", STRNC("Unknown"));
 	    if (strcmp(title, "...") == 0) MPUTR(song, "title", mt_path_new_filename(path));
+
+	    char* duration = MGET(song, "duration");
+	    if (strcmp(duration, "0") == 0 || strcmp(duration, "0:00") == 0)
+	    {
+		VADD(analyzer->remove, song);
+	    }
+	    else
+	    {
+		VADD(analyzer->add, song);
+	    }
 	}
 	else
 	{
 	    // file is not a media file readable by ffmpeg, we skip it
-	    VADD(trash, song);
+	    VADD(analyzer->remove, song);
 	}
 
 	// cleanup
@@ -78,10 +90,6 @@ int analyzer_thread(void* chptr)
 	// show progress
 	analyzer->ratio = (float) index / (float) analyzer->songs->length;
     }
-
-    mt_vector_rem_in_vector(analyzer->songs, trash);
-
-    REL(trash);
 
     analyzer->ratio = 1.0;
 
@@ -93,13 +101,17 @@ void analyzer_del(void* pointer)
     analyzer_t* analyzer = pointer;
 
     REL(analyzer->songs);
+    REL(analyzer->add);
+    REL(analyzer->remove);
 }
 
 analyzer_t* analyzer_run(mt_vector_t* songs)
 {
     analyzer_t* analyzer = CAL(sizeof(analyzer_t), analyzer_del, NULL);
 
-    analyzer->songs = RET(songs);
+    analyzer->songs  = RET(songs);
+    analyzer->add    = VNEW();
+    analyzer->remove = VNEW();
 
     SDL_CreateThread(analyzer_thread, "analyzer", analyzer);
 

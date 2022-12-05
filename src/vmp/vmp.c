@@ -211,9 +211,18 @@ void update(ku_event_t ev)
 
 	    if (vmp.analyzer->ratio == 1.0)
 	    {
-		lib_add_entries(vmp.analyzer->songs);
+		lib_remove_entries(vmp.analyzer->remove);
+		lib_add_entries(vmp.analyzer->add);
+
 		if (config_get_bool("lib_organize")) lib_organize(config_get("lib_path"), lib_get_db());
+
 		lib_write(config_get("lib_path"));
+
+		mt_vector_t* entries = VNEW();
+		lib_get_entries(entries);
+		songlist_set_songs(entries);
+		REL(entries);
+
 		ui_update_songlist();
 
 		REL(vmp.analyzer);
