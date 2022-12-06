@@ -15,7 +15,7 @@ played
 size
 73225
 path
-MOTHER nocover nometa.opus
+Unknown/Unknown/MOTHER nocover nometa.opus
 audio_0/samplerate
 48000
 artist
@@ -30,6 +30,61 @@ streams
 1
 album
 Unknown
+type
+audio
+-
+disc
+0/0
+audio_0/bitrate
+128000
+duration
+0:07
+played
+0
+genre
+Electronic
+size
+124746
+TYER
+0
+path
+10cc/10cc/000 I'm Not In Love.mp3
+audio_0/samplerate
+44100
+artist
+10cc
+skipped
+0
+video_1/bitrate
+0
+container
+mpeg
+video_1/samplerate
+0
+plays
+0
+video_1/d_width
+226
+added
+...
+skips
+0
+title
+I'm Not In Love
+video_1/channels
+0
+video_1/d_height
+223
+encoder
+Lavf58.45.100
+audio_0/channels
+2
+track
+0/0
+streams
+2
+album
+10cc
 type
 audio
 -
@@ -50,7 +105,7 @@ played
 size
 98305
 path
-ADELE nocover nometa.aac
+Adele/Adele/ADELE nocover nometa.aac
 audio_0/samplerate
 48000
 artist
@@ -79,7 +134,7 @@ played
 size
 255293
 path
-ROYKSOPP nocover nometa.mp4
+Unknown/Unknown/ROYKSOPP nocover nometa.mp4
 artist
 Unknown
 skipped
@@ -120,59 +175,4 @@ album
 Unknown
 type
 video
--
-disc
-0/0
-audio_0/bitrate
-128000
-duration
-0:07
-played
-0
-genre
-Electronic
-size
-124746
-TYER
-0
-path
-NOINLOVE cover meta.mp3
-audio_0/samplerate
-44100
-artist
-10cc
-skipped
-0
-video_1/bitrate
-0
-container
-mpeg
-video_1/samplerate
-0
-plays
-0
-video_1/d_width
-226
-added
-...
-skips
-0
-title
-I'm Not In Love
-video_1/channels
-0
-video_1/d_height
-223
-encoder
-Lavf58.45.100
-audio_0/channels
-2
-track
-0/0
-streams
-2
-album
-10cc
-type
-audio
 -
