@@ -31,6 +31,7 @@ int analyzer_thread(void* chptr)
 {
     analyzer_t* analyzer = chptr;
     char*       libpath  = config_get("lib_path");
+    int         autotest = config_get("autotest") != NULL;
 
     for (int index = 0; index < analyzer->songs->length; index++)
     {
@@ -45,7 +46,7 @@ int analyzer_thread(void* chptr)
 
 	// add file data
 
-	MPUT(song, "added", time_str);
+	if (!autotest) MPUT(song, "added", time_str);
 	MPUTR(song, "played", STRNC("0"));
 	MPUTR(song, "skipped", STRNC("0"));
 	MPUTR(song, "plays", STRNC("0"));
