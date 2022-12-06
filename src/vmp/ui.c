@@ -47,6 +47,7 @@ void ui_update_cursor(ku_rect_t frame);
 #include "tg_css.c"
 #include "tg_knob.c"
 #include "tg_text.c"
+#include "vh_anim.c"
 #include "vh_button.c"
 #include "vh_key.c"
 #include "vh_knob.c"
@@ -663,8 +664,45 @@ void on_table_event(vh_table_event_t event)
 	{
 	    if (ui.contextpopupcont->parent == NULL)
 	    {
-		ku_view_add_subview(ui.view_base, ui.contextpopupcont);
-		ku_view_layout(ui.view_base, ui.view_base->style.scale);
+		/* ku_view_add_subview(ui.view_base, ui.contextpopupcont); */
+		/* ku_view_layout(ui.view_base, ui.view_base->style.scale); */
+
+		if (ui.contextpopupcont->parent == NULL)
+		{
+		    ku_view_t* contextpopup = ui.contextpopupcont->views->data[0];
+		    ku_rect_t  iframe       = contextpopup->frame.global;
+		    iframe.x                = event.ev.x + 20.0;
+		    iframe.y                = event.ev.y;
+		    ku_view_add_subview(ui.view_base, ui.contextpopupcont);
+		    ku_view_set_frame(contextpopup, iframe);
+
+		    ku_view_t* contexttableevt = GETV(ui.contextpopupcont, "contexttable_event");
+		    ku_window_activate(ui.window, contexttableevt, 1);
+
+		    ku_rect_t start = contextpopup->frame.local;
+
+		    printf("FRAME %f %f %f %f\n", start.x, start.y, start.w, start.h);
+
+		    ku_rect_t end = start;
+
+		    start.x += 40;
+		    start.w -= 80;
+		    start.h = 10;
+		    ku_view_set_frame(contextpopup, start);
+
+		    vh_anim_frame(contextpopup, start, end, 0, 15, AT_EASE);
+
+		    ku_view_t* contextanim = GETV(contextpopup, "contextpopupanim");
+
+		    start = contextanim->frame.local;
+		    end   = start;
+
+		    start.w -= 80;
+		    start.h = 10;
+		    ku_view_set_frame(contextanim, start);
+
+		    vh_anim_frame(contextanim, start, end, 0, 15, AT_EASE);
+		}
 	    }
 	}
 	else if (event.id == VH_TABLE_EVENT_OPEN)
@@ -993,20 +1031,31 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     ku_view_t* contextpopupcont = ku_view_get_subview(ui.view_base, "contextpopupcont");
     ku_view_t* contextpopup     = ku_view_get_subview(ui.view_base, "contextpopup");
+    ku_view_t* contextanimv     = GETV(bv, "contextpopupanim");
+
+    vh_anim_add(contextanimv, NULL, NULL);
 
     contextpopup->blocks_touch  = 1;
     contextpopup->blocks_scroll = 1;
 
     ui.contextpopupcont = RET(contextpopupcont);
 
+    vh_anim_add(contextpopup, NULL, NULL);
+
     fields = VNEW();
 
     VADDR(fields, mt_string_new_cstring("value"));
     VADDR(fields, mt_number_new_int(200));
 
+    /* TODO re-think the popup animation, too much stuff is needed to set it up */
     ku_view_t* contexttablev = GETV(bv, "contexttable");
     vh_table_attach(contexttablev, fields, on_table_event);
     vh_table_show_scrollbar(contexttablev, 0);
+
+    vh_table_t* table = contexttablev->handler_data;
+
+    /* hack for context menu popup animation */
+    table->layr_v->style.masked = 0;
 
     REL(fields);
 
