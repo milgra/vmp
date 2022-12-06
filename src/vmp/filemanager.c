@@ -129,7 +129,7 @@ void fm_delete_file(char* fm_path, mt_map_t* entry)
 
 int fm_rename_file(char* old_path, char* new_path, char* new_dirs)
 {
-    mt_log_debug("lib : renaming %s to %s", old_path, new_path);
+    /* mt_log_debug("lib : renaming %s to %s", old_path, new_path); */
 
     int error = fm_create(new_dirs, 0777);
 

@@ -15,6 +15,7 @@ void lib_remove_non_existing(mt_map_t* files);
 void lib_filter_existing(mt_map_t* files);
 void lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry);
 void lib_organize(char* libpath, mt_map_t* db);
+void lib_list_paths();
 
 void lib_get_genres(mt_vector_t* vec);
 void lib_get_artists(mt_vector_t* vec);
@@ -235,9 +236,15 @@ void lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry)
 	int error = fm_rename_file(old_path, new_path, new_dirs);
 	if (error == 0)
 	{
-	    MPUT(entry, "path", new_path_rel);
+	    /* first delete entry from db */
+	    RET(entry);
 	    MDEL(db, path);
+	    /* this will release the old path value in the map so it must be second */
+	    MPUT(entry, "path", new_path_rel);
+	    /* finally put entry under new path */
 	    MPUT(db, new_path_rel, entry);
+	    REL(entry);
+
 	    db_changed = 1;
 	}
     }
@@ -366,6 +373,15 @@ void lib_update_metadata(char* path, mt_map_t* changed, mt_vector_t* removed)
     REL(keys); // REL 0
 
     db_changed = 1;
+}
+
+void lib_list_paths()
+{
+    // first remove deleted files from db
+    mt_vector_t* paths = VNEW(); // REL 0
+    mt_map_keys(db, paths);
+    mt_memory_describe(paths, 0);
+    REL(paths);
 }
 
 #endif

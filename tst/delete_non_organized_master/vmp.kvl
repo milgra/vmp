@@ -1,5 +1,5 @@
 audio_0/bitrate
-127345
+0
 plays
 0
 added
@@ -7,15 +7,15 @@ added
 skips
 0
 title
-ADELE nocover nometa
+MOTHER nocover nometa
 duration
 0:06
 played
 0
 size
-98305
+73225
 path
-ADELE nocover nometa.aac
+MOTHER nocover nometa.opus
 audio_0/samplerate
 48000
 artist
@@ -25,7 +25,7 @@ skipped
 audio_0/channels
 2
 container
-aac
+ogg
 streams
 1
 album
