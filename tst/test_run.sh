@@ -19,6 +19,9 @@ sh tst/test_rep.sh tst/delete_non_organized $exe
 echo -e "\nTest organized delete\n"
 sh tst/test_rep.sh tst/delete_organized $exe -o
 
+echo -e "\nTest organized play\n"
+sh tst/test_rep.sh tst/play_organized $exe -o
+
 error=$?
 if [ $error -eq 0 ]
 then
