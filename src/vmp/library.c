@@ -235,10 +235,9 @@ void lib_organize_entry(char* libpath, mt_map_t* db, mt_map_t* entry)
 	int error = fm_rename_file(old_path, new_path, new_dirs);
 	if (error == 0)
 	{
-	    mt_log_debug("db : updating path");
 	    MPUT(entry, "path", new_path_rel);
-	    MPUT(db, new_path_rel, entry);
 	    MDEL(db, path);
+	    MPUT(db, new_path_rel, entry);
 	    db_changed = 1;
 	}
     }

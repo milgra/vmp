@@ -8,13 +8,16 @@ exe="$1/vmp"
 #build/vmp -r res -v -p tst/ui_delete_test/record -l tst/ui_delete_test -c tst/ui_delete_test -f 1200x800 -o
 
 echo "Test metadata editing in a non-organized library"
-sh tst/test_rep.sh tst/ui_non_organized_meta $exe
+sh tst/test_rep.sh tst/meta_non_organized $exe
 
 echo "Test metadata editing in an organized library"
-sh tst/test_rep.sh tst/ui_organized_meta $exe -o
+sh tst/test_rep.sh tst/meta_organized $exe -o
 
-echo "Test delete"
-sh tst/test_rep.sh tst/ui_delete $exe -o
+echo "Test non-organized delete"
+sh tst/test_rep.sh tst/delete_non_organized $exe
+
+echo "Test organized delete"
+sh tst/test_rep.sh tst/delete_organized $exe -o
 
 error=$?
 if [ $error -eq 0 ]

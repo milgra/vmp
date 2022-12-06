@@ -1,7 +1,6 @@
 #include "analyzer.c"
 #include "coder.c"
 #include "config.c"
-#include "evrecorder.c"
 #include "filemanager.c"
 #include "ku_bitmap_ext.c"
 #include "ku_connector_wayland.c"
@@ -223,7 +222,6 @@ void update(ku_event_t ev)
 
 		if (lib_write(config_get("lib_path")))
 		{
-
 		    mt_vector_t* entries = VNEW();
 		    lib_get_entries(entries);
 		    songlist_set_songs(entries);
@@ -450,8 +448,12 @@ int main(int argc, char* argv[])
 	vmp.height = 600;
     }
 
-    if (rec_path || rep_path) ku_recorder_init(update);
-    if (rec_path || rep_path) vmp.autotest = 1;
+    if (rec_path || rep_path)
+    {
+	ku_recorder_init(update);
+	vmp.autotest = 1;
+	config_set("autotest", "autotest");
+    }
     if (rec_path)
     {
 	char* tgt_path = mt_path_new_append(rec_path, "session.rec");

@@ -690,6 +690,12 @@ void on_table_event(vh_table_event_t event)
 		    lib_remove_entry(song);
 		    fm_delete_file(config_get("lib_path"), song);
 		    lib_write(config_get("lib_path"));
+
+		    mt_vector_t* entries = VNEW();
+		    lib_get_entries(entries);
+		    songlist_set_songs(entries);
+		    REL(entries);
+
 		    ui_update_songlist();
 		}
 	    }

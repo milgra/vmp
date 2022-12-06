@@ -130,7 +130,6 @@ vmp_inc = include_directories(
 
 com_sources = ['src/vmp/analyzer.c',
 	       'src/vmp/config.c',
-	       'src/vmp/evrecorder.c',
 	       'src/vmp/filemanager.c',
 	       'src/vmp/kvlist.c',
 	       'src/vmp/library.c',

@@ -1,21 +1,76 @@
+disc
+0/0
 audio_0/bitrate
+128000
+duration
+0:07
+played
+0
+genre
+Electronic
+size
+124746
+TYER
+0
+path
+10cc/Unknown/000 I'm Not In Love.mp3
+audio_0/samplerate
+44100
+artist
+10cc
+skipped
+0
+video_1/bitrate
+0
+container
+mpeg
+video_1/samplerate
 0
 plays
 0
+video_1/d_width
+226
 added
-2022-12-05 21:50
+2022-12-06 12:58
 skips
 0
 title
-MOTHER nocover nometa
+I'm Not In Love
+video_1/channels
+0
+video_1/d_height
+223
+encoder
+Lavf58.45.100
+audio_0/channels
+2
+track
+0/0
+streams
+2
+album
+Unknown
+type
+audio
+-
+audio_0/bitrate
+127345
+plays
+0
+added
+2022-12-06 12:58
+skips
+0
+title
+ADELE nocover nometa
 duration
 0:06
 played
 0
 size
-73225
+98305
 path
-MOTHER nocover nometa.opus
+Unknown/Unknown/ADELE nocover nometa.aac
 audio_0/samplerate
 48000
 artist
@@ -25,7 +80,7 @@ skipped
 audio_0/channels
 2
 container
-ogg
+aac
 streams
 1
 album
@@ -44,7 +99,7 @@ played
 size
 255293
 path
-ROYKSOPP nocover nometa.mp4
+Unknown/Unknown/ROYKSOPP nocover nometa.mp4
 artist
 Unknown
 skipped
@@ -60,7 +115,7 @@ video_0/d_width
 plays
 0
 added
-2022-12-05 21:50
+2022-12-06 12:58
 skips
 0
 title
@@ -85,59 +140,4 @@ album
 Unknown
 type
 video
--
-disc
-0/0
-audio_0/bitrate
-128000
-duration
-0:07
-played
-0
-genre
-Electronic
-size
-124746
-TYER
-0
-path
-NOINLOVE cover meta.mp3
-audio_0/samplerate
-44100
-artist
-10cc
-skipped
-0
-video_1/bitrate
-0
-container
-mpeg
-video_1/samplerate
-0
-plays
-0
-video_1/d_width
-226
-added
-2022-12-05 21:50
-skips
-0
-title
-I'm Not In Love
-video_1/channels
-0
-video_1/d_height
-223
-encoder
-Lavf58.45.100
-audio_0/channels
-2
-track
-0/0
-streams
-2
-album
-Unknown
-type
-audio
 -
