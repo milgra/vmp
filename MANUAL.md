@@ -41,12 +41,13 @@ Visual Music Player will parse your library and create a database from your song
  
 ## 2. The Main Interface
 
-Visual Music Player's main user interface has four main parts :  
+Visual Music Player's main user interface has five main parts :  
 
 - The toolbar
 - The library browser
 - The search/filter bar
 - The visualizer overlays
+- The context menu
 
 ## 3. The toolbar
 

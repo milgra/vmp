@@ -1,8 +1,12 @@
 # Visual Music Player development roadmap
 
-- aac metadata not saved during test
-- test organization eseten dupla file
-- test diff eseten added date nem jo
+- context menu over empty table
+- CTRL V context menu
+- filter text remains visible when selecting artist/genre
+- kinetic ui update
+- go to current not working, freezes after a few try
+- context menu center text
+- multiple file selected/edit/delete
 - genre/artist filternel input text problem
 - field sortingnal nem tnuik el popup
 - video on github page

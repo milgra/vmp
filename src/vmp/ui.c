@@ -673,6 +673,10 @@ void on_table_event(vh_table_event_t event)
 		    ku_rect_t  iframe       = contextpopup->frame.global;
 		    iframe.x                = event.ev.x + 20.0;
 		    iframe.y                = event.ev.y;
+
+		    if (iframe.y + iframe.h > ui.window->height) iframe.y = ui.window->height - iframe.h;
+		    if (iframe.x + iframe.w > ui.window->width) iframe.x = ui.window->width - iframe.w;
+
 		    ku_view_add_subview(ui.view_base, ui.contextpopupcont);
 		    ku_view_set_frame(contextpopup, iframe);
 
