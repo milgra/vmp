@@ -381,8 +381,10 @@ int main(int argc, char* argv[])
 
     srand((unsigned int) time(NULL));
 
-    char cwd[PATH_MAX] = {"~"};
-    getcwd(cwd, sizeof(cwd));
+    char  cwd[PATH_MAX] = {"~"};
+    char* res           = getcwd(cwd, sizeof(cwd));
+
+    if (res == NULL) mt_log_error("getcwd error");
 
     char* wrk_path    = mt_path_new_normalize(cwd, NULL); // REL 5
     char* lib_path    = lib_par ? mt_path_new_normalize(lib_par, wrk_path) : mt_path_new_normalize("~/Music", wrk_path);
