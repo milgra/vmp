@@ -1,5 +1,4 @@
-# vmp
-Visual music player
+# Visual music player
 
 Visuam Music Player is a music player, visualizer and organizer inspired by the 2000's era iTunes and the tracker music players of the early 90's. VMP was made for SwayOS.
 
@@ -20,14 +19,15 @@ Or read the user guide for further information : [Open User Guide](MANUAL.md)
 
 ## Long description ##
 
-Visuam Music Player is a music player, visualizer and organizer inspired by the 2000's era iTunes and the tracker music players of the early 90's. It plays and organizes any kind of audio or video.
-By default it tries to parse music from the folder ~/Music. You can set a different library location with the -l switch.
-You can browse genres and artist by clicking on the filter button or you can do free text filter in the filter text field.
-With a right click or by pressing CTRL-V you can open the context menu. Edit, Delete the selected song from here or jump to the currently played song if not visible.
-You can also open the metadata viewer/editor by pressing on the editor button. Double click on the artist/album/title/genre field to edit it. Click on the folder button over the cover art to ember a new file as cover art.
-Scroll over the seek knob to set a new positon or click on it. Scroll over the volume knob to set volume or click on it.
-Click on the visualizer to select the next visualizer available.
-VMP's UI can be structured via html, styled via css.
+Visuam Music Player is a music player, visualizer and organizer inspired by the 2000's era iTunes and the tracker music players of the early 90's.
+It plays and organizes any kind of audio or video.  
+By default it tries to parse music from the folder ~/Music. You can set a different library location with the -l switch.  
+You can browse genres and artist by clicking on the filter button or you can do free text filter in the filter text field.  
+With a right click or by pressing CTRL-V you can open the context menu. Edit, Delete the selected song from here or jump to the currently played song if not visible.  
+You can also open the metadata viewer/editor by pressing on the editor button. Double click on the artist/album/title/genre field to edit it. Click on the folder button over the cover art to ember a new file as cover art.  
+Scroll over the seek knob to set a new positon or click on it. Scroll over the volume knob to set volume or click on it.  
+Click on the visualizer to select the next visualizer available.  
+VMP's UI can be structured via html, styled via css.  
 
 ## Installation ##
 
