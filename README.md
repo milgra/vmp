@@ -5,7 +5,7 @@ Visuam Music Player is a music player, visualizer and organizer inspired by the 
 
 [![alt text](screenshot.png)](https://www.youtube.com/watch?v=vAeLmADOVO0)
 
-Watch the introduction/user guide [video on youtube](https://www.youtube.com/watch?v=vAeLmADOVO0)
+Watch the introduction/user guide [video on youtube](https://www.youtube.com/watch?v=vAeLmADOVO0)  
 Or read the user guide for further information : [Open User Guide](MANUAL.md)
 
 ## Features ##
