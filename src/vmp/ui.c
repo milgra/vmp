@@ -665,9 +665,6 @@ void on_table_event(vh_table_event_t event)
 	{
 	    if (ui.contextpopupcont->parent == NULL)
 	    {
-		/* ku_view_add_subview(ui.view_base, ui.contextpopupcont); */
-		/* ku_view_layout(ui.view_base, ui.view_base->style.scale); */
-
 		if (ui.contextpopupcont->parent == NULL)
 		{
 		    ku_view_t* contextpopup = ui.contextpopupcont->views->data[0];
@@ -679,6 +676,7 @@ void on_table_event(vh_table_event_t event)
 		    if (iframe.x + iframe.w > ui.window->width) iframe.x = ui.window->width - iframe.w;
 
 		    ku_view_add_subview(ui.view_base, ui.contextpopupcont);
+		    ku_view_layout(ui.view_base, ui.view_base->style.scale);
 		    ku_view_set_frame(contextpopup, iframe);
 
 		    ku_view_t* contexttableevt = GETV(ui.contextpopupcont, "contexttable_event");
@@ -959,8 +957,8 @@ void ui_init(int width, int height, float scale, ku_window_t* window)
 
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Visual Music Player v%s beta by Milan Toth", VMP_VERSION)}));
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Free and Open Source Software")}));
-    VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "")}));
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Donate on Paypal")}));
+    VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "")}));
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Organize Library : %s", config_get("lib_organize"))}));
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Library Path : %s", config_get("lib_path"))}));
 

@@ -1,6 +1,5 @@
 # Visual Music Player development roadmap
 
-- context menu over empty table
 - CTRL V context menu
 - filter text remains visible when selecting artist/genre
 - kinetic ui update
