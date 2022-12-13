@@ -153,7 +153,8 @@ void ui_play_song(mt_map_t* song)
 	    int skips = atoi(MGET(ui.played_song, "skips"));
 	    MPUTR(ui.played_song, "skips", STRNF(10, "%i", ++skips));
 	}
-	ui_update_songlist();
+	// TODO don't reset songlist, causes jumps on normal play
+	/* ui_update_songlist(); */
 	lib_write(config_get("lib_path"));
     }
 
@@ -743,12 +744,9 @@ void on_table_event(vh_table_event_t event)
 	    }
 	    if (event.selected_index == 2)
 	    {
-		vh_table_t* vh = (vh_table_t*) ui.songtablev->handler_data;
-
-		if (vh->selected_items->length > 0)
+		if (ui.played_song)
 		{
-		    mt_map_t* song  = vh->selected_items->data[0];
-		    uint32_t  index = songlist_get_index(song);
+		    uint32_t index = songlist_get_index(ui.played_song);
 		    if (index < UINT32_MAX) vh_table_select(ui.songtablev, index, 0);
 		}
 	    }

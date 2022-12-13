@@ -377,6 +377,8 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 
 	uint32_t pos = mt_vector_index_of_data(vh->selected_items, data);
 
+	// TODO this is duplicated in CONTEXT event, simplify
+
 	if (pos == UINT32_MAX)
 	{
 	    /* reset selected if control is not down */
@@ -434,37 +436,58 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
     }
     else if (event.id == VH_TBL_EVENT_CONTEXT)
     {
-	vh->selected_index = event.index;
-
-	mt_map_t* data = vh->items->data[event.index];
-
-	uint32_t pos = mt_vector_index_of_data(vh->selected_items, data);
-
-	if (pos == UINT32_MAX)
+	if (event.index > -1)
 	{
-	    /* reset selected if control is not down */
-	    if (!event.ev.ctrl_down)
-	    {
-		mt_vector_reset(vh->selected_items);
-		vh_tbl_body_t* bvh = vh->body_v->handler_data;
+	    vh->selected_index = event.index;
 
-		for (int index = 0; index < bvh->items->length; index++)
+	    mt_map_t* data = vh->items->data[event.index];
+
+	    uint32_t pos = mt_vector_index_of_data(vh->selected_items, data);
+
+	    // TODO this is duplicated in CONTEXT event, simplify
+
+	    if (pos == UINT32_MAX)
+	    {
+		/* reset selected if control is not down */
+
+		if (!event.ev.ctrl_down)
 		{
-		    ku_view_t* item = bvh->items->data[index];
-		    if (item->style.background_color == 0x006600FF)
+		    mt_vector_reset(vh->selected_items);
+		    vh_tbl_body_t* bvh = vh->body_v->handler_data;
+
+		    for (int index = 0; index < bvh->items->length; index++)
 		    {
-			item->style.background_color = 0x000000FF;
-			ku_view_invalidate_texture(item);
+			ku_view_t* item = bvh->items->data[index];
+
+			textstyle_t style = index % 2 == 0 ? vh->rowastyle : vh->rowbstyle;
+
+			for (int i = 0; i < item->views->length; i++)
+			{
+			    ku_view_t* cellview = item->views->data[i];
+			    tg_text_set_style(cellview, style);
+			}
 		    }
 		}
+
+		VADD(vh->selected_items, data);
+
+		for (int i = 0; i < event.rowview->views->length; i++)
+		{
+		    ku_view_t* cellview = event.rowview->views->data[i];
+		    tg_text_set_style(cellview, vh->rowsstyle);
+		}
 	    }
-
-	    VADD(vh->selected_items, data);
-
-	    if (event.rowview)
+	    else
 	    {
-		event.rowview->style.background_color = 0x006600FF;
-		ku_view_invalidate_texture(event.rowview);
+		VREM(vh->selected_items, data);
+
+		textstyle_t style = event.index % 2 == 0 ? vh->rowastyle : vh->rowbstyle;
+
+		for (int i = 0; i < event.rowview->views->length; i++)
+		{
+		    ku_view_t* cellview = event.rowview->views->data[i];
+		    tg_text_set_style(cellview, style);
+		}
 	    }
 	}
 
@@ -567,21 +590,24 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 
 	(*vh->on_event)(tevent);
 
-	if (event.ev.repeat == 1)
+	if (event.ev.keycode == XKB_KEY_Down || event.ev.keycode == XKB_KEY_Up)
 	{
-	    /* TODO hack for repeating scroll over media files, make it graceful */
-	    event.ev.repeat = 0;
+	    if (event.ev.repeat == 1)
+	    {
+		/* TODO hack for repeating scroll over media files, make it graceful */
+		event.ev.repeat = 0;
 
-	    tevent = (vh_table_event_t){
-		.table          = vh,
-		.id             = VH_TABLE_EVENT_SELECT,
-		.ev             = event.ev,
-		.selected_items = vh->selected_items,
-		.selected_index = vh->selected_index,
-		.view           = vh->view,
-		.rowview        = vh_tbl_body_item_for_index(vh->body_v, vh->selected_index)};
+		tevent = (vh_table_event_t){
+		    .table          = vh,
+		    .id             = VH_TABLE_EVENT_SELECT,
+		    .ev             = event.ev,
+		    .selected_items = vh->selected_items,
+		    .selected_index = vh->selected_index,
+		    .view           = vh->view,
+		    .rowview        = vh_tbl_body_item_for_index(vh->body_v, vh->selected_index)};
 
-	    (*vh->on_event)(tevent);
+		(*vh->on_event)(tevent);
+	    }
 	}
     }
 }
@@ -850,6 +876,7 @@ void vh_table_select(
 
     if (bvh->bot_index < vh->selected_index)
     {
+	printf("VJUMP BOT %i SEL %i\n", bvh->bot_index, vh->selected_index);
 	vh_tbl_body_vjump(vh->body_v, vh->selected_index + 1, 0);
 
 	if (bvh->tail_index == bvh->bot_index)
