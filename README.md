@@ -17,7 +17,7 @@ Or read the user guide for further information : [Open User Guide](MANUAL.md)
 - super lightwight, no GTK/QT
 - super fast headerless C power
 
-## Long description ##
+## Description ##
 
 Visuam Music Player is a music player, visualizer and organizer inspired by the 2000's era iTunes and the tracker music players of the early 90's.
 It plays and organizes any kind of audio or video.  
