@@ -1,5 +1,6 @@
 # Visual Music Player development roadmap
 
+- use dependency in meson.build
 - CTRL V context menu
 - filter text remains visible when selecting artist/genre
 - kinetic ui update

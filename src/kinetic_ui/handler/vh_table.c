@@ -876,7 +876,6 @@ void vh_table_select(
 
     if (bvh->bot_index < vh->selected_index)
     {
-	printf("VJUMP BOT %i SEL %i\n", bvh->bot_index, vh->selected_index);
 	vh_tbl_body_vjump(vh->body_v, vh->selected_index + 1, 0);
 
 	if (bvh->tail_index == bvh->bot_index)
