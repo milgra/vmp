@@ -34,16 +34,17 @@ VMP's UI can be structured via html, styled via css.
 Install the needed dependencies and libraries:
 
 ```
-libpng,libjpg,libjbig2dec,libopenjp2,
-libgl,libglew,libegl,libwegl,
-libavutil,libavcodec,libavdevice,libavformat,libavfilter,libswscale,libswresample,
-libsdl2,libfreetype,libharfbuzz,libxkbcommon
-fonts-terminus
+git meson ninja-build pkg-config - build tools
+libgl,libglew,libegl,libwegl,libgles2,libfreetype,libxkbcommon,wayland-client,wayland-protocols - for rendering the ui and handling key events
+libpng,libjpg,libjbig2dec,libopenjp2,libharfbuzz - mupdf related
+libavutil,libavcodec,libavdevice,libavformat,libavfilter,libswscale,libswresample,libsdl2 - for media encode/decode
+fonts-terminus - for default font
+
 ````
 
 On debian based systems :
 ```
-sudo apg-get install meson ninja-build pkg-config cmake libpng-dev libjpeg-dev libjbig2dec-dev libopenjp2-7pdev libgl-dev libgles2-mesa-dev libmesa1-dev libglew-dev libegl-dev libwayland-dev wayland-protocols libswscale-dev libavutil-dev libavdevice-dev libharfbuzz-dev libgumbo-dev libsdl2-dev libfreetype-dev libxkbcommon-dev fonts-terminus
+sudo apg-get install git meson ninja-build pkg-config libpng-dev libfreetype-dev libgl-dev libegl-dev libglew-dev libwayland-dev libxkbcommon-dev wayland-protocols libgles2-mesa-dev libsdl2-dev libswscale-dev libjpeg-dev libjbig2dec-dev libopenjp2-7-dev libharfbuzz-dev libavutil-dev libavdevice-dev
 
 ```
 
