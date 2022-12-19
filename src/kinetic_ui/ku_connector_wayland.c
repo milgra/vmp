@@ -503,6 +503,7 @@ static const char* get_mode_name(enum zxdg_toplevel_decoration_v1_mode mode)
 	case ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE:
 	    return "server-side decorations";
     }
+    return NULL;
 }
 
 static void decoration_handle_configure(void* data, struct zxdg_toplevel_decoration_v1* decoration, enum zxdg_toplevel_decoration_v1_mode mode)

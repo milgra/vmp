@@ -12,7 +12,6 @@ png = cc.find_library('png',static:false)
 freetype = cc.find_library('freetype',static:false)
 math = cc.find_library('m',static:false)
 z = cc.find_library('z',static:false)
-bz2 = cc.find_library('bz2',static:false)
 rt = cc.find_library('rt',static:false)
 gl = cc.find_library('GL',static:false)
 glew = cc.find_library('GLEW',static:false)
@@ -95,7 +94,6 @@ vmp_dependencies = [
 		  jbig,
 		  hb,
 		  z,
-		  bz2,
 		  xkbcommon,
 		  egl,
 		  wegl]
