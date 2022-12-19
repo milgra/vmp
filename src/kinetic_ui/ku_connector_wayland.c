@@ -32,7 +32,6 @@
 #include "mt_time.c"
 #include "pointer-gestures-unstable-v1-client-protocol.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
-#include "xdg-decoration-unstable-v1-client-protocol.h"
 #include "xdg-output-unstable-v1-client-protocol.h"
 #include "xdg-shell-client-protocol.h"
 
@@ -132,7 +131,6 @@ struct _wl_window_t
     struct pointer_info                  pointer; /* pointer state */
     struct zwp_pointer_gesture_pinch_v1* pinch;
     struct wl_pointer*                   wl_pointer;
-    struct zxdg_toplevel_decoration_v1*  decoration;
 
     /* backing buffer for native window */
 
@@ -205,7 +203,6 @@ struct wlc_t
     struct zwp_pointer_gestures_v1*      pointer_manager;
     struct zwp_pointer_gesture_pinch_v1* pinch_gesture;
     struct zwp_pointer_gesture_hold_v1*  hold_gesture;
-    struct zxdg_decoration_manager_v1*   decoration_manager;
 
     int pointer_manager_version;
 
@@ -463,7 +460,6 @@ static void ku_wayland_layer_surface_configure(void* data, struct zwlr_layer_sur
     {
 	if (info->width != width || info->height != height)
 	{
-	    printf("RESZE\n");
 	    info->width         = width;
 	    info->height        = height;
 	    info->buffer_width  = info->width * info->scale;
@@ -490,29 +486,6 @@ static void ku_wayland_layer_surface_closed(void* _data, struct zwlr_layer_surfa
 struct zwlr_layer_surface_v1_listener layer_surface_listener = {
     .configure = ku_wayland_layer_surface_configure,
     .closed    = ku_wayland_layer_surface_closed,
-};
-
-/* decoration events */
-
-static const char* get_mode_name(enum zxdg_toplevel_decoration_v1_mode mode)
-{
-    switch (mode)
-    {
-	case ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE:
-	    return "client-side decorations";
-	case ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE:
-	    return "server-side decorations";
-    }
-    return NULL;
-}
-
-static void decoration_handle_configure(void* data, struct zxdg_toplevel_decoration_v1* decoration, enum zxdg_toplevel_decoration_v1_mode mode)
-{
-    mt_log_debug("Using %s", get_mode_name(mode));
-}
-
-static const struct zxdg_toplevel_decoration_v1_listener decoration_listener = {
-    .configure = decoration_handle_configure,
 };
 
 /* xdg toplevel events */
@@ -677,14 +650,10 @@ wl_window_t* ku_wayland_create_generic_window(char* title, int width, int height
     info->surface      = wl_compositor_create_surface(wlc.compositor);
     info->xdg_surface  = xdg_wm_base_get_xdg_surface(wlc.xdg_wm_base, info->surface);
     info->xdg_toplevel = xdg_surface_get_toplevel(info->xdg_surface);
-    info->decoration   = zxdg_decoration_manager_v1_get_toplevel_decoration(wlc.decoration_manager, info->xdg_toplevel);
 
     wl_surface_add_listener(info->surface, &wl_surface_listener, info);
     xdg_surface_add_listener(info->xdg_surface, &xdg_surface_listener, info);
     xdg_toplevel_add_listener(info->xdg_toplevel, &xdg_toplevel_listener, info);
-    zxdg_toplevel_decoration_v1_add_listener(info->decoration, &decoration_listener, NULL);
-
-    zxdg_toplevel_decoration_v1_set_mode(info->decoration, ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
 
     xdg_toplevel_set_title(info->xdg_toplevel, title);
     xdg_toplevel_set_app_id(info->xdg_toplevel, title);
@@ -1616,7 +1585,7 @@ static void ku_wayland_handle_global(
     const char*         interface,
     uint32_t            version)
 {
-    mt_log_debug("handle global : %s, version %u", interface, version);
+    /* mt_log_debug("handle global : %s, version %u", interface, version); */
 
     if (strcmp(interface, wl_compositor_interface.name) == 0)
     {
@@ -1683,10 +1652,6 @@ static void ku_wayland_handle_global(
 	    wlc.pointer_manager_version = version;
 	    wlc.pointer_manager         = wl_registry_bind(registry, name, &zwp_pointer_gestures_v1_interface, 3);
 	}
-    }
-    else if (strcmp(interface, zxdg_decoration_manager_v1_interface.name) == 0)
-    {
-	wlc.decoration_manager = wl_registry_bind(registry, name, &zxdg_decoration_manager_v1_interface, 1);
     }
 }
 
