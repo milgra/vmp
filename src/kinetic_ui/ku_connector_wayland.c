@@ -508,7 +508,7 @@ static const char* get_mode_name(enum zxdg_toplevel_decoration_v1_mode mode)
 
 static void decoration_handle_configure(void* data, struct zxdg_toplevel_decoration_v1* decoration, enum zxdg_toplevel_decoration_v1_mode mode)
 {
-    mt_log_debug("Using %s\n", get_mode_name(mode));
+    mt_log_debug("Using %s", get_mode_name(mode));
 }
 
 static const struct zxdg_toplevel_decoration_v1_listener decoration_listener = {
