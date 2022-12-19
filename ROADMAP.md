@@ -1,10 +1,8 @@
 # Visual Music Player development roadmap
 
-- use dependency in meson.build
+- donation links
 - CTRL V context menu
 - filter text remains visible when selecting artist/genre
-- kinetic ui update
-- go to current not working, freezes after a few try
 - context menu center text
 - multiple file selected/edit/delete
 - genre/artist filternel input text problem
