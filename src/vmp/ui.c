@@ -1,10 +1,11 @@
 #ifndef ui_h
 #define ui_h
 
+#include "ku_connector_wayland.c"
 #include "ku_view.c"
 #include "ku_window.c"
 
-void ui_init(int width, int height, float scale, ku_window_t* window);
+void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_t* wlwindow);
 void ui_destroy();
 
 void ui_play_next();
@@ -26,7 +27,6 @@ void ui_update_cursor(ku_rect_t frame);
 #include "config.c"
 #include "filemanager.c"
 #include "ku_bitmap.c"
-#include "ku_connector_wayland.c"
 #include "ku_draw.c"
 #include "ku_fontconfig.c"
 #include "ku_gen_css.c"
@@ -67,6 +67,7 @@ enum _ui_inputmode
 struct _ui_t
 {
     ku_window_t* window; /* window for this ui */
+    wl_window_t* wlwindow;
 
     ku_view_t* songtablev;
     ku_view_t* metatablev;
@@ -416,7 +417,7 @@ void ui_on_btn_event(vh_button_event_t event)
 	vh_textinput_activate(ui.inputtf, 1);
     };
     if (strcmp(event.view->id, "exitbtn") == 0) ku_wayland_exit();
-    if (strcmp(event.view->id, "maxbtn") == 0) ku_wayland_toggle_fullscreen();
+    if (strcmp(event.view->id, "maxbtn") == 0) ku_wayland_toggle_fullscreen(ui.wlwindow);
     if (strcmp(event.view->id, "settingsclosebtn") == 0)
     {
 	ku_view_remove_from_parent(ui.settingspopupcont);
@@ -833,11 +834,12 @@ void on_table_event(vh_table_event_t event)
     }
 }
 
-void ui_init(int width, int height, float scale, ku_window_t* window)
+void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_t* wlwindow)
 {
     ku_text_init();
 
-    ui.window = window;
+    ui.window   = window;
+    ui.wlwindow = wlwindow;
 
     ui.edited_changed = MNEW();
     ui.edited_deleted = VNEW();

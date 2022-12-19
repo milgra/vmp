@@ -53,6 +53,15 @@ void songlist_destroy()
     if (sl.sorting) REL(sl.sorting);
     if (sl.sortvec) REL(sl.sortvec);
     if (sl.numfields) REL(sl.numfields);
+
+    sl.fields        = NULL;
+    sl.songs         = NULL;
+    sl.visible_songs = NULL;
+    sl.filter        = NULL;
+    sl.filtermap     = NULL;
+    sl.sorting       = NULL;
+    sl.sortvec       = NULL;
+    sl.numfields     = NULL;
 }
 
 mt_map_t* songlist_get_song(int shuffle)
