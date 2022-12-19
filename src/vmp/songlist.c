@@ -293,8 +293,11 @@ void songlist_set_songs(mt_vector_t* songs)
     sl.songs = NULL;
     if (songs) sl.songs = RET(songs);
 
-    songlist_apply_sorting();
-    songlist_apply_filter();
+    if (songs->length > 0)
+    {
+	songlist_apply_sorting();
+	songlist_apply_filter();
+    }
 }
 
 void songlist_set_fields(mt_map_t* fields)
