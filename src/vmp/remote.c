@@ -18,7 +18,6 @@ void remote_listen(remote_t* remote);
 
 #include "mt_log.c"
 #include <errno.h>
-#include <error.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -49,11 +48,11 @@ void* remote_thread(void* data)
 
 		    int bytes_read = read(fd, buffer, sizeof(buffer));
 
-		    if (bytes_read == -1) perror("read");
+		    if (bytes_read == -1) mt_log_error("read");
 
 		    remote->command = atoi(buffer);
 
-		    if (close(fd) == -1) perror("close");
+		    if (close(fd) == -1) mt_log_error("close");
 
 		    break;
 		}

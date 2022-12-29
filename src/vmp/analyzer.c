@@ -2,7 +2,10 @@
 #define analyzer_h
 
 #include "mt_vector.c"
+#include <limits.h>
+#ifdef __linux__
 #include <linux/limits.h>
+#endif
 #include <stdlib.h>
 
 typedef struct _analyzer_t
