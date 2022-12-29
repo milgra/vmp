@@ -8,30 +8,32 @@ project(
 
 cc = meson.get_compiler('c')
 
-png = cc.find_library('png',static:false)
-freetype = cc.find_library('freetype',static:false)
-math = cc.find_library('m',static:false)
-z = cc.find_library('z',static:false)
-rt = cc.find_library('rt',static:false)
-gl = cc.find_library('GL',static:false)
-glew = cc.find_library('GLEW',static:false)
-sdl2 = cc.find_library('SDL2',static:false)
-egl = cc.find_library('EGL',static:false)
-wegl = cc.find_library('wayland-egl',static:false)
-swscale = cc.find_library('swscale',static:false)
-pthread = cc.find_library('pthread',static:false)
-jpeg = cc.find_library('jpeg',static:false)
-jbig = cc.find_library('jbig2dec',static:false)
-ojpeg = cc.find_library('openjp2',static:false)
-hb = cc.find_library('harfbuzz',static:false)
-avutil = cc.find_library('avutil',static:false)
-avcodec = cc.find_library('avcodec',static:false)
-avdevice = cc.find_library('avdevice',static:false)
-avformat = cc.find_library('avformat',static:false)
-avfilter = cc.find_library('avfilter',static:false)
-swresample = cc.find_library('swresample',static:false)
-
+z = cc.find_library('z')
+rt = cc.find_library('rt')
+hb = cc.find_library('harfbuzz')
+png = cc.find_library('png')
+math = cc.find_library('m')
+sdl2 = cc.find_library('SDL2')
+pthread = cc.find_library('pthread')
+freetype = cc.find_library('freetype')
 xkbcommon = dependency('xkbcommon')
+
+gl = cc.find_library('GL')
+egl = cc.find_library('EGL')
+wegl = cc.find_library('wayland-egl')
+glew = cc.find_library('GLEW')
+
+jpeg = cc.find_library('jpeg')
+jbig = cc.find_library('jbig2dec')
+ojpeg = cc.find_library('openjp2')
+
+avutil = cc.find_library('avutil')
+avcodec = cc.find_library('avcodec')
+avdevice = cc.find_library('avdevice')
+avformat = cc.find_library('avformat')
+avfilter = cc.find_library('avfilter')
+swscale = cc.find_library('swscale')
+swresample = cc.find_library('swresample')
 
 wayland_client      = dependency('wayland-client')
 wayland_cursor      = dependency('wayland-cursor')
@@ -109,11 +111,6 @@ if get_option('buildtype') == 'debug'
 endif
 
 vmp_inc = include_directories(
-	'/usr/include',
-	'/usr/include/GLES2',
-	'/usr/include/EGL',
-	'/usr/include/SDL2',
-	'/usr/include/freetype2',
 	'src/mt_math',
 	'src/mt_core',
 	'src/media_player',
@@ -125,6 +122,25 @@ vmp_inc = include_directories(
 	'src/vmp',
 	'src/mt_core_ext')
 
+if build_machine.system() == 'freebsd'
+   vmp_inc = [
+   	   vmp_inc,
+	   include_directories( 
+   	   '/usr/local/include',
+	   '/usr/local/include/GLES2',
+	   '/usr/local/include/EGL',
+	   '/usr/local/include/SDL2',
+	   '/usr/local/include/freetype2')]
+else
+   vmp_inc = [
+   	   vmp_inc,
+	   include_directories( 
+   	   '/usr/include',
+	   '/usr/include/GLES2',
+	   '/usr/include/EGL',
+	   '/usr/include/SDL2',
+	   '/usr/include/freetype2')]
+endif
 
 com_sources = ['src/vmp/analyzer.c',
 	       'src/vmp/config.c',
