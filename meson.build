@@ -131,6 +131,8 @@ if build_machine.system() == 'freebsd'
 	   '/usr/local/include/EGL',
 	   '/usr/local/include/SDL2',
 	   '/usr/local/include/freetype2')]
+   epoll = cc.find_library('epoll-shim')
+   vmp_dependencies += epoll
 else
    vmp_inc = [
    	   vmp_inc,
