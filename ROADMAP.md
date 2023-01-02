@@ -1,5 +1,7 @@
 # Visual Music Player development roadmap
 
+- after a few songs autoplay next stops
+- at first click meta editor is empty
 - donation links
 - CTRL V context menu
 - filter text remains visible when selecting artist/genre
