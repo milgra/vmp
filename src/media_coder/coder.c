@@ -250,7 +250,8 @@ int coder_load_cover_into(const char* path, ku_bitmap_t* bitmap)
 
     AVFormatContext* src_ctx = avformat_alloc_context(); // FREE 0
 
-    if (avformat_open_input(&src_ctx, path, NULL, NULL) != 0) mt_log_error("avformat_open_input() failed");
+    if (avformat_open_input(&src_ctx, path, NULL, NULL) != 0)
+	mt_log_error("avformat_open_input() failed");
 
     // find the first attached picture, if available
     for (i = 0; i < src_ctx->nb_streams; i++)
@@ -298,7 +299,8 @@ int coder_load_cover_into(const char* path, ku_bitmap_t* bitmap)
 		pitch[0] = bitmap->w * 4;
 		sws_scale(img_convert_ctx, (const uint8_t* const*) frame->data, frame->linesize, 0, frame->height, scaledpixels, pitch);
 
-		if (bitmap) ku_draw_insert_argb(bitmap, scaledpixels[0], bitmap->w, bitmap->h, 0, 0);
+		if (bitmap)
+		    ku_draw_insert_rgba(bitmap, scaledpixels[0], bitmap->w, bitmap->h, 0, 0);
 
 		sws_freeContext(img_convert_ctx); // FREE 3
 		free(scaledpixels[0]);

@@ -1,7 +1,5 @@
 # Visual Music Player development roadmap
 
-- implement hold
-- cover art argb problem
 - double key strokes after a while
 - donation links
 - CTRL V context menu
