@@ -179,7 +179,7 @@ void          mp_unmute(MediaState_t* ms);
 void          mp_set_volume(MediaState_t* ms, float volume);
 void          mp_set_position(MediaState_t* ms, float ratio);
 void          mp_set_visutype(MediaState_t* ms, int visutype);
-void          mp_video_refresh(MediaState_t* opaque, double* remaining_time, ku_bitmap_t* bm);
+void          mp_video_refresh(MediaState_t* opaque, double* remaining_time, ku_bitmap_t* bm, int display);
 void          mp_audio_refresh(MediaState_t* opaque, ku_bitmap_t* bml, ku_bitmap_t* bmr);
 double        mp_get_master_clock(MediaState_t* ms);
 
@@ -1214,8 +1214,9 @@ int mp_read_thread(void* arg)
 
 			if (!paused && vidend && audend)
 			{
-			    mp_stream_seek(ms, 0, 0, 0);
-			    ms->finished = 1;
+			  // mp_stream_seek(ms, 0, 0, 0);
+			  mp_stream_toggle_pause(ms);
+			  ms->finished = 1;
 			}
 
 			/* read next packet */
@@ -1528,7 +1529,7 @@ void video_display(MediaState_t* ms, ku_bitmap_t* bm)
 }
 
 /* called to display each frame */
-void mp_video_refresh(MediaState_t* ms, double* remaining_time, ku_bitmap_t* bm)
+void mp_video_refresh(MediaState_t* ms, double* remaining_time, ku_bitmap_t* bm, int display)
 {
     double time;
 
@@ -1537,7 +1538,8 @@ void mp_video_refresh(MediaState_t* ms, double* remaining_time, ku_bitmap_t* bm)
     time = av_gettime_relative() / 1000000.0;
     if (ms->force_refresh || ms->last_vis_time + rdftspeed1 < time)
     {
-	video_display(ms, bm);
+	if (display)
+	    video_display(ms, bm);
 	ms->last_vis_time = time;
     }
     *remaining_time = FFMIN(*remaining_time, ms->last_vis_time + rdftspeed1 - time);
@@ -1564,9 +1566,11 @@ void mp_video_refresh(MediaState_t* ms, double* remaining_time, ku_bitmap_t* bm)
 		goto retry;
 	    }
 
-	    if (lastvp->serial != vp->serial) ms->frame_timer = av_gettime_relative() / 1000000.0;
+	    if (lastvp->serial != vp->serial)
+		ms->frame_timer = av_gettime_relative() / 1000000.0;
 
-	    if (ms->paused) goto display;
+	    if (ms->paused)
+		goto display;
 
 	    /* compute nominal last_duration */
 	    last_duration = vp_duration(ms, lastvp, vp);
@@ -1603,11 +1607,13 @@ void mp_video_refresh(MediaState_t* ms, double* remaining_time, ku_bitmap_t* bm)
 	    frame_queue_next(&ms->vidfq);
 	    ms->force_refresh = 1;
 
-	    if (ms->step_frame && !ms->paused) mp_stream_toggle_pause(ms);
+	    if (ms->step_frame && !ms->paused)
+		mp_stream_toggle_pause(ms);
 	}
     display:
 	/* display picture */
-	if (ms->force_refresh && ms->vidfq.rindex_shown) video_display(ms, bm);
+	if (ms->force_refresh && ms->vidfq.rindex_shown && display)
+	    video_display(ms, bm);
     }
     ms->force_refresh = 0;
 }

@@ -1197,10 +1197,11 @@ void ui_update_player()
     {
 	if (!ui.ms->paused)
 	{
+	    double rem;
+	    mp_video_refresh(ui.ms, &rem, ui.cover->texture.bitmap, !ui.hide_visuals);
+
 	    if (ui.hide_visuals == 0)
 	    {
-		double rem;
-		mp_video_refresh(ui.ms, &rem, ui.cover->texture.bitmap);
 		mp_audio_refresh(ui.ms, ui.visL->texture.bitmap, ui.visR->texture.bitmap);
 		ui.cover->texture.changed = 1;
 		ui.visL->texture.changed  = 1;
@@ -1225,9 +1226,9 @@ void ui_update_player()
 		double ratio = time / ui.ms->duration;
 		tg_knob_set_angle(ui.seekknob, ratio * 6.28 - 3.14 / 2.0);
 	    }
-
-	    if (ui.ms->finished) ui_play_next();
 	}
+	if (ui.ms->finished)
+	    ui_play_next();
     }
 }
 

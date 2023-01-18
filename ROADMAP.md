@@ -1,7 +1,8 @@
 # Visual Music Player development roadmap
 
-- after a few songs autoplay next stops
-- at first click meta editor is empty
+- implement hold
+- cover art argb problem
+- double key strokes after a while
 - donation links
 - CTRL V context menu
 - filter text remains visible when selecting artist/genre
@@ -9,12 +10,8 @@
 - multiple file selected/edit/delete
 - genre/artist filternel input text problem
 - field sortingnal nem tnuik el popup
-- video on github page
 - tech video, automated ui/full test, logban meg a leakek is lathatoak
-- clear makepkg errors
-- goto current song doesn't work
 - create test case for library organization
-- animated positioned context menu like in mmfm
 - working settingslist
 - auto test with 2x scaling
 - user manual update
