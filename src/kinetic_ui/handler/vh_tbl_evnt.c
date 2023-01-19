@@ -326,8 +326,8 @@ void vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
     }
     else if (ev.type == KU_EVENT_HOLD)
     {
-	vh->sx = 0.1;
-	vh->sy = 0.1;
+	vh->sx = 0.0;
+	vh->sy = 0.0;
     }
 }
 
