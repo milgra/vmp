@@ -1305,7 +1305,10 @@ static void keyboard_enter(void* data, struct wl_keyboard* wl_keyboard, uint32_t
 
 static void keyboard_leave(void* data, struct wl_keyboard* wl_keyboard, uint32_t serial, struct wl_surface* surface)
 {
-    /* mt_log_debug("keyboard leave"); */
+    /* stop repeater */
+
+    struct itimerspec spec = {0};
+    timerfd_settime(wlc.keyboard.rep_timer_fd, 0, &spec, NULL);
 }
 
 static void keyboard_key(void* data, struct wl_keyboard* wl_keyboard, uint32_t serial, uint32_t time, uint32_t key, uint32_t _key_state)
