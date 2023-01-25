@@ -1,6 +1,7 @@
 # Visual Music Player development roadmap
 
-- double key strokes after a while
+- key event moves cursor in two tables
+- cursor should disappear from filter field
 - donation links
 - CTRL V context menu
 - filter text remains visible when selecting artist/genre

@@ -1558,27 +1558,49 @@ static void ku_wayland_seat_handle_capabilities(void* data, struct wl_seat* wl_s
 {
     /* mt_log_debug("seat handle capabilities %i", caps); */
 
-    if (caps & WL_SEAT_CAPABILITY_KEYBOARD)
+    if ((caps & WL_SEAT_CAPABILITY_KEYBOARD))
     {
-	wlc.keyboard.kbd = wl_seat_get_keyboard(wl_seat);
-	wl_keyboard_add_listener(wlc.keyboard.kbd, &keyboard_listener, NULL);
+	if (wlc.keyboard.kbd == NULL)
+	{
+	    wlc.keyboard.kbd = wl_seat_get_keyboard(wl_seat);
+	    wl_keyboard_add_listener(wlc.keyboard.kbd, &keyboard_listener, NULL);
+	}
+    }
+    else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD))
+    {
+	if (wlc.keyboard.kbd)
+	{
+	    wl_keyboard_destroy(wlc.keyboard.kbd);
+	    wlc.keyboard.kbd = NULL;
+	}
     }
 
     if (caps & WL_SEAT_CAPABILITY_POINTER)
     {
-	wlc.ipointer = wl_seat_get_pointer(wl_seat);
-	wl_pointer_add_listener(wlc.ipointer, &pointer_listener, NULL);
-
-	if (wlc.pointer_manager)
+	if (wlc.ipointer == NULL)
 	{
-	    wlc.pinch_gesture = zwp_pointer_gestures_v1_get_pinch_gesture(wlc.pointer_manager, wlc.ipointer);
-	    zwp_pointer_gesture_pinch_v1_add_listener(wlc.pinch_gesture, &gesture_pinch_listener, wl_seat);
+	    wlc.ipointer = wl_seat_get_pointer(wl_seat);
+	    wl_pointer_add_listener(wlc.ipointer, &pointer_listener, NULL);
 
-	    if (wlc.pointer_manager_version >= ZWP_POINTER_GESTURES_V1_GET_HOLD_GESTURE_SINCE_VERSION)
+	    if (wlc.pointer_manager)
 	    {
-		wlc.hold_gesture = zwp_pointer_gestures_v1_get_hold_gesture(wlc.pointer_manager, wlc.ipointer);
-		zwp_pointer_gesture_hold_v1_add_listener(wlc.hold_gesture, &gesture_hold_listener, wl_seat);
+		wlc.pinch_gesture = zwp_pointer_gestures_v1_get_pinch_gesture(wlc.pointer_manager, wlc.ipointer);
+		zwp_pointer_gesture_pinch_v1_add_listener(wlc.pinch_gesture, &gesture_pinch_listener, wl_seat);
+
+		if (wlc.pointer_manager_version >= ZWP_POINTER_GESTURES_V1_GET_HOLD_GESTURE_SINCE_VERSION)
+		{
+		    wlc.hold_gesture = zwp_pointer_gestures_v1_get_hold_gesture(wlc.pointer_manager, wlc.ipointer);
+		    zwp_pointer_gesture_hold_v1_add_listener(wlc.hold_gesture, &gesture_hold_listener, wl_seat);
+		}
 	    }
+	}
+    }
+    else if (!(caps & WL_SEAT_CAPABILITY_POINTER))
+    {
+	if (wlc.ipointer)
+	{
+	    wl_pointer_destroy(wlc.ipointer);
+	    wlc.ipointer = NULL;
 	}
     }
 }
