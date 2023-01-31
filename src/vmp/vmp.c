@@ -214,7 +214,8 @@ void update(ku_event_t ev)
 {
     /* printf("UPDATE %i %u %i %i\n", ev.type, ev.time, ev.w, ev.h); */
 
-    if (ev.type == KU_EVENT_WINDOW_SHOWN) load(ev.window);
+    if (ev.type == KU_EVENT_WINDOW_SHOWN)
+	load(ev.window);
 
     if (ev.type == KU_EVENT_FRAME || ev.type == KU_EVENT_TIME)
     {
@@ -222,9 +223,12 @@ void update(ku_event_t ev)
 
 	if (vmp.remote.command > 0)
 	{
-	    if (vmp.remote.command == 1) ui_toggle_pause();
-	    if (vmp.remote.command == 2) ui_play_next();
-	    if (vmp.remote.command == 3) ui_play_prev();
+	    if (vmp.remote.command == 1)
+		ui_toggle_pause();
+	    if (vmp.remote.command == 2)
+		ui_play_next();
+	    if (vmp.remote.command == 3)
+		ui_play_prev();
 	    vmp.remote.command = 0;
 	}
 
@@ -244,7 +248,8 @@ void update(ku_event_t ev)
 		lib_remove_entries(vmp.analyzer->remove);
 		lib_add_entries(vmp.analyzer->add);
 
-		if (config_get_bool("lib_organize")) lib_organize(config_get("lib_path"), lib_get_db());
+		if (config_get_bool("lib_organize"))
+		    lib_organize(config_get("lib_path"), lib_get_db());
 
 		if (lib_write(config_get("lib_path")))
 		{
@@ -265,52 +270,62 @@ void update(ku_event_t ev)
 	ui_update_player();
     }
 
-    ku_window_event(vmp.kuwindow, ev);
-
-    if (vmp.autotest)
+    if (vmp.kuwindow)
     {
-	/* create screenshot if needed */
-	if (ev.type == KU_EVENT_KEY_DOWN && ev.keycode == XKB_KEY_Print)
+	ku_window_event(vmp.kuwindow, ev);
+
+	if (vmp.autotest)
 	{
-	    static int shotindex = 0;
+	    /* create screenshot if needed */
+	    if (ev.type == KU_EVENT_KEY_DOWN && ev.keycode == XKB_KEY_Print)
+	    {
+		static int shotindex = 0;
 
-	    char* name = mt_string_new_format(20, "screenshot%.3i.png", shotindex++);
-	    char* path = mt_path_new_append(vmp.pngpath, name);
+		char* name = mt_string_new_format(20, "screenshot%.3i.png", shotindex++);
+		char* path = mt_path_new_append(vmp.pngpath, name);
 
-	    if (vmp.softrender) ku_renderer_soft_screenshot(&vmp.wlwindow->bitmap, path);
-	    else ku_renderer_egl_screenshot(&vmp.wlwindow->bitmap, path);
+		if (vmp.softrender)
+		    ku_renderer_soft_screenshot(&vmp.wlwindow->bitmap, path);
+		else
+		    ku_renderer_egl_screenshot(&vmp.wlwindow->bitmap, path);
 
-	    ui_update_cursor((ku_rect_t){0, 0, vmp.wlwindow->width, vmp.wlwindow->height});
+		ui_update_cursor((ku_rect_t){0, 0, vmp.wlwindow->width, vmp.wlwindow->height});
 
-	    printf("SCREENHSOT AT %u : %s\n", ev.frame, path);
+		printf("SCREENHSOT AT %u : %s\n", ev.frame, path);
+	    }
+	    else if (ev.x > 0 && ev.y > 0)
+		ui_update_cursor((ku_rect_t){ev.x, ev.y, 10, 10}); /* update virtual cursor if needed */
 	}
-	else if (ev.x > 0 && ev.y > 0) ui_update_cursor((ku_rect_t){ev.x, ev.y, 10, 10}); /* update virtual cursor if needed */
+
+	if (vmp.wlwindow->frame_cb == NULL)
+	{
+	    ku_rect_t dirty = ku_window_update(vmp.kuwindow, 0);
+
+	    /* in case of record/replay force continuous draw by full size dirty rect */
+	    if (vmp.autotest)
+		dirty = vmp.kuwindow->root->frame.local;
+
+	    if (dirty.w > 0 && dirty.h > 0)
+	    {
+		ku_rect_t sum = ku_rect_add(dirty, vmp.dirtyrect);
+
+		if (vmp.softrender)
+		    ku_renderer_software_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
+		else
+		    ku_renderer_egl_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
+
+		/* frame done request must be requested before draw */
+		ku_wayland_request_frame(vmp.wlwindow);
+		ku_wayland_draw_window(vmp.wlwindow, (int) sum.x, (int) sum.y, (int) sum.w, (int) sum.h);
+
+		/* store current dirty rect for next draw */
+		vmp.dirtyrect = dirty;
+	    }
+	}
     }
 
-    if (vmp.wlwindow->frame_cb == NULL)
-    {
-	ku_rect_t dirty = ku_window_update(vmp.kuwindow, 0);
-
-	/* in case of record/replay force continuous draw by full size dirty rect */
-	if (vmp.autotest) dirty = vmp.kuwindow->root->frame.local;
-
-	if (dirty.w > 0 && dirty.h > 0)
-	{
-	    ku_rect_t sum = ku_rect_add(dirty, vmp.dirtyrect);
-
-	    if (vmp.softrender) ku_renderer_software_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
-	    else ku_renderer_egl_render(vmp.kuwindow->views, &vmp.wlwindow->bitmap, sum);
-
-	    /* frame done request must be requested before draw */
-	    ku_wayland_request_frame(vmp.wlwindow);
-	    ku_wayland_draw_window(vmp.wlwindow, (int) sum.x, (int) sum.y, (int) sum.w, (int) sum.h);
-
-	    /* store current dirty rect for next draw */
-	    vmp.dirtyrect = dirty;
-	}
-    }
-
-    if (ev.type == KU_EVENT_WINDOW_SHOWN) load_data();
+    if (ev.type == KU_EVENT_WINDOW_SHOWN)
+	load_data();
 }
 
 void destroy()

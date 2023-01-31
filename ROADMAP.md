@@ -1,9 +1,8 @@
 # Visual Music Player development roadmap
 
-- cursor should disappear from filter field
-- donation links
 - filter text remains visible when selecting artist/genre
-- context menu center text
+- no inertia scroll while hold
+- donation links
 - multiple file selected/edit/delete
 - genre/artist filternel input text problem
 - field sortingnal nem tnuik el popup
