@@ -1344,6 +1344,18 @@ static void keyboard_key(void* data, struct wl_keyboard* wl_keyboard, uint32_t s
 	}
     }
 
+    /* send key down/up event */
+
+    ku_event_t event = init_event();
+    event.keycode    = sym;
+    event.type       = key_state == WL_KEYBOARD_KEY_STATE_PRESSED ? KU_EVENT_KEY_DOWN : KU_EVENT_KEY_UP;
+    event.ctrl_down  = wlc.keyboard.control;
+    event.shift_down = wlc.keyboard.shift;
+    event.repeat     = wlc.keyboard.rep_event.repeat;
+    (*wlc.update)(event);
+
+    wlc.keyboard.rep_event = event;
+
     if (key_state == WL_KEYBOARD_KEY_STATE_PRESSED && wlc.keyboard.rep_period > 0)
     {
 	/* start repeater */
@@ -1359,23 +1371,8 @@ static void keyboard_key(void* data, struct wl_keyboard* wl_keyboard, uint32_t s
 
 	struct itimerspec spec = {0};
 	timerfd_settime(wlc.keyboard.rep_timer_fd, 0, &spec, NULL);
-
-	ku_event_t event = wlc.keyboard.rep_event;
-	event.type       = KU_EVENT_KEY_UP;
-	event.repeat     = 1;
-	(*wlc.update)(event);
+	wlc.keyboard.rep_event.repeat = 0;
     }
-
-    /* send key down/up event */
-
-    ku_event_t event = init_event();
-    event.keycode    = sym;
-    event.type       = key_state == WL_KEYBOARD_KEY_STATE_PRESSED ? KU_EVENT_KEY_DOWN : KU_EVENT_KEY_UP;
-    event.ctrl_down  = wlc.keyboard.control;
-    event.shift_down = wlc.keyboard.shift;
-    (*wlc.update)(event);
-
-    wlc.keyboard.rep_event = event;
 }
 
 static void keyboard_repeat()

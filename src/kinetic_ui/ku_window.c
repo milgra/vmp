@@ -37,6 +37,7 @@ ku_rect_t    ku_window_update(ku_window_t* window, uint32_t time);
 #if __INCLUDE_LEVEL__ == 0
 
 #include "ku_gl.c"
+#include "mt_log.c"
 #include "mt_math_2d.c"
 #include "mt_time.c"
 #include "mt_vector.c"
@@ -152,10 +153,10 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 		{
 		    if (v->handler)
 			(*v->handler)(v, outev);
-		    if (v->blocks_touch)
-			break;
 		}
 	    }
+	    if (v->blocks_touch)
+		break;
 	}
 
 	mt_vector_reset(win->movqueue);
@@ -164,13 +165,13 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	for (int i = win->movqueue->length - 1; i > -1; i--)
 	{
 	    ku_view_t* v = win->movqueue->data[i];
-	    if (v->needs_touch && v->parent)
+	    if (v->needs_touch)
 	    {
 		if (v->handler)
 		    (*v->handler)(v, ev);
-		if (v->blocks_touch)
-		    break;
 	    }
+	    if (v->blocks_touch)
+		break;
 	}
     }
     else if (ev.type == KU_EVENT_MOUSE_DOWN || ev.type == KU_EVENT_MOUSE_UP)
@@ -190,9 +191,9 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 		{
 		    if (v->handler)
 			(*v->handler)(v, outev);
-		    if (v->blocks_touch)
-			break;
 		}
+		if (v->blocks_touch)
+		    break;
 	    }
 
 	    mt_vector_reset(win->ptrqueue);
@@ -202,13 +203,13 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	for (int i = win->ptrqueue->length - 1; i > -1; i--)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
-	    if (v->needs_touch && v->parent)
+	    if (v->needs_touch)
 	    {
 		if (v->handler)
 		    (*v->handler)(v, ev);
-		if (v->blocks_touch)
-		    break;
 	    }
+	    if (v->blocks_touch)
+		break;
 	}
     }
     else if (ev.type == KU_EVENT_SCROLL)
@@ -219,13 +220,13 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	for (int i = win->ptrqueue->length - 1; i > -1; i--)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
-	    if (v->needs_touch && v->parent)
+	    if (v->needs_touch)
 	    {
 		if (v->handler)
 		    (*v->handler)(v, ev);
-		if (v->blocks_scroll)
-		    break;
 	    }
+	    if (v->blocks_scroll)
+		break;
 	}
     }
     else if (ev.type == KU_EVENT_PINCH)
@@ -236,13 +237,13 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	for (int i = win->ptrqueue->length - 1; i > -1; i--)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
-	    if (v->needs_touch && v->parent)
+	    if (v->needs_touch)
 	    {
 		if (v->handler)
 		    (*v->handler)(v, ev);
-		if (v->blocks_scroll)
-		    break;
 	    }
+	    if (v->blocks_scroll)
+		break;
 	}
     }
     else if (ev.type == KU_EVENT_HOLD)
@@ -253,13 +254,15 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	for (int i = win->ptrqueue->length - 1; i > -1; i--)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
-	    if (v->needs_touch && v->parent)
+
+	    if (v->needs_touch)
 	    {
 		if (v->handler)
 		    (*v->handler)(v, ev);
-		if (v->blocks_scroll)
-		    break;
 	    }
+
+	    if (v->blocks_scroll)
+		break;
 	}
     }
     else if (ev.type == KU_EVENT_KEY_DOWN || ev.type == KU_EVENT_KEY_UP)
@@ -309,13 +312,13 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
 
-	    if (v->needs_key && v->parent)
+	    if (v->needs_key)
 	    {
 		if (v->handler)
 		    (*v->handler)(v, ev);
-		if (v->blocks_key)
-		    break;
 	    }
+	    if (v->blocks_key)
+		break;
 	}
     }
     else if (ev.type == KU_EVENT_TEXT)

@@ -169,9 +169,7 @@ void ku_gl_init(int max_dev_width, int max_dev_height)
 {
     GLenum err = glewInit();
     if (GLEW_OK != err)
-    {
-	printf("ERROR 5 %s\n", glewGetErrorString(err));
-    }
+	mt_log_debug("GLEW Init error %s\n", glewGetErrorString(err));
 
     kugl.shader = ku_gl_create_texture_shader();
     kugl.buffer = ku_gl_create_vertex_buffer();
@@ -195,7 +193,8 @@ void ku_gl_init(int max_dev_width, int max_dev_height)
 
     /* don't let it be bigger than max size */
 
-    if (binsize > value) binsize = value;
+    if (binsize > value)
+	binsize = value;
 
     mt_log_debug("texture size will be %i", binsize);
 

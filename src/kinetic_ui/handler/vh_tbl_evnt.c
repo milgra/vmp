@@ -361,6 +361,7 @@ void vh_tbl_evnt_attach(
     view->handler      = vh_tbl_evnt_evt;
 
     view->needs_key   = 1;
+    view->blocks_key  = 1;
     view->needs_touch = 1;
 }
 

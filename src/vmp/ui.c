@@ -102,6 +102,8 @@ struct _ui_t
     ku_view_t* inputbck;
     ku_view_t* inputtf;
 
+    ku_view_t* rowview_for_context_menu; /* TODO do we need this? */
+
     MediaState_t* ms;
 
     mt_map_t*    edited_song;
@@ -212,11 +214,13 @@ void ui_open_metadata_editor()
 	    char*      path     = MGET(info, "path");
 	    char*      realpath = mt_path_new_append(config_get("lib_path"), path);
 
-	    if (!cover->texture.bitmap) ku_view_gen_texture(cover);
+	    if (!cover->texture.bitmap)
+		ku_view_gen_texture(cover);
 
 	    int success = coder_load_cover_into(realpath, cover->texture.bitmap);
 
-	    if (!success) ku_view_gen_texture(cover);
+	    if (!success)
+		ku_view_gen_texture(cover);
 
 	    cover->texture.changed = 1;
 
@@ -245,6 +249,9 @@ void ui_open_metadata_editor()
 
 	    ui.edited_song = info;
 	}
+
+	ku_view_t* metatableevt = GETV(ui.metapopupcont, "metatable_event");
+	ku_window_activate(ui.window, metatableevt, 1);
     }
 }
 
@@ -253,9 +260,55 @@ void ui_cancel_input()
     ku_view_remove_subview(ui.view_base, ui.inputarea);
 }
 
+void ui_show_context_menu(int x, int y)
+{
+    if (ui.contextpopupcont->parent == NULL)
+    {
+	ku_view_t* contextpopup = ui.contextpopupcont->views->data[0];
+	ku_rect_t  iframe       = contextpopup->frame.global;
+	iframe.x                = x + 20.0;
+	iframe.y                = y;
+
+	if (iframe.y + iframe.h > ui.window->height)
+	    iframe.y = ui.window->height - iframe.h;
+	if (iframe.x + iframe.w > ui.window->width)
+	    iframe.x = ui.window->width - iframe.w;
+
+	ku_view_add_subview(ui.view_base, ui.contextpopupcont);
+	ku_view_layout(ui.view_base, ui.view_base->style.scale);
+	ku_view_set_frame(contextpopup, iframe);
+
+	ku_view_t* contexttableevt = GETV(ui.contextpopupcont, "contexttable_event");
+	ku_window_activate(ui.window, contexttableevt, 1);
+
+	ku_rect_t start = contextpopup->frame.local;
+
+	printf("FRAME %f %f %f %f\n", start.x, start.y, start.w, start.h);
+
+	ku_rect_t end = start;
+
+	start.x += 40;
+	start.w -= 80;
+	start.h = 10;
+	ku_view_set_frame(contextpopup, start);
+
+	vh_anim_frame(contextpopup, start, end, 0, 15, AT_EASE);
+
+	ku_view_t* contextanim = GETV(contextpopup, "contextpopupanim");
+
+	start = contextanim->frame.local;
+	end   = start;
+
+	start.w -= 80;
+	start.h = 10;
+	ku_view_set_frame(contextanim, start);
+
+	vh_anim_frame(contextanim, start, end, 0, 15, AT_EASE);
+    }
+}
+
 void ui_on_key_down(vh_key_event_t event)
 {
-    if (event.ev.keycode == XKB_KEY_space) ui_toggle_pause();
 }
 
 void ui_on_touch(vh_touch_event_t event)
@@ -664,50 +717,11 @@ void on_table_event(vh_table_event_t event)
 	}
 	else if (event.id == VH_TABLE_EVENT_CONTEXT)
 	{
-	    if (ui.contextpopupcont->parent == NULL)
-	    {
-		if (ui.contextpopupcont->parent == NULL)
-		{
-		    ku_view_t* contextpopup = ui.contextpopupcont->views->data[0];
-		    ku_rect_t  iframe       = contextpopup->frame.global;
-		    iframe.x                = event.ev.x + 20.0;
-		    iframe.y                = event.ev.y;
-
-		    if (iframe.y + iframe.h > ui.window->height) iframe.y = ui.window->height - iframe.h;
-		    if (iframe.x + iframe.w > ui.window->width) iframe.x = ui.window->width - iframe.w;
-
-		    ku_view_add_subview(ui.view_base, ui.contextpopupcont);
-		    ku_view_layout(ui.view_base, ui.view_base->style.scale);
-		    ku_view_set_frame(contextpopup, iframe);
-
-		    ku_view_t* contexttableevt = GETV(ui.contextpopupcont, "contexttable_event");
-		    ku_window_activate(ui.window, contexttableevt, 1);
-
-		    ku_rect_t start = contextpopup->frame.local;
-
-		    printf("FRAME %f %f %f %f\n", start.x, start.y, start.w, start.h);
-
-		    ku_rect_t end = start;
-
-		    start.x += 40;
-		    start.w -= 80;
-		    start.h = 10;
-		    ku_view_set_frame(contextpopup, start);
-
-		    vh_anim_frame(contextpopup, start, end, 0, 15, AT_EASE);
-
-		    ku_view_t* contextanim = GETV(contextpopup, "contextpopupanim");
-
-		    start = contextanim->frame.local;
-		    end   = start;
-
-		    start.w -= 80;
-		    start.h = 10;
-		    ku_view_set_frame(contextanim, start);
-
-		    vh_anim_frame(contextanim, start, end, 0, 15, AT_EASE);
-		}
-	    }
+	    ui_show_context_menu(event.ev.x, event.ev.y);
+	}
+	else if (event.id == VH_TABLE_EVENT_SELECT && event.ev.repeat == 0)
+	{
+	    ui.rowview_for_context_menu = event.rowview;
 	}
 	else if (event.id == VH_TABLE_EVENT_OPEN)
 	{
@@ -716,12 +730,27 @@ void on_table_event(vh_table_event_t event)
 
 	    ui_play_song(info);
 	}
+	else if (event.id == VH_TABLE_EVENT_KEY_UP)
+	{
+	    if (event.ev.keycode == XKB_KEY_space)
+		ui_toggle_pause();
+
+	    if (event.ev.keycode == XKB_KEY_v && event.ev.ctrl_down)
+	    {
+		if (ui.rowview_for_context_menu)
+		{
+		    ku_rect_t frame = ui.rowview_for_context_menu->frame.global;
+		    ui_show_context_menu(frame.x, frame.y);
+		}
+	    }
+	}
     }
     else if (strcmp(event.view->id, "contexttable") == 0)
     {
-	if (event.id == VH_TABLE_EVENT_SELECT)
+	if (event.id == VH_TABLE_EVENT_OPEN || (event.id == VH_TABLE_EVENT_SELECT && event.ev.type == KU_EVENT_MOUSE_DOWN))
 	{
-	    if (event.selected_index == 0) ui_open_metadata_editor();
+	    if (event.selected_index == 0)
+		ui_open_metadata_editor();
 	    if (event.selected_index == 1)
 	    {
 		vh_table_t* vh = (vh_table_t*) ui.songtablev->handler_data;
@@ -746,10 +775,22 @@ void on_table_event(vh_table_event_t event)
 		if (ui.played_song)
 		{
 		    uint32_t index = songlist_get_index(ui.played_song);
-		    if (index < UINT32_MAX) vh_table_select(ui.songtablev, index, 0);
+		    if (index < UINT32_MAX)
+			vh_table_select(ui.songtablev, index, 0);
 		}
 	    }
+	    ku_view_t* contexttableevt = GETV(ui.contextpopupcont, "contexttable_event");
+	    ku_window_activate(ui.window, contexttableevt, 0);
 	    ku_view_remove_from_parent(ui.contextpopupcont);
+	}
+	else if (event.id == VH_TABLE_EVENT_KEY_UP)
+	{
+	    if (event.ev.keycode == XKB_KEY_Escape)
+	    {
+		ku_view_t* contexttableevt = GETV(ui.contextpopupcont, "contexttable_event");
+		ku_window_activate(ui.window, contexttableevt, 0);
+		ku_view_remove_from_parent(ui.contextpopupcont);
+	    }
 	}
     }
     else if (strcmp(event.view->id, "genretable") == 0)
@@ -820,7 +861,8 @@ void on_table_event(vh_table_event_t event)
 		    vh_textinput_activate(ui.inputtf, 1);
 
 		    char* value = MGET(info, "value");
-		    if (!value) value = "";
+		    if (!value)
+			value = "";
 
 		    if (value)
 		    {
@@ -829,6 +871,15 @@ void on_table_event(vh_table_event_t event)
 			ui.edited_key = MGET(info, "key");
 		    }
 		}
+	    }
+	}
+	else if (event.id == VH_TABLE_EVENT_KEY_UP)
+	{
+	    if (event.ev.keycode == XKB_KEY_Escape)
+	    {
+		ku_view_t* metatableevt = GETV(ui.metapopupcont, "metatable_event");
+		ku_window_activate(ui.window, metatableevt, 0);
+		ku_view_remove_from_parent(ui.metapopupcont);
 	    }
 	}
     }
@@ -939,6 +990,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     ku_view_t* settingspopupcont = ku_view_get_subview(ui.view_base, "settingspopupcont");
     ku_view_t* settingspopup     = ku_view_get_subview(ui.view_base, "settingspopup");
 
+    settingspopup->blocks_key    = 1;
     settingspopup->blocks_touch  = 1;
     settingspopup->blocks_scroll = 1;
 
@@ -974,6 +1026,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     ku_view_t* filterpopupcont = ku_view_get_subview(ui.view_base, "filterpopupcont");
     ku_view_t* filterpopup     = ku_view_get_subview(ui.view_base, "filterpopup");
 
+    filterpopup->blocks_key    = 1;
     filterpopup->blocks_touch  = 1;
     filterpopup->blocks_scroll = 1;
 
@@ -1010,6 +1063,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     ku_view_remove_from_parent(ui.metaacceptbtn);
 
+    metapopup->blocks_key    = 1;
     metapopup->blocks_touch  = 1;
     metapopup->blocks_scroll = 1;
 
@@ -1037,6 +1091,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     vh_anim_add(contextanimv, NULL, NULL);
 
+    contextpopup->blocks_key    = 1;
     contextpopup->blocks_touch  = 1;
     contextpopup->blocks_scroll = 1;
 
@@ -1165,12 +1220,14 @@ void ui_toggle_pause()
 	if (!ui.ms->paused)
 	{
 	    mp_pause(ui.ms);
-	    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_UP);
+	    if (playbtn)
+		vh_button_set_state(playbtn, VH_BUTTON_UP);
 	}
 	else
 	{
 	    mp_play(ui.ms);
-	    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
+	    if (playbtn)
+		vh_button_set_state(playbtn, VH_BUTTON_DOWN);
 	}
     }
 }
