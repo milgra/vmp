@@ -100,16 +100,17 @@ void vh_anim_evt(ku_view_t* view, ku_event_t ev)
 		else if (vh->type == AT_EASE)
 		{
 		    // speed function based on cosine ( half circle )
-		    float angle = 3.14 + (3.14 / vh->fsteps) * delta;
-		    float delta = (cos(angle) + 1.0) / 2.0;
+		    float angle  = (3.14 / 2 / vh->fsteps) * delta;
+		    float fdelta = sin(angle);
 
-		    cf.x = sf.x + (ef.x - sf.x) * delta;
-		    cf.y = sf.y + (ef.y - sf.y) * delta;
-		    cf.w = sf.w + (ef.w - sf.w) * delta;
-		    cf.h = sf.h + (ef.h - sf.h) * delta;
+		    cf.x = sf.x + (ef.x - sf.x) * fdelta;
+		    cf.y = sf.y + (ef.y - sf.y) * fdelta;
+		    cf.w = sf.w + (ef.w - sf.w) * fdelta;
+		    cf.h = sf.h + (ef.h - sf.h) * fdelta;
 		}
 
-		if (delta == vh->fsteps - 1) cf = ef;
+		if (delta == vh->fsteps - 1)
+		    cf = ef;
 
 		ku_view_set_frame(view, cf);
 
@@ -119,7 +120,8 @@ void vh_anim_evt(ku_view_t* view, ku_event_t ev)
 		{
 		    vh->anim_frame        = 0;
 		    vh_anim_event_t event = {.id = VH_ANIM_END, .view = view, .userdata = vh->userdata};
-		    if (vh->on_event) (*vh->on_event)(event);
+		    if (vh->on_event)
+			(*vh->on_event)(event);
 		}
 	    }
 	}
@@ -159,7 +161,8 @@ void vh_anim_evt(ku_view_t* view, ku_event_t ev)
 		    cr.h = sr.h + (er.h - sr.h) * delta;
 		}
 
-		if (delta == vh->rsteps - 1) cr = er;
+		if (delta == vh->rsteps - 1)
+		    cr = er;
 
 		ku_view_set_region(view, cr);
 
@@ -169,7 +172,8 @@ void vh_anim_evt(ku_view_t* view, ku_event_t ev)
 		{
 		    ku_view_set_region(view, (ku_rect_t){-1, -1, -1. - 1});
 		    vh_anim_event_t event = {.id = VH_ANIM_END, .view = view, .userdata = vh->userdata};
-		    if (vh->on_event) (*vh->on_event)(event);
+		    if (vh->on_event)
+			(*vh->on_event)(event);
 		}
 	    }
 	}
@@ -195,7 +199,8 @@ void vh_anim_evt(ku_view_t* view, ku_event_t ev)
 		    ca          = sa + (ea - sa) * delta;
 		}
 
-		if (vh->astep == vh->asteps - 1) ca = ea;
+		if (vh->astep == vh->asteps - 1)
+		    ca = ea;
 
 		ku_view_set_texture_alpha(view, ca, 1);
 
@@ -205,7 +210,8 @@ void vh_anim_evt(ku_view_t* view, ku_event_t ev)
 		{
 		    vh->anim_alpha        = 0;
 		    vh_anim_event_t event = {.id = VH_ANIM_END, .view = view, .userdata = vh->userdata};
-		    if (vh->on_event) (*vh->on_event)(event);
+		    if (vh->on_event)
+			(*vh->on_event)(event);
 		}
 	    }
 	}

@@ -287,23 +287,25 @@ void ui_show_context_menu(int x, int y)
 
 	ku_rect_t end = start;
 
-	start.x += 40;
-	start.w -= 80;
+	//start.x += 40;
+	//start.w -= 80;
 	start.h = 10;
+	start.y -= 5;
 	ku_view_set_frame(contextpopup, start);
 
-	vh_anim_frame(contextpopup, start, end, 0, 15, AT_EASE);
+	vh_anim_frame(contextpopup, start, end, 0, 20, AT_EASE);
 
 	ku_view_t* contextanim = GETV(contextpopup, "contextpopupanim");
 
 	start = contextanim->frame.local;
 	end   = start;
 
-	start.w -= 80;
+	//start.w -= 80;
 	start.h = 10;
+	start.y -= 5;
 	ku_view_set_frame(contextanim, start);
 
-	vh_anim_frame(contextanim, start, end, 0, 15, AT_EASE);
+	vh_anim_frame(contextanim, start, end, 0, 20, AT_EASE);
     }
 }
 
@@ -339,43 +341,54 @@ void ui_on_btn_event(vh_button_event_t event)
     {
 	if (event.vh->state == VH_BUTTON_DOWN)
 	{
-	    if (ui.ms) mp_play(ui.ms);
+	    if (ui.ms)
+		mp_play(ui.ms);
 	    else
 	    {
 		mt_map_t* song = songlist_get_song(0);
-		if (song) ui_play_song(song);
+		if (song)
+		    ui_play_song(song);
 	    }
 	}
 	else
 	{
-	    if (ui.ms) mp_pause(ui.ms);
+	    if (ui.ms)
+		mp_pause(ui.ms);
 	}
     };
     if (strcmp(event.view->id, "mutebtn") == 0)
     {
 	if (ui.ms)
 	{
-	    if (event.vh->state == VH_BUTTON_DOWN) mp_mute(ui.ms);
-	    else mp_unmute(ui.ms);
+	    if (event.vh->state == VH_BUTTON_DOWN)
+		mp_mute(ui.ms);
+	    else
+		mp_unmute(ui.ms);
 	}
     };
     if (strcmp(event.view->id, "prevbtn") == 0)
     {
 	mt_map_t* prev = NULL;
 
-	if (ui.shuffle == 0 && ui.played_song) prev = songlist_get_prev_song(ui.played_song);
-	else prev = songlist_get_song(1);
+	if (ui.shuffle == 0 && ui.played_song)
+	    prev = songlist_get_prev_song(ui.played_song);
+	else
+	    prev = songlist_get_song(1);
 
-	if (prev) ui_play_song(prev);
+	if (prev)
+	    ui_play_song(prev);
     };
     if (strcmp(event.view->id, "nextbtn") == 0)
     {
 	mt_map_t* next = NULL;
 
-	if (ui.shuffle == 0 && ui.played_song) next = songlist_get_next_song(ui.played_song);
-	else next = songlist_get_song(1);
+	if (ui.shuffle == 0 && ui.played_song)
+	    next = songlist_get_next_song(ui.played_song);
+	else
+	    next = songlist_get_song(1);
 
-	if (next) ui_play_song(next);
+	if (next)
+	    ui_play_song(next);
     };
     if (strcmp(event.view->id, "shufflebtn") == 0)
     {
@@ -469,8 +482,10 @@ void ui_on_btn_event(vh_button_event_t event)
 	ku_window_activate(ui.window, ui.inputtf, 1);
 	vh_textinput_activate(ui.inputtf, 1);
     };
-    if (strcmp(event.view->id, "exitbtn") == 0) ku_wayland_exit();
-    if (strcmp(event.view->id, "maxbtn") == 0) ku_wayland_toggle_fullscreen(ui.wlwindow);
+    if (strcmp(event.view->id, "exitbtn") == 0)
+	ku_wayland_exit();
+    if (strcmp(event.view->id, "maxbtn") == 0)
+	ku_wayland_toggle_fullscreen(ui.wlwindow);
     if (strcmp(event.view->id, "settingsclosebtn") == 0)
     {
 	ku_view_remove_from_parent(ui.settingspopupcont);
@@ -494,7 +509,8 @@ void ui_on_btn_event(vh_button_event_t event)
 	    printf("metadata udated\n");
 	    // modify song in db also if metadata is successfully written into file
 	    lib_update_metadata(path, ui.edited_changed, ui.edited_deleted);
-	    if (config_get_bool("lib_organize")) lib_organize_entry(config_get("lib_path"), lib_get_db(), ui.edited_song);
+	    if (config_get_bool("lib_organize"))
+		lib_organize_entry(config_get("lib_path"), lib_get_db(), ui.edited_song);
 	}
 
 	ku_view_remove_from_parent(ui.metapopupcont);
@@ -526,7 +542,7 @@ void ui_on_text_event(vh_textinput_event_t event)
 {
     if (strcmp(event.view->id, "filtertf") == 0)
     {
-	if (event.id == VH_TEXTINPUT_DEACTIVATE)
+	if (event.id == VH_TEXTINPUT_DEACTIVATE || event.id == VH_TEXTINPUT_RETURN)
 	{
 	    vh_textinput_activate(event.view, 0);
 	    ku_window_activate(ui.window, event.view, 0);
@@ -537,7 +553,8 @@ void ui_on_text_event(vh_textinput_event_t event)
     }
     else if (strcmp(event.view->id, "inputtf") == 0)
     {
-	if (event.id == VH_TEXTINPUT_DEACTIVATE) ui_cancel_input();
+	if (event.id == VH_TEXTINPUT_DEACTIVATE)
+	    ui_cancel_input();
 
 	if (event.id == VH_TEXTINPUT_RETURN)
 	{
@@ -603,7 +620,8 @@ void ui_on_text_event(vh_textinput_event_t event)
 		    printf("loading image\n");
 		    ku_view_t* cover = ku_view_get_subview(ui.metapopupcont, "metacover");
 
-		    if (!cover->texture.bitmap) ku_view_gen_texture(cover);
+		    if (!cover->texture.bitmap)
+			ku_view_gen_texture(cover);
 
 		    coder_load_image_into(path_final, cover->texture.bitmap);
 

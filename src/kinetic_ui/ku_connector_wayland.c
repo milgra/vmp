@@ -991,20 +991,23 @@ void ku_wayland_request_frame(wl_window_t* info)
 
 static void gesture_hold_begin(void* data, struct zwp_pointer_gesture_hold_v1* hold, uint32_t serial, uint32_t time, struct wl_surface* surface, uint32_t fingers)
 {
-    for (int index = 0; index < wlc.window_count; index++)
+    if (fingers == 2)
     {
-	wl_window_t* window = wlc.windows[index];
-
-	if (window->surface == surface && window->monitor)
+	for (int index = 0; index < wlc.window_count; index++)
 	{
-	    ku_event_t event = init_event();
-	    event.type       = KU_EVENT_HOLD;
-	    event.x          = window->pointer.px;
-	    event.y          = window->pointer.py;
-	    event.ctrl_down  = wlc.keyboard.control;
-	    event.shift_down = wlc.keyboard.shift;
+	    wl_window_t* window = wlc.windows[index];
 
-	    (*wlc.update)(event);
+	    if (window->surface == surface && window->monitor)
+	    {
+		ku_event_t event = init_event();
+		event.type       = KU_EVENT_HOLD;
+		event.x          = window->pointer.px;
+		event.y          = window->pointer.py;
+		event.ctrl_down  = wlc.keyboard.control;
+		event.shift_down = wlc.keyboard.shift;
+
+		(*wlc.update)(event);
+	    }
 	}
     }
 }
