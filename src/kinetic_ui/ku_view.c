@@ -136,15 +136,6 @@ struct _ku_view_t
 {
     char rearrange; /* subview structure changed, window needs rearrange */
 
-    char needs_key;   /* accepts key events */
-    char needs_text;  /* accepts text events */
-    char needs_time;  /* accepts time events */
-    char needs_touch; /* accepts touch events */
-
-    char blocks_key;    /* blocks key events */
-    char blocks_touch;  /* blocks touch events */
-    char blocks_scroll; /* blocks scroll events */
-
     char* id;            /* identifier for handling view */
     char* class;         /* css class(es) */
     char*        script; /* script */
@@ -158,10 +149,10 @@ struct _ku_view_t
     vstyle_t  style;
     texture_t texture;
 
-    void (*handler)(ku_view_t*, ku_event_t); /* view handler for view */
-    void (*tex_gen)(ku_view_t*);             /* texture generator for view */
-    void* handler_data;                      /* data for event handler */
-    void* tex_gen_data;                      /* data for texture generator */
+    int (*evt_han)(ku_view_t*, ku_event_t); /* event handler for view */
+    int (*tex_gen)(ku_view_t*);             /* texture generator for view */
+    void* evt_han_data;                     /* data for event handler */
+    void* tex_gen_data;                     /* data for texture generator */
 };
 
 ku_view_t* ku_view_new(char* id, ku_rect_t frame);
@@ -183,7 +174,6 @@ void       ku_view_set_masked(ku_view_t* view, char masked);
 void       ku_view_set_frame(ku_view_t* view, ku_rect_t frame);
 void       ku_view_set_region(ku_view_t* view, ku_rect_t frame);
 void       ku_view_set_style(ku_view_t* view, vstyle_t style);
-void       ku_view_set_block_touch(ku_view_t* view, char block, char recursive);
 void       ku_view_set_texture_bmp(ku_view_t* view, ku_bitmap_t* tex);
 void       ku_view_set_texture_alpha(ku_view_t* view, float alpha, char recur);
 void       ku_view_invalidate_texture(ku_view_t* view);
@@ -210,14 +200,21 @@ void ku_view_del(void* pointer)
 {
     ku_view_t* view = (ku_view_t*) pointer;
 
-    if (view->handler_data) REL(view->handler_data);
-    if (view->tex_gen_data) REL(view->tex_gen_data);
+    if (view->evt_han_data)
+	REL(view->evt_han_data);
+    if (view->tex_gen_data)
+	REL(view->tex_gen_data);
 
-    if (view->texture.bitmap) REL(view->texture.bitmap); // not all views has texture
-    if (view->class) REL(view->class);
-    if (view->type) REL(view->type);
-    if (view->text) REL(view->text);
-    if (view->script) REL(view->script);
+    if (view->texture.bitmap)
+	REL(view->texture.bitmap); // not all views has texture
+    if (view->class)
+	REL(view->class);
+    if (view->type)
+	REL(view->type);
+    if (view->text)
+	REL(view->text);
+    if (view->script)
+	REL(view->script);
 
     REL(view->id);
     REL(view->views);
@@ -232,8 +229,6 @@ ku_view_t* ku_view_new(char* id, ku_rect_t frame)
     view->frame.global      = frame;
     view->texture.alpha     = 1.0;
     view->texture.resizable = 1;
-    view->needs_touch       = 1;
-    // view->blocks_touch      = 1;
 
     view->frame.region = (ku_rect_t){-1, -1, -1. - 1};
 
@@ -396,7 +391,8 @@ void ku_view_evt(ku_view_t* view, ku_event_t ev)
 	ku_view_evt(v, ev);
     }
 
-    if (view->handler) (*view->handler)(view, ev);
+    if (view->evt_han)
+	(*view->evt_han)(view, ev);
 }
 
 void ku_view_calc_global(ku_view_t* view)
@@ -452,23 +448,10 @@ void ku_view_set_region(ku_view_t* view, ku_rect_t region)
     view->frame.reg_changed = 1;
 }
 
-void ku_view_set_block_touch(ku_view_t* view, char block, char recursive)
-{
-    view->blocks_touch = block;
-
-    if (recursive)
-    {
-	for (int i = 0; i < view->views->length; i++)
-	{
-	    ku_view_t* v = view->views->data[i];
-	    ku_view_set_block_touch(v, block, recursive);
-	}
-    }
-}
-
 void ku_view_set_texture_bmp(ku_view_t* view, ku_bitmap_t* bitmap)
 {
-    if (view->texture.bitmap) REL(view->texture.bitmap);
+    if (view->texture.bitmap)
+	REL(view->texture.bitmap);
     view->texture.bitmap  = RET(bitmap);
     view->texture.ready   = 1;
     view->texture.changed = 1;
@@ -699,11 +682,12 @@ void ku_view_describe(void* pointer, int level)
     if (view->parent)
     {
 	ku_view_draw_delimiter(view->parent);
-	if (mt_vector_index_of_data(view->parent->views, view) == view->parent->views->length - 1) arrow = "└── ";
+	if (mt_vector_index_of_data(view->parent->views, view) == view->parent->views->length - 1)
+	    arrow = "└── ";
 	printf("%s", arrow);
     }
 
-    printf("%s [x:%.2f y:%.2f w:%.2f h:%.2f eh:%i tg:%i rc:%zu]\n", view->id, view->frame.local.x, view->frame.local.y, view->frame.local.w, view->frame.local.h, view->handler != NULL, view->tex_gen != NULL, mt_memory_retaincount(view));
+    printf("%s [x:%.2f y:%.2f w:%.2f h:%.2f eh:%i tg:%i rc:%zu]\n", view->id, view->frame.local.x, view->frame.local.y, view->frame.local.w, view->frame.local.h, view->evt_han != NULL, view->tex_gen != NULL, mt_memory_retaincount(view));
 
     for (int i = 0; i < view->views->length; i++) ku_view_describe(view->views->data[i], level + 1);
 }

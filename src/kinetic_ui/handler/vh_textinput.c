@@ -83,9 +83,10 @@ void vh_textinput_on_anim(vh_anim_event_t event)
 {
     ku_view_t* tiview = event.userdata;
 
-    vh_textinput_t* data = tiview->handler_data;
+    vh_textinput_t* data = tiview->evt_han_data;
 
-    if (mt_vector_index_of_data(data->glyphchain.views, event.view) == UINT32_MAX) ku_view_remove_from_parent(event.view);
+    if (mt_vector_index_of_data(data->glyphchain.views, event.view) == UINT32_MAX)
+	ku_view_remove_from_parent(event.view);
 }
 
 void glyphchain_init(glyphchain_t* chain)
@@ -161,7 +162,7 @@ glyph_t* vh_textinput_glyphs_from_string(char* text, size_t* count)
 
 void vh_textinput_upd(ku_view_t* view)
 {
-    vh_textinput_t* data  = view->handler_data;
+    vh_textinput_t* data  = view->evt_han_data;
     ku_rect_t       frame = view->frame.local;
 
     if (data->glyphchain.length > 0)
@@ -169,7 +170,8 @@ void vh_textinput_upd(ku_view_t* view)
 	size_t   count  = 0;
 	glyph_t* glyphs = vh_textinput_glyphs_from_string(data->glyphchain.text, &count);
 
-	if (data->glyphchain.length != count) printf("GLYPHCHAIN LENGTH MISMATCH %lu %lu\n", count, data->glyphchain.length);
+	if (data->glyphchain.length != count)
+	    printf("GLYPHCHAIN LENGTH MISMATCH %lu %lu\n", count, data->glyphchain.length);
 
 	int nw;
 	int nh;
@@ -187,7 +189,8 @@ void vh_textinput_upd(ku_view_t* view)
 	    }
 	    if (nw <= frame.w)
 	    {
-		if (nw <= data->frame_s.w) nw = data->frame_s.w;
+		if (nw <= data->frame_s.w)
+		    nw = data->frame_s.w;
 		frame.w = nw;
 		ku_view_set_frame(view, frame);
 	    }
@@ -198,7 +201,8 @@ void vh_textinput_upd(ku_view_t* view)
 	    }
 	    if (nh <= frame.h)
 	    {
-		if (nh <= data->frame_s.h) nh = data->frame_s.h;
+		if (nh <= data->frame_s.h)
+		    nh = data->frame_s.h;
 		frame.h = nh;
 		ku_view_set_frame(view, frame);
 	    }
@@ -278,7 +282,8 @@ void vh_textinput_upd(ku_view_t* view)
 	// update cursor position
 
 	glyph_t last = {0};
-	if (count > 0) last = glyphs[count - 1];
+	if (count > 0)
+	    last = glyphs[count - 1];
 
 	ku_rect_t crsr_f = {0};
 	crsr_f.x         = last.x + last.w + 1;
@@ -312,22 +317,28 @@ void vh_textinput_upd(ku_view_t* view)
 	{
 	    crsr_f.x = data->style.margin_left;
 	    crsr_f.y = data->style.margin || data->style.margin_top;
-	    if (data->style.valign == VA_CENTER) crsr_f.y = frame.h / 2 - crsr_f.h / 2;
-	    if (data->style.valign == VA_BOTTOM) crsr_f.y = frame.h - data->style.margin_bottom - crsr_f.h;
+	    if (data->style.valign == VA_CENTER)
+		crsr_f.y = frame.h / 2 - crsr_f.h / 2;
+	    if (data->style.valign == VA_BOTTOM)
+		crsr_f.y = frame.h - data->style.margin_bottom - crsr_f.h;
 	}
 	if (data->style.align == TA_RIGHT)
 	{
 	    crsr_f.x = frame.w - data->style.margin_right - crsr_f.w;
 	    crsr_f.y = data->style.margin_top;
-	    if (data->style.valign == VA_CENTER) crsr_f.y = frame.h / 2 - crsr_f.h / 2;
-	    if (data->style.valign == VA_BOTTOM) crsr_f.y = frame.h - data->style.margin_bottom - crsr_f.h;
+	    if (data->style.valign == VA_CENTER)
+		crsr_f.y = frame.h / 2 - crsr_f.h / 2;
+	    if (data->style.valign == VA_BOTTOM)
+		crsr_f.y = frame.h - data->style.margin_bottom - crsr_f.h;
 	}
 	if (data->style.align == TA_CENTER)
 	{
 	    crsr_f.x = frame.w / 2 - crsr_f.w / 2;
 	    crsr_f.y = data->style.margin_top;
-	    if (data->style.valign == VA_CENTER) crsr_f.y = frame.h / 2 - crsr_f.h / 2;
-	    if (data->style.valign == VA_BOTTOM) crsr_f.y = frame.h - data->style.margin_bottom - crsr_f.h;
+	    if (data->style.valign == VA_CENTER)
+		crsr_f.y = frame.h / 2 - crsr_f.h / 2;
+	    if (data->style.valign == VA_BOTTOM)
+		crsr_f.y = frame.h - data->style.margin_bottom - crsr_f.h;
 	}
 
 	vh_anim_finish(data->cursor_v);
@@ -346,9 +357,9 @@ void vh_textinput_upd(ku_view_t* view)
 
 void vh_textinput_activate(ku_view_t* view, char state)
 {
-    assert(view && view->handler_data != NULL);
+    assert(view && view->evt_han_data != NULL);
 
-    vh_textinput_t* data = view->handler_data;
+    vh_textinput_t* data = view->evt_han_data;
 
     if (state)
     {
@@ -380,9 +391,9 @@ void vh_textinput_activate(ku_view_t* view, char state)
     vh_textinput_upd(view);
 }
 
-void vh_textinput_evt(ku_view_t* view, ku_event_t ev)
+int vh_textinput_evt(ku_view_t* view, ku_event_t ev)
 {
-    vh_textinput_t* data = view->handler_data;
+    vh_textinput_t* data = view->evt_han_data;
 
     if (ev.type == KU_EVENT_MOUSE_DOWN)
     {
@@ -391,7 +402,8 @@ void vh_textinput_evt(ku_view_t* view, ku_event_t ev)
 	vh_textinput_activate(view, 1);
 
 	vh_textinput_event_t event = {.id = VH_TEXTINPUT_ACTIVATE, .vh = data, .text = data->glyphchain.text, .view = view};
-	if (data->on_event) (*data->on_event)(event);
+	if (data->on_event)
+	    (*data->on_event)(event);
     }
     else if (ev.type == KU_EVENT_MOUSE_DOWN_OUT)
     {
@@ -406,7 +418,8 @@ void vh_textinput_evt(ku_view_t* view, ku_event_t ev)
 	    {
 		vh_textinput_activate(view, 0);
 		vh_textinput_event_t event = {.id = VH_TEXTINPUT_DEACTIVATE, .vh = data, .text = data->glyphchain.text, .view = view};
-		if (data->on_event) (*data->on_event)(event);
+		if (data->on_event)
+		    (*data->on_event)(event);
 	    }
 	}
     }
@@ -425,7 +438,8 @@ void vh_textinput_evt(ku_view_t* view, ku_event_t ev)
 	    vh_textinput_upd(view);
 
 	    vh_textinput_event_t event = {.id = VH_TEXTINPUT_TEXT, .vh = data, .text = data->glyphchain.text, .view = view};
-	    if (data->on_event) (*data->on_event)(event);
+	    if (data->on_event)
+		(*data->on_event)(event);
 	}
     }
     else if (ev.type == KU_EVENT_KEY_DOWN)
@@ -449,19 +463,22 @@ void vh_textinput_evt(ku_view_t* view, ku_event_t ev)
 	    vh_textinput_upd(view);
 
 	    vh_textinput_event_t event = {.id = VH_TEXTINPUT_TEXT, .vh = data, .text = data->glyphchain.text, .view = view};
-	    if (data->on_event) (*data->on_event)(event);
+	    if (data->on_event)
+		(*data->on_event)(event);
 	}
 	if (ev.keycode == XKB_KEY_Return)
 	{
 	    vh_textinput_event_t event = {.id = VH_TEXTINPUT_RETURN, .vh = data, .text = data->glyphchain.text, .view = view};
-	    if (data->on_event) (*data->on_event)(event);
+	    if (data->on_event)
+		(*data->on_event)(event);
 	}
 	if (ev.keycode == XKB_KEY_Escape)
 	{
 	    vh_textinput_activate(view, 0);
 
 	    vh_textinput_event_t event = {.id = VH_TEXTINPUT_DEACTIVATE, .vh = data, .text = data->glyphchain.text, .view = view};
-	    if (data->on_event) (*data->on_event)(event);
+	    if (data->on_event)
+		(*data->on_event)(event);
 	}
     }
     else if (ev.type == KU_EVENT_FOCUS)
@@ -476,6 +493,8 @@ void vh_textinput_evt(ku_view_t* view, ku_event_t ev)
     {
 	/* vh_textinput_upd(view); */
     }
+
+    return 0;
 }
 
 void vh_textinput_del(void* p)
@@ -495,7 +514,7 @@ void vh_textinput_desc(void* p, int level)
 
 void vh_textinput_add(ku_view_t* view, char* text, char* phtext, void (*on_event)(vh_textinput_event_t))
 {
-    assert(view->handler == NULL && view->handler_data == NULL);
+    assert(view->evt_han == NULL && view->evt_han_data == NULL);
 
     float scale = view->style.scale;
 
@@ -517,12 +536,8 @@ void vh_textinput_add(ku_view_t* view, char* text, char* phtext, void (*on_event
 
     data->mouse_out_deact = 1;
 
-    view->needs_key  = 1; // backspace event
-    view->needs_text = 1; // unicode text event
-    view->blocks_key = 1;
-
-    view->handler      = vh_textinput_evt;
-    view->handler_data = data;
+    view->evt_han      = vh_textinput_evt;
+    view->evt_han_data = data;
 
     data->style.backcolor = 0;
 
@@ -553,8 +568,6 @@ void vh_textinput_add(ku_view_t* view, char* text, char* phtext, void (*on_event
     tg_text_set(data->holder_v, phtext, phts);
 
     vh_anim_add(data->holder_v, NULL, NULL);
-
-    data->holder_v->blocks_touch = 0;
 
     ku_view_add_subview(view, data->holder_v);
 
@@ -589,7 +602,7 @@ void vh_textinput_add(ku_view_t* view, char* text, char* phtext, void (*on_event
 
 void vh_textinput_set_text(ku_view_t* view, char* text)
 {
-    vh_textinput_t* data = view->handler_data;
+    vh_textinput_t* data = view->evt_han_data;
 
     // remove glyphs
 
@@ -625,29 +638,32 @@ void vh_textinput_set_text(ku_view_t* view, char* text)
 	    part = utf8codepoint(part, &cp);
 	    glyphchain_add(&data->glyphchain, cp, view->id, view);
 	}
+
+	ku_view_set_texture_alpha(data->holder_v, 0, 1);
     }
 
     vh_textinput_upd(view);
 
     vh_textinput_event_t event = {.id = VH_TEXTINPUT_TEXT, .vh = data, .text = data->glyphchain.text, .view = view};
-    if (data->on_event) (*data->on_event)(event);
+    if (data->on_event)
+	(*data->on_event)(event);
 }
 
 char* vh_textinput_get_text(ku_view_t* view)
 {
-    vh_textinput_t* data = view->handler_data;
+    vh_textinput_t* data = view->evt_han_data;
     return data->glyphchain.text;
 }
 
 void vh_textinput_set_deactivate_on_mouse_out(ku_view_t* view, int flag)
 {
-    vh_textinput_t* data  = view->handler_data;
+    vh_textinput_t* data  = view->evt_han_data;
     data->mouse_out_deact = flag;
 }
 
 void vh_textinput_set_limit(ku_view_t* view, int limit)
 {
-    vh_textinput_t* data = view->handler_data;
+    vh_textinput_t* data = view->evt_han_data;
     data->limit          = limit;
 }
 

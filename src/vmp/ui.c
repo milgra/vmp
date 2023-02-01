@@ -205,7 +205,7 @@ void ui_open_metadata_editor()
 
 	ku_view_add_subview(ui.view_base, ui.metapopupcont);
 
-	vh_table_t* vh = (vh_table_t*) ui.songtablev->handler_data;
+	vh_table_t* vh = (vh_table_t*) ui.songtablev->evt_han_data;
 	if (vh->selected_items->length > 0)
 	{
 	    mt_map_t* info = vh->selected_items->data[0];
@@ -444,8 +444,8 @@ void ui_on_btn_event(vh_button_event_t event)
 
 	    ku_view_layout(ui.view_base, ui.view_base->style.scale);
 
-	    ku_window_activate(ui.window, ui.filtertf, 1);
-	    vh_textinput_activate(ui.filtertf, 1);
+	    /* ku_window_activate(ui.window, ui.filtertf, 1); */
+	    /* vh_textinput_activate(ui.filtertf, 1); */
 	}
     };
     if (strcmp(event.view->id, "sortingbtn") == 0)
@@ -470,8 +470,8 @@ void ui_on_btn_event(vh_button_event_t event)
     if (strcmp(event.view->id, "clearbtn") == 0)
     {
 	vh_textinput_set_text(ui.filtertf, "");
-	ku_window_activate(ui.window, ui.filtertf, 1);
-	vh_textinput_activate(ui.filtertf, 1);
+	/* ku_window_activate(ui.window, ui.filtertf, 1); */
+	/* vh_textinput_activate(ui.filtertf, 1); */
 
 	songlist_set_filter(NULL);
 	ui_update_songlist();
@@ -771,7 +771,7 @@ void on_table_event(vh_table_event_t event)
 		ui_open_metadata_editor();
 	    if (event.selected_index == 1)
 	    {
-		vh_table_t* vh = (vh_table_t*) ui.songtablev->handler_data;
+		vh_table_t* vh = (vh_table_t*) ui.songtablev->evt_han_data;
 
 		if (vh->selected_items->length > 0)
 		{
@@ -901,6 +901,30 @@ void on_table_event(vh_table_event_t event)
 	    }
 	}
     }
+    else if (strcmp(event.view->id, "settingstable") == 0)
+    {
+	if (event.id == VH_TABLE_EVENT_SELECT)
+	{
+	    if (event.selected_index == 2)
+	    {
+		char newurl[100];
+		snprintf(newurl, 100, "xdg-open https://paypal.me/milgra");
+		int result = system(newurl);
+		if (result < 0)
+		    mt_log_error("system call error %s", newurl);
+		else
+		    ui_show_progress("Link opened in the browser");
+	    }
+	    if (event.selected_index == 4)
+	    {
+		ui_show_progress("Set organization with -o command line parameter");
+	    }
+	    if (event.selected_index == 5)
+	    {
+		ui_show_progress("Set library path with -l command line parameter");
+	    }
+	}
+    }
 }
 
 void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_t* wlwindow)
@@ -931,7 +955,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     /* listen for keys and shortcuts */
 
     vh_key_add(ui.view_base, ui_on_key_down);
-    ui.view_base->needs_key = 1;
     ku_window_activate(ui.window, ui.view_base, 1);
 
     /* knobs */
@@ -967,10 +990,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     ui.inputbck  = ku_view_get_subview(ui.view_base, "inputbck");
     ui.inputtf   = ku_view_get_subview(ui.view_base, "inputtf");
 
-    ui.inputbck->blocks_touch   = 1;
-    ui.inputarea->blocks_touch  = 1;
-    ui.inputarea->blocks_scroll = 1;
-
     vh_textinput_add(ui.inputtf, "Generic input", "", ui_on_text_event);
 
     vh_touch_add(ui.inputarea, ui_on_touch);
@@ -1000,17 +1019,12 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     REL(fields);
 
-    vh_table_t* vh = ui.songtablev->handler_data;
+    vh_table_t* vh = ui.songtablev->evt_han_data;
     ku_window_activate(ui.window, vh->evnt_v, 1);
 
     /* settings list */
 
     ku_view_t* settingspopupcont = ku_view_get_subview(ui.view_base, "settingspopupcont");
-    ku_view_t* settingspopup     = ku_view_get_subview(ui.view_base, "settingspopup");
-
-    settingspopup->blocks_key    = 1;
-    settingspopup->blocks_touch  = 1;
-    settingspopup->blocks_scroll = 1;
 
     ui.settingspopupcont = RET(settingspopupcont);
 
@@ -1022,6 +1036,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     ku_view_t* settingstablev = GETV(bv, "settingstable");
     vh_table_attach(settingstablev, fields, on_table_event);
     vh_table_show_scrollbar(settingstablev, 0);
+    vh_table_show_selected(settingstablev, 0);
 
     REL(fields);
 
@@ -1042,11 +1057,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     /* genre and artist lists */
 
     ku_view_t* filterpopupcont = ku_view_get_subview(ui.view_base, "filterpopupcont");
-    ku_view_t* filterpopup     = ku_view_get_subview(ui.view_base, "filterpopup");
-
-    filterpopup->blocks_key    = 1;
-    filterpopup->blocks_touch  = 1;
-    filterpopup->blocks_scroll = 1;
 
     ui.filterpopupcont = RET(filterpopupcont);
 
@@ -1073,17 +1083,12 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     /* song metadata */
 
     ku_view_t* metapopupcont = ku_view_get_subview(ui.view_base, "metapopupcont");
-    ku_view_t* metapopup     = ku_view_get_subview(ui.view_base, "metapopup");
     ku_view_t* metaacceptbtn = ku_view_get_subview(ui.view_base, "metaacceptbtn");
 
     ui.metashadow    = ku_view_get_subview(ui.view_base, "metashadow");
     ui.metaacceptbtn = RET(metaacceptbtn);
 
     ku_view_remove_from_parent(ui.metaacceptbtn);
-
-    metapopup->blocks_key    = 1;
-    metapopup->blocks_touch  = 1;
-    metapopup->blocks_scroll = 1;
 
     ui.metapopupcont = RET(metapopupcont);
 
@@ -1109,10 +1114,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     vh_anim_add(contextanimv, NULL, NULL);
 
-    contextpopup->blocks_key    = 1;
-    contextpopup->blocks_touch  = 1;
-    contextpopup->blocks_scroll = 1;
-
     ui.contextpopupcont = RET(contextpopupcont);
 
     vh_anim_add(contextpopup, NULL, NULL);
@@ -1127,7 +1128,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     vh_table_attach(contexttablev, fields, on_table_event);
     vh_table_show_scrollbar(contexttablev, 0);
 
-    vh_table_t* table = contexttablev->handler_data;
+    vh_table_t* table = contexttablev->evt_han_data;
 
     /* hack for context menu popup animation */
     table->layr_v->style.masked = 0;
@@ -1172,8 +1173,6 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     // show texture map for debug
 
     /* ku_view_t* texmap       = ku_view_new("texmap", ((ku_rect_t){0, 0, 150, 150})); */
-    /* texmap->needs_touch  = 0; */
-    /* texmap->exclude      = 0; */
     /* texmap->texture.full = 1; */
     /* texmap->style.right  = 0; */
     /* texmap->style.top    = 0; */
@@ -1254,7 +1253,6 @@ void ui_add_cursor()
 {
     ui.cursorv                         = ku_view_new("ui.cursor", ((ku_rect_t){10, 10, 10, 10}));
     ui.cursorv->style.background_color = 0xFF000099;
-    ui.cursorv->needs_touch            = 0;
     tg_css_add(ui.cursorv);
     ku_window_add(ui.window, ui.cursorv);
 }

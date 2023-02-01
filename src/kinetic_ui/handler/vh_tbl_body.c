@@ -83,7 +83,7 @@ void vh_tbl_body_attach(
     void (*item_recycle)(ku_view_t* tview, ku_view_t* item, void* userdata),
     void* userdata)
 {
-    assert(view->handler == NULL && view->handler_data == NULL);
+    assert(view->evt_han == NULL && view->evt_han_data == NULL);
 
     vh_tbl_body_t* vh = CAL(sizeof(vh_tbl_body_t), vh_tbl_body_del, vh_tbl_body_desc);
     vh->userdata      = userdata;
@@ -91,7 +91,7 @@ void vh_tbl_body_attach(
     vh->item_create   = item_create;
     vh->item_recycle  = item_recycle;
 
-    view->handler_data = vh;
+    view->evt_han_data = vh;
 }
 
 void vh_tbl_body_move(
@@ -99,7 +99,7 @@ void vh_tbl_body_move(
     float      dx,
     float      dy)
 {
-    vh_tbl_body_t* vh = view->handler_data;
+    vh_tbl_body_t* vh = view->evt_han_data;
 
     vh->full = 0;
     // repos items
@@ -116,7 +116,8 @@ void vh_tbl_body_move(
 	frame.x = vh->head_xpos;
 	frame.y += dy;
 
-	if (frame.w < view->frame.local.w) frame.w = view->frame.local.w;
+	if (frame.w < view->frame.local.w)
+	    frame.w = view->frame.local.w;
 
 	ku_view_set_frame(iview, frame);
     }
@@ -222,7 +223,8 @@ void vh_tbl_body_move(
 		{
 		    vh->head_index += 1;
 		    ku_view_remove_from_parent(head);
-		    if (vh->item_recycle) (*vh->item_recycle)(view, head, vh->userdata);
+		    if (vh->item_recycle)
+			(*vh->item_recycle)(view, head, vh->userdata);
 		    VREM(vh->items, head);
 		}
 
@@ -232,7 +234,8 @@ void vh_tbl_body_move(
 		{
 		    vh->tail_index -= 1;
 		    ku_view_remove_from_parent(tail);
-		    if (vh->item_recycle) (*vh->item_recycle)(view, tail, vh->userdata);
+		    if (vh->item_recycle)
+			(*vh->item_recycle)(view, tail, vh->userdata);
 		    VREM(vh->items, tail);
 		}
 	    }
@@ -249,22 +252,25 @@ void vh_tbl_body_move(
 	ku_view_t* iview = vh->items->data[index];
 	ku_rect_t  frame = iview->frame.local;
 
-	if (frame.y < 0) vh->top_index = vh->head_index + index;
-	if (frame.y < view->frame.local.h) vh->bot_index = vh->head_index + index;
+	if (frame.y < 0)
+	    vh->top_index = vh->head_index + index;
+	if (frame.y < view->frame.local.h)
+	    vh->bot_index = vh->head_index + index;
     }
 }
 
 void vh_tbl_body_reset(
     ku_view_t* view)
 {
-    vh_tbl_body_t* vh = view->handler_data;
+    vh_tbl_body_t* vh = view->evt_han_data;
 
     for (int index = 0;
 	 index < vh->items->length;
 	 index++)
     {
 	ku_view_t* iview = vh->items->data[index];
-	if (vh->item_recycle) (*vh->item_recycle)(view, iview, vh->userdata);
+	if (vh->item_recycle)
+	    (*vh->item_recycle)(view, iview, vh->userdata);
 	ku_view_remove_from_parent(iview);
     }
 
@@ -280,7 +286,7 @@ void vh_tbl_body_hjump(
     ku_view_t* view,
     float      x)
 {
-    vh_tbl_body_t* vh = view->handler_data;
+    vh_tbl_body_t* vh = view->evt_han_data;
 
     vh->head_xpos = x;
 
@@ -300,7 +306,7 @@ void vh_tbl_body_vjump(
     int        topindex,
     int        aligntop)
 {
-    vh_tbl_body_t* vh = view->handler_data;
+    vh_tbl_body_t* vh = view->evt_han_data;
 
     // invalidate items
 
@@ -311,7 +317,8 @@ void vh_tbl_body_vjump(
 	 index++)
     {
 	ku_view_t* iview = vh->items->data[index];
-	if (vh->item_recycle) (*vh->item_recycle)(view, iview, vh->userdata);
+	if (vh->item_recycle)
+	    (*vh->item_recycle)(view, iview, vh->userdata);
 	ku_view_remove_from_parent(iview);
     }
 
@@ -324,7 +331,8 @@ void vh_tbl_body_vjump(
 	topindex -= count;
 	int margin = vh->tail_index - vh->bot_index;
 	topindex += margin;
-	if (topindex < 0) topindex = 0;
+	if (topindex < 0)
+	    topindex = 0;
 	vh->head_index = topindex;
 	vh->tail_index = topindex;
 	vh->top_index  = topindex;
@@ -334,7 +342,8 @@ void vh_tbl_body_vjump(
     {
 	int margin = vh->top_index - vh->head_index;
 	topindex -= margin;
-	if (topindex < 0) topindex = 0;
+	if (topindex < 0)
+	    topindex = 0;
 	vh->head_index = topindex;
 	vh->tail_index = topindex;
 	vh->top_index  = topindex;
@@ -346,10 +355,12 @@ void vh_tbl_body_vjump(
 
 ku_view_t* vh_tbl_body_item_for_index(ku_view_t* view, int index)
 {
-    vh_tbl_body_t* vh = view->handler_data;
+    vh_tbl_body_t* vh = view->evt_han_data;
 
-    if (index < vh->head_index || index > vh->tail_index) return NULL;
-    if (vh->head_index + index > vh->items->length - 1) return NULL;
+    if (index < vh->head_index || index > vh->tail_index)
+	return NULL;
+    if (vh->head_index + index > vh->items->length - 1)
+	return NULL;
 
     return vh->items->data[vh->head_index + index];
 }

@@ -1,36 +1,40 @@
 # Visual Music Player development roadmap
 
-- filter text remains visible when selecting artist/genre
 - no inertia scroll while hold
-- donation links
 - multiple file selected/edit/delete
-- genre/artist filternel input text problem
-- field sortingnal nem tnuik el popup
-- tech video, automated ui/full test, logban meg a leakek is lathatoak
-- create test case for library organization
-- working settingslist
-- auto test with 2x scaling
-- user manual update
-- ui table selectable/non selectable 
-- reset config in settings (delete)
+- vertical scroller grab songlist
+- add last played/last skipped fields
+- save shuffle state, current song, current position, current volume on exit, use them on start
+- history file - prev button should jump to previously played song
 - use mmfm for cover art selection
-- metadata field removal with popup
 - green changed, red removed metadata field
 - full keyboard control
-- bar visualiser, fading background
-- add last played/last skipped fields
-- remember song state
-- save shuffle state, current song, current position, current volume on exit, use them on start
 - genre list should filter artist list also
-- full screen visualizer, cover art
 - filtering with logical operators - genre is metal, year is not 2000
-- modify rdft to show more lower range
-- analog VU meter visualizer
 - volume fade in/out on play/pause/next/prev
-- prev button in shuffle mode should jump to previously played song
-- statistics - top 10 most listened artist, song, genre, last month, last year, etc - stats browser
-- songs from one year ago this day - history browser
 - metadata update should happen in the backgroun to stop ui lag
-- cerebral cortex as interactive visualizer - on left/right press start game
-- andromeda : monolith 64K demo like particle visualizer	     
+- metadata field removal with popup
+
+TEST
+
+- user manual update
+- create test case for library organization
+- auto test with 2x scaling
+- tech video, automated ui/full test, logban meg a leakek is lathatoak
+
+VISUALIZERS
+
+- bar visualiser, fading background
+- analog VU meter visualizer with inertia
+- modify rdft to show more lower range
+- freq visu's left left is weird sometimes, looks inverted
+- full screen visualizer
+- full screen cover art
 - grid-based warping of video/album cover based on frequency ( bass in the center )
+- andromeda : monolith 64K demo like particle visualizer  
+- cerebral cortex as interactive visualizer - on left/right press start game
+
+STATISTICS
+
+- top 10 most listened artist, song, genre, last month, last year, etc - stats browser
+- songs from one year ago this day - history browser

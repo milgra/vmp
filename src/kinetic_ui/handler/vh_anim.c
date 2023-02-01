@@ -69,9 +69,9 @@ void vh_anim_add(ku_view_t* view, void (*on_event)(vh_anim_event_t), void* userd
 
 #if __INCLUDE_LEVEL__ == 0
 
-void vh_anim_evt(ku_view_t* view, ku_event_t ev)
+int vh_anim_evt(ku_view_t* view, ku_event_t ev)
 {
-    vh_anim_t* vh = view->handler_data;
+    vh_anim_t* vh = view->evt_han_data;
     if (ev.type == KU_EVENT_FRAME)
     {
 	if (vh->anim_frame)
@@ -216,11 +216,13 @@ void vh_anim_evt(ku_view_t* view, ku_event_t ev)
 	    }
 	}
     }
+
+    return 1;
 }
 
 void vh_anim_frame(ku_view_t* view, ku_rect_t sf, ku_rect_t ef, int start, int steps, animtype_t type)
 {
-    vh_anim_t* vh = view->handler_data;
+    vh_anim_t* vh = view->evt_han_data;
     if (vh->fstep == vh->fsteps)
     {
 	vh->sf         = sf;
@@ -235,7 +237,7 @@ void vh_anim_frame(ku_view_t* view, ku_rect_t sf, ku_rect_t ef, int start, int s
 
 void vh_anim_region(ku_view_t* view, ku_rect_t sr, ku_rect_t er, int start, int steps, animtype_t type)
 {
-    vh_anim_t* vh = view->handler_data;
+    vh_anim_t* vh = view->evt_han_data;
     if (vh->rstep == vh->rsteps)
     {
 	vh->sr          = sr;
@@ -252,7 +254,7 @@ void vh_anim_region(ku_view_t* view, ku_rect_t sr, ku_rect_t er, int start, int 
 
 void vh_anim_alpha(ku_view_t* view, float sa, float ea, int steps, animtype_t type)
 {
-    vh_anim_t* vh = view->handler_data;
+    vh_anim_t* vh = view->evt_han_data;
 
     if (vh->astep == vh->asteps)
     {
@@ -270,14 +272,17 @@ void vh_anim_alpha(ku_view_t* view, float sa, float ea, int steps, animtype_t ty
 
 void vh_anim_finish(ku_view_t* view)
 {
-    vh_anim_t* vh = view->handler_data;
+    vh_anim_t* vh = view->evt_han_data;
     vh->astep     = vh->asteps;
     vh->fstep     = vh->fsteps;
     vh->rstep     = vh->rsteps;
 
-    if (vh->anim_frame) ku_view_set_frame(view, vh->ef);
-    if (vh->anim_region) ku_view_set_region(view, vh->er);
-    if (vh->anim_alpha) ku_view_set_texture_alpha(view, vh->ea, 1);
+    if (vh->anim_frame)
+	ku_view_set_frame(view, vh->ef);
+    if (vh->anim_region)
+	ku_view_set_region(view, vh->er);
+    if (vh->anim_alpha)
+	ku_view_set_texture_alpha(view, vh->ea, 1);
 
     vh->anim_frame  = 0;
     vh->anim_region = 0;
@@ -291,14 +296,14 @@ void vh_anim_desc(void* p, int level)
 
 void vh_anim_add(ku_view_t* view, void (*on_event)(vh_anim_event_t), void* userdata)
 {
-    assert(view->handler == NULL && view->handler_data == NULL);
+    assert(view->evt_han == NULL && view->evt_han_data == NULL);
 
     vh_anim_t* vh = CAL(sizeof(vh_anim_t), NULL, vh_anim_desc);
     vh->on_event  = on_event;
     vh->userdata  = userdata;
 
-    view->handler      = vh_anim_evt;
-    view->handler_data = vh;
+    view->evt_han      = vh_anim_evt;
+    view->evt_han_data = vh;
 }
 
 #endif

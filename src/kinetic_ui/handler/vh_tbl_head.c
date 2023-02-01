@@ -36,7 +36,7 @@ void vh_tbl_head_jump(ku_view_t* hview, float x);
 
 void vh_tbl_head_align(ku_view_t* view)
 {
-    vh_tbl_head_t* vh  = view->handler_data;
+    vh_tbl_head_t* vh  = view->evt_han_data;
     int            pos = 0;
     for (int index = 0; index < vh->head->views->length; index++)
     {
@@ -48,9 +48,9 @@ void vh_tbl_head_align(ku_view_t* view)
     }
 }
 
-void vh_tbl_head_evt(ku_view_t* view, ku_event_t ev)
+int vh_tbl_head_evt(ku_view_t* view, ku_event_t ev)
 {
-    vh_tbl_head_t* vh = view->handler_data;
+    vh_tbl_head_t* vh = view->evt_han_data;
 
     if (vh->head)
     {
@@ -117,24 +117,28 @@ void vh_tbl_head_evt(ku_view_t* view, ku_event_t ev)
 
 				vh_tbl_head_align(view);
 
-				if (vh->head_reorder) (*vh->head_reorder)(view, vh->active, index, vh->userdata);
+				if (vh->head_reorder)
+				    (*vh->head_reorder)(view, vh->active, index, vh->userdata);
 				break;
 			    }
 			    else
 			    {
 				// self click
-				if (vh->head_reorder) (*vh->head_reorder)(view, -1, index, vh->userdata);
+				if (vh->head_reorder)
+				    (*vh->head_reorder)(view, -1, index, vh->userdata);
 			    }
 			}
 		    }
 
-		    if (vh->head_move) (*vh->head_move)(view, -1, 0, vh->userdata);
+		    if (vh->head_move)
+			(*vh->head_move)(view, -1, 0, vh->userdata);
 
 		    vh_tbl_head_align(view);
 		}
 		else
 		{
-		    if (vh->head_move) (*vh->head_resize)(view, -1, 0, vh->userdata);
+		    if (vh->head_move)
+			(*vh->head_resize)(view, -1, 0, vh->userdata);
 		}
 	    }
 
@@ -156,25 +160,29 @@ void vh_tbl_head_evt(ku_view_t* view, ku_event_t ev)
 			svfl.w = ev.x - svfg.x;
 			ku_view_set_frame(sv, svfl);
 			vh_tbl_head_align(view);
-			if (vh->head_resize) (*vh->head_resize)(view, vh->active, svfl.w, vh->userdata);
+			if (vh->head_resize)
+			    (*vh->head_resize)(view, vh->active, svfl.w, vh->userdata);
 		    }
 		    else
 		    {
 			svfl.x = ev.x - vh->head->frame.global.x - vh->touchx;
 			ku_view_set_frame(sv, svfl);
-			if (vh->head_move) (*vh->head_move)(view, vh->active, svfl.x, vh->userdata);
+			if (vh->head_move)
+			    (*vh->head_move)(view, vh->active, svfl.x, vh->userdata);
 		    }
 		}
 	    }
 	}
     }
+
+    return 0;
 }
 
 void vh_tbl_head_move(
     ku_view_t* view,
     float      dx)
 {
-    vh_tbl_head_t* vh = view->handler_data;
+    vh_tbl_head_t* vh = view->evt_han_data;
 
     ku_rect_t frame = vh->head->frame.local;
 
@@ -187,7 +195,7 @@ void vh_tbl_head_jump(
     ku_view_t* view,
     float      x)
 {
-    vh_tbl_head_t* vh = view->handler_data;
+    vh_tbl_head_t* vh = view->evt_han_data;
 
     ku_rect_t frame = vh->head->frame.local;
 
@@ -218,7 +226,7 @@ void vh_tbl_head_attach(
     void (*head_reorder)(ku_view_t* hview, int ind1, int ind2, void* userdata),
     void* userdata)
 {
-    assert(view->handler == NULL && view->handler_data == NULL);
+    assert(view->evt_han == NULL && view->evt_han_data == NULL);
 
     vh_tbl_head_t* vh = CAL(sizeof(vh_tbl_head_t), vh_tbl_head_del, vh_tbl_head_desc);
     vh->userdata      = userdata;
@@ -229,9 +237,8 @@ void vh_tbl_head_attach(
     vh->head          = (*head_create)(view, userdata); // REL 0
     vh->active        = -1;
 
-    view->handler_data = vh;
-    view->handler      = vh_tbl_head_evt;
-    view->needs_touch  = 1;
+    view->evt_han_data = vh;
+    view->evt_han      = vh_tbl_head_evt;
 
     ku_view_add_subview(view, vh->head);
 }

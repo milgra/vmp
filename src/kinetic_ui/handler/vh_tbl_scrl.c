@@ -68,20 +68,20 @@ void vh_tbl_scrl_attach(
     ku_view_set_texture_alpha(vh->hori_v, 0.0, 0);
     ku_view_set_texture_alpha(vh->vert_v, 0.0, 0);
 
-    view->handler_data = vh;
+    view->evt_han_data = vh;
 }
 
 void vh_tbl_scrl_set_item_count(ku_view_t* view, uint32_t count)
 {
-    vh_tbl_scrl_t* vh = view->handler_data;
+    vh_tbl_scrl_t* vh = view->evt_han_data;
 
     vh->item_cnt = count;
 }
 
 void vh_tbl_scrl_update(ku_view_t* view)
 {
-    vh_tbl_scrl_t* vh  = view->handler_data;
-    vh_tbl_body_t* bvh = vh->tbody_view->handler_data;
+    vh_tbl_scrl_t* vh  = view->evt_han_data;
+    vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
     if (bvh->items->length > 0 && vh->item_cnt > 0)
     {
@@ -107,7 +107,8 @@ void vh_tbl_scrl_update(ku_view_t* view)
 	    float pos = (view->frame.local.h - vh->hori_v->frame.local.h) * pratio;
 	    float hth = (view->frame.local.h - vh->hori_v->frame.local.h) * sratio;
 
-	    if (hth < 30.0) hth = 30.0;
+	    if (hth < 30.0)
+		hth = 30.0;
 
 	    if (vh->state == 2)
 	    {
@@ -141,7 +142,8 @@ void vh_tbl_scrl_update(ku_view_t* view)
 	    float pos = view->frame.local.w * pratio;
 	    float wth = view->frame.local.w * sratio;
 
-	    if (wth < 30.0) wth = 30.0;
+	    if (wth < 30.0)
+		wth = 30.0;
 
 	    if (vh->state == 2)
 	    {
@@ -174,8 +176,8 @@ void vh_tbl_scrl_update(ku_view_t* view)
 
 void vh_tbl_scrl_show(ku_view_t* view)
 {
-    vh_tbl_scrl_t* vh  = view->handler_data;
-    vh_tbl_body_t* bvh = vh->tbody_view->handler_data;
+    vh_tbl_scrl_t* vh  = view->evt_han_data;
+    vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
     if (vh->enabled)
     {
@@ -192,7 +194,7 @@ void vh_tbl_scrl_show(ku_view_t* view)
 
 void vh_tbl_scrl_hide(ku_view_t* view)
 {
-    vh_tbl_scrl_t* vh = view->handler_data;
+    vh_tbl_scrl_t* vh = view->evt_han_data;
 
     if (vh->enabled)
     {
@@ -206,8 +208,8 @@ void vh_tbl_scrl_hide(ku_view_t* view)
 
 void vh_tbl_scrl_scroll_v(ku_view_t* view, int y)
 {
-    vh_tbl_scrl_t* vh  = view->handler_data;
-    vh_tbl_body_t* bvh = vh->tbody_view->handler_data;
+    vh_tbl_scrl_t* vh  = view->evt_han_data;
+    vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
     if (bvh->items->length > 0 && vh->item_cnt > 0)
     {
@@ -221,8 +223,10 @@ void vh_tbl_scrl_scroll_v(ku_view_t* view, int y)
 	    float height = (view->frame.local.h - view->frame.local.h * sratio);
 	    float pratio = (float) y / height;
 
-	    if (pratio < 0.0) pratio = 0.0;
-	    if (pratio > 1.0) pratio = 1.0;
+	    if (pratio < 0.0)
+		pratio = 0.0;
+	    if (pratio > 1.0)
+		pratio = 1.0;
 	    int topindex = pratio * (vert_max - vert_vis);
 
 	    vh_tbl_body_vjump(vh->tbody_view, topindex, 1);
@@ -238,8 +242,8 @@ void vh_tbl_scrl_scroll_v(ku_view_t* view, int y)
 
 void vh_tbl_scrl_scroll_h(ku_view_t* view, int x)
 {
-    vh_tbl_scrl_t* vh  = view->handler_data;
-    vh_tbl_body_t* bvh = vh->tbody_view->handler_data;
+    vh_tbl_scrl_t* vh  = view->evt_han_data;
+    vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
     if (bvh->items->length > 0 && vh->item_cnt > 0)
     {
@@ -255,13 +259,16 @@ void vh_tbl_scrl_scroll_h(ku_view_t* view, int x)
 	    float width  = (view->frame.local.w - view->frame.local.w * sratio);
 	    float pratio = (float) x / width;
 
-	    if (pratio < 0.0) pratio = 0.0;
-	    if (pratio > 1.0) pratio = 1.0;
+	    if (pratio < 0.0)
+		pratio = 0.0;
+	    if (pratio > 1.0)
+		pratio = 1.0;
 	    float dx = pratio * (hori_max - hori_vis);
 
 	    vh_tbl_body_hjump(vh->tbody_view, -dx);
 
-	    if (vh->thead_view) vh_tbl_head_jump(vh->thead_view, -dx);
+	    if (vh->thead_view)
+		vh_tbl_head_jump(vh->thead_view, -dx);
 
 	    ku_rect_t frame = vh->hori_v->frame.local;
 	    frame.w         = view->frame.local.w * sratio;
@@ -274,7 +281,7 @@ void vh_tbl_scrl_scroll_h(ku_view_t* view, int x)
 
 void vh_tbl_scrl_enable(ku_view_t* view, int flag)
 {
-    vh_tbl_scrl_t* vh = view->handler_data;
+    vh_tbl_scrl_t* vh = view->evt_han_data;
     vh->enabled       = flag;
 }
 

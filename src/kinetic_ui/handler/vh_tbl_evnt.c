@@ -63,13 +63,13 @@ void vh_tbl_evnt_attach(
 
 #define SCROLLBAR 20.0
 
-void vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
+int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 {
-    vh_tbl_evnt_t* vh = view->handler_data;
+    vh_tbl_evnt_t* vh = view->evt_han_data;
 
     if (ev.type == KU_EVENT_FRAME)
     {
-	vh_tbl_body_t* bvh = vh->tbody_view->handler_data;
+	vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
 	if (bvh->items && bvh->items->length > 0)
 	{
@@ -121,7 +121,7 @@ void vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 
 	    if (vh->tscrl_view)
 	    {
-		vh_tbl_scrl_t* svh = vh->tscrl_view->handler_data;
+		vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
 		if (svh->state > 0)
 		    vh_tbl_scrl_update(vh->tscrl_view);
 	    }
@@ -181,32 +181,44 @@ void vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
     }
     else if (ev.type == KU_EVENT_MOUSE_DOWN)
     {
-	if (ev.x > view->frame.global.x + view->frame.global.w - SCROLLBAR)
+	int scroller_enabled = 0;
+	if (vh->tscrl_view)
 	{
-	    if (vh->tscrl_view)
-	    {
-		vh_tbl_scrl_t* svh = vh->tscrl_view->handler_data;
-		vh->scroll_drag    = 1;
-		vh->scroll_drag_y  = ev.y - svh->hori_v->frame.global.y;
+	    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
+	    scroller_enabled   = svh->enabled;
+	}
 
-		vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - vh->scroll_drag_y);
+	if (scroller_enabled)
+	{
+	    if (ev.x > view->frame.global.x + view->frame.global.w - SCROLLBAR)
+	    {
+		if (vh->tscrl_view)
+		{
+		    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
+		    vh->scroll_drag    = 1;
+		    vh->scroll_drag_y  = ev.y - svh->hori_v->frame.global.y;
+
+		    vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - vh->scroll_drag_y);
+		}
+	    }
+	    if (ev.y > view->frame.global.y + view->frame.global.h - SCROLLBAR)
+	    {
+		if (vh->tscrl_view)
+		{
+		    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
+		    vh->scroll_drag    = 1;
+		    vh->scroll_drag_x  = ev.x - svh->hori_v->frame.global.x;
+
+		    vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - vh->scroll_drag_x);
+		}
 	    }
 	}
-	if (ev.y > view->frame.global.y + view->frame.global.h - SCROLLBAR)
-	{
-	    if (vh->tscrl_view)
-	    {
-		vh_tbl_scrl_t* svh = vh->tscrl_view->handler_data;
-		vh->scroll_drag    = 1;
-		vh->scroll_drag_x  = ev.x - svh->hori_v->frame.global.x;
 
-		vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - vh->scroll_drag_x);
-	    }
-	}
-	if (ev.x < view->frame.global.x + view->frame.global.w - SCROLLBAR &&
-	    ev.y < view->frame.global.y + view->frame.global.h - SCROLLBAR)
+	if (!scroller_enabled ||
+	    (ev.x < view->frame.global.x + view->frame.global.w - SCROLLBAR &&
+	     ev.y < view->frame.global.y + view->frame.global.h - SCROLLBAR))
 	{
-	    vh_tbl_body_t* bvh = vh->tbody_view->handler_data;
+	    vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
 	    ku_view_t* context_item  = NULL;
 	    int        context_index = -1;
@@ -279,7 +291,7 @@ void vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 	{
 	    if (!vh->selected_item)
 	    {
-		vh_tbl_body_t* bvh = vh->tbody_view->handler_data;
+		vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
 		int index = 0;
 		// ku_view_t* item  = NULL;
@@ -329,6 +341,8 @@ void vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 	vh->sx = 0.0;
 	vh->sy = 0.0;
     }
+
+    return 0;
 }
 
 void vh_tbl_evnt_del(void* p)
@@ -348,7 +362,7 @@ void vh_tbl_evnt_attach(
     void (*on_event)(vh_tbl_evnt_event_t event),
     void* userdata)
 {
-    assert(view->handler == NULL && view->handler_data == NULL);
+    assert(view->evt_han == NULL && view->evt_han_data == NULL);
 
     vh_tbl_evnt_t* vh = CAL(sizeof(vh_tbl_evnt_t), vh_tbl_evnt_del, vh_tbl_evnt_desc);
     vh->on_event      = on_event;
@@ -357,12 +371,8 @@ void vh_tbl_evnt_attach(
     vh->tscrl_view    = tscrl_view;
     vh->thead_view    = thead_view;
 
-    view->handler_data = vh;
-    view->handler      = vh_tbl_evnt_evt;
-
-    view->needs_key   = 1;
-    view->blocks_key  = 1;
-    view->needs_touch = 1;
+    view->evt_han_data = vh;
+    view->evt_han      = vh_tbl_evnt_evt;
 }
 
 #endif
