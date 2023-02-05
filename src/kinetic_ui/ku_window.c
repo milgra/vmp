@@ -202,7 +202,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	    }
 	}
     }
-    else if (ev.type == KU_EVENT_SCROLL || ev.type == KU_EVENT_PINCH || ev.type == KU_EVENT_HOLD)
+    else if (ev.type == KU_EVENT_SCROLL || ev.type == KU_EVENT_SCROLL_X_END || ev.type == KU_EVENT_SCROLL_Y_END || ev.type == KU_EVENT_PINCH || ev.type == KU_EVENT_HOLD_START || ev.type == KU_EVENT_HOLD_END)
     {
 	mt_vector_reset(win->ptrqueue);
 	ku_view_coll_touched(win->root, ev, win->ptrqueue);

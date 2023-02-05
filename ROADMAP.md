@@ -1,6 +1,6 @@
 # Visual Music Player development roadmap
 
-- no inertia scroll while hold
+- shortcuts in about, filter shortcut
 - multiple file selected/edit/delete
 - vertical scroller grab songlist
 - add last played/last skipped fields
@@ -14,6 +14,7 @@
 - volume fade in/out on play/pause/next/prev
 - metadata update should happen in the backgroun to stop ui lag
 - metadata field removal with popup
+- drag/resize under floating window managers
 
 TEST
 

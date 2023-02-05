@@ -42,6 +42,8 @@ struct _vh_tbl_evnt_t
     int        scroll_visible;
     ku_view_t* selected_item;
     int        selected_index;
+    int        inertia_x;
+    int        inertia_y;
     float      sx;
     float      sy;
     float      scroll_drag_x;
@@ -63,76 +65,150 @@ void vh_tbl_evnt_attach(
 
 #define SCROLLBAR 20.0
 
+float linear_slowdown(float speed, float pos, float max)
+{
+    if (speed > 0.0)
+    {
+	pos = pos > max ? max : pos;
+	speed *= 1.0 - pos / max;
+    }
+
+    return speed;
+}
+
+void vh_tbl_evnt_move(ku_view_t* view)
+{
+    vh_tbl_evnt_t* vh  = view->evt_han_data;
+    vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
+
+    if (bvh->items && bvh->items->length > 0)
+    {
+	/* if (vh->sy > 0.0001 || vh->sy < -0.0001 || vh->sx > 0.0001 || vh->sx < -0.0001) */
+	/* { */
+	ku_view_t* head = mt_vector_head(bvh->items);
+	ku_view_t* tail = mt_vector_tail(bvh->items);
+
+	float top = head->frame.local.y;
+	float bot = tail->frame.local.y + tail->frame.local.h;
+	float hth = bot - top;
+	float wth = head->frame.local.w;
+	float lft = head->frame.local.x;
+	float rgt = head->frame.local.x + head->frame.local.w;
+
+	float dx = vh->sx;
+	float dy = vh->sy;
+
+	float top_gap = 0.001;
+	float bot_gap = view->frame.local.h - SCROLLBAR - 0.001;
+
+	if (top > top_gap)
+	{
+	    vh->sy = linear_slowdown(vh->sy, top, 200.0);
+	    dy     = vh->sy;
+	    dy += -top / 8.0;
+	}
+	else if (bot < bot_gap)
+	{
+	    if (dy < 0.0)
+	    {
+		if (hth > bot_gap) // scroll back to bottom item
+		{
+		    vh->sy = -1 * linear_slowdown(-vh->sy, view->frame.local.h - bot, 200.0);
+		    dy     = vh->sy;
+		    dy += (bot_gap - bot) / 8.0;
+		}
+		else // scroll back to top item
+		{
+		    vh->sy = -1 * linear_slowdown(-vh->sy, -top, 200.0);
+		    dy     = vh->sy;
+		    dy += -top / 8.0;
+		}
+	    }
+	}
+
+	float lft_gap = 0.001;
+	float rgt_gap = view->frame.local.w - SCROLLBAR - 0.001;
+
+	if (lft > lft_gap)
+	{
+	    vh->sx = linear_slowdown(vh->sx, lft, 200.0);
+	    dx     = vh->sx;
+	    dx += -lft / 8.0;
+	}
+	else if (rgt < rgt_gap)
+	{
+	    if (dx < 0)
+	    {
+		if (wth > rgt_gap) // scroll back to right edge
+		{
+		    vh->sx = -1 * linear_slowdown(-vh->sx, view->frame.local.w - rgt, 200.0);
+		    dx     = vh->sx;
+		    dx += (rgt_gap - rgt) / 8.0;
+		}
+		else // scroll back to left edge
+		{
+		    vh->sx = -1 * linear_slowdown(-vh->sx, -lft, 200.0);
+		    dx     = vh->sx;
+		    dx += -lft / 8.0;
+		}
+	    }
+	}
+
+	vh_tbl_body_move(vh->tbody_view, dx, dy);
+
+	if (vh->thead_view)
+	    vh_tbl_head_move(vh->thead_view, dx);
+	if (vh->tscrl_view && vh->scroll_visible == 1)
+	    vh_tbl_scrl_update(vh->tscrl_view);
+	//}
+
+	if (vh->tscrl_view)
+	{
+	    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
+	    if (svh->state > 0)
+		vh_tbl_scrl_update(vh->tscrl_view);
+	}
+    }
+}
+
 int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 {
     vh_tbl_evnt_t* vh = view->evt_han_data;
 
     if (ev.type == KU_EVENT_FRAME)
     {
-	vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
-
-	if (bvh->items && bvh->items->length > 0)
+	if (vh->inertia_x || vh->inertia_y)
 	{
-	    if (vh->sy > 0.0001 || vh->sy < -0.0001 || vh->sx > 0.0001 || vh->sx < -0.0001)
-	    {
-		ku_view_t* head = mt_vector_head(bvh->items);
-		ku_view_t* tail = mt_vector_tail(bvh->items);
-
-		float top = head->frame.local.y;
-		float bot = tail->frame.local.y + tail->frame.local.h;
-		float hth = bot - top;
-		float wth = head->frame.local.w;
-		float lft = head->frame.local.x;
-		float rgt = head->frame.local.x + head->frame.local.w;
-
-		vh->sx *= 0.9;
-		vh->sy *= 0.9;
-
-		float dx = vh->sx;
-		float dy = vh->sy;
-
-		if (top > 0.001)
-		    dy -= top; // scroll back top item
-		else if (bot < view->frame.local.h - 0.001 - SCROLLBAR)
-		{
-		    if (hth > view->frame.local.h - 0.0001 - SCROLLBAR)
-			dy += (view->frame.local.h - SCROLLBAR) - bot; // scroll back bottom item
-		    else
-			dy -= top; // scroll back top item
-		}
-
-		if (lft > 0.001)
-		    dx -= lft;
-		else if (rgt < view->frame.local.w - 0.001 - SCROLLBAR)
-		{
-		    if (wth > view->frame.local.w - 0.001 - SCROLLBAR)
-			dx += (view->frame.local.w - SCROLLBAR) - rgt;
-		    else
-			dx -= lft;
-		}
-
-		vh_tbl_body_move(vh->tbody_view, dx, dy);
-
-		if (vh->thead_view)
-		    vh_tbl_head_move(vh->thead_view, dx);
-		if (vh->tscrl_view && vh->scroll_visible == 1)
-		    vh_tbl_scrl_update(vh->tscrl_view);
-	    }
-
-	    if (vh->tscrl_view)
-	    {
-		vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
-		if (svh->state > 0)
-		    vh_tbl_scrl_update(vh->tscrl_view);
-	    }
+	    vh->sx *= 0.99;
+	    vh->sy *= 0.99;
+	    vh_tbl_evnt_move(view);
 	}
     }
     else if (ev.type == KU_EVENT_SCROLL)
     {
-	vh->sx -= ev.dx;
-	vh->sy += ev.dy;
+	vh->sx = -ev.dx;
+	vh->sy = ev.dy;
+	vh_tbl_evnt_move(view);
 	// cause dirty rect which causes frame events to flow for later animation
 	vh->tbody_view->frame.dim_changed = 1;
+    }
+    else if (ev.type == KU_EVENT_SCROLL_X_END)
+    {
+	if (abs(vh->sx) > 2.0)
+	{
+	    vh->inertia_x = 1;
+	    // cause dirty rect which causes frame events to flow for later animation
+	    vh->tbody_view->frame.dim_changed = 1;
+	}
+    }
+    else if (ev.type == KU_EVENT_SCROLL_Y_END)
+    {
+	if (abs(vh->sy) > 2.0)
+	{
+	    vh->inertia_y = 1;
+	    // cause dirty rect which causes frame events to flow for later animation
+	    vh->tbody_view->frame.dim_changed = 1;
+	}
     }
     else if (ev.type == KU_EVENT_RESIZE)
     {
@@ -336,10 +412,10 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 	if (vh->tscrl_view)
 	    vh_tbl_scrl_hide(vh->tscrl_view);
     }
-    else if (ev.type == KU_EVENT_HOLD)
+    else if (ev.type == KU_EVENT_HOLD_START)
     {
-	vh->sx = 0.0;
-	vh->sy = 0.0;
+	vh->inertia_x = 0;
+	vh->inertia_y = 0;
     }
 
     return 0;

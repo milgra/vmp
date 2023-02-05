@@ -136,6 +136,8 @@ struct _wl_window_t
     struct zwp_pointer_gesture_pinch_v1* pinch;
     struct wl_pointer*                   wl_pointer;
 
+    int hold; /* hold gesture is active */
+
     /* backing buffer for native window */
 
     struct wl_buffer* buffer; /* wl buffer for surface */
@@ -999,8 +1001,10 @@ static void gesture_hold_begin(void* data, struct zwp_pointer_gesture_hold_v1* h
 
 	    if (window->surface == surface && window->monitor)
 	    {
+		window->hold = 1;
+
 		ku_event_t event = init_event();
-		event.type       = KU_EVENT_HOLD;
+		event.type       = KU_EVENT_HOLD_START;
 		event.x          = window->pointer.px;
 		event.y          = window->pointer.py;
 		event.ctrl_down  = wlc.keyboard.control;
@@ -1014,6 +1018,24 @@ static void gesture_hold_begin(void* data, struct zwp_pointer_gesture_hold_v1* h
 
 static void gesture_hold_end(void* data, struct zwp_pointer_gesture_hold_v1* hold, uint32_t serial, uint32_t time, int32_t cancelled)
 {
+    for (int index = 0; index < wlc.window_count; index++)
+    {
+	wl_window_t* window = wlc.windows[index];
+
+	if (window->hold)
+	{
+	    window->hold = 0;
+
+	    ku_event_t event = init_event();
+	    event.type       = KU_EVENT_HOLD_END;
+	    event.x          = window->pointer.px;
+	    event.y          = window->pointer.py;
+	    event.ctrl_down  = wlc.keyboard.control;
+	    event.shift_down = wlc.keyboard.shift;
+
+	    (*wlc.update)(event);
+	}
+    }
 }
 
 static const struct zwp_pointer_gesture_hold_v1_listener gesture_hold_listener = {
@@ -1079,7 +1101,7 @@ static const struct zwp_pointer_gesture_pinch_v1_listener gesture_pinch_listener
 
 void ku_wayland_pointer_handle_enter(void* data, struct wl_pointer* wl_pointer, uint serial, struct wl_surface* surface, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
-    /* mt_log_debug("pointer handle enter %zu", (size_t) wl_pointer); */
+    mt_log_debug("pointer handle enter %zu", (size_t) wl_pointer);
 
     struct wl_buffer*       buffer;
     struct wl_cursor*       cursor = wlc.default_cursor;
@@ -1123,7 +1145,7 @@ void ku_wayland_pointer_handle_enter(void* data, struct wl_pointer* wl_pointer, 
 
 void ku_wayland_pointer_handle_leave(void* data, struct wl_pointer* wl_pointer, uint serial, struct wl_surface* surface)
 {
-    /* mt_log_debug("pointer handle leave %zu", (size_t) wl_pointer); */
+    mt_log_debug("pointer handle leave %zu", (size_t) wl_pointer);
 
     for (int index = 0; index < wlc.window_count; index++)
     {
@@ -1253,7 +1275,24 @@ void ku_wayland_pointer_handle_axis_source(void* data, struct wl_pointer* wl_poi
 
 void ku_wayland_pointer_handle_axis_stop(void* data, struct wl_pointer* wl_pointer, uint time, uint axis)
 {
-    /* mt_log_debug("pointer handle axis stop"); */
+    /* mt_log_debug("pointer handle axis STOP %i", axis); */
+
+    for (int index = 0; index < wlc.window_count; index++)
+    {
+	wl_window_t* window = wlc.windows[index];
+
+	if (window->wl_pointer == wl_pointer)
+	{
+	    ku_event_t event = init_event();
+	    event.type       = axis == 1 ? KU_EVENT_SCROLL_X_END : KU_EVENT_SCROLL_Y_END;
+	    event.x          = window->pointer.px;
+	    event.y          = window->pointer.py;
+	    event.ctrl_down  = wlc.keyboard.control;
+	    event.shift_down = wlc.keyboard.shift;
+
+	    (*wlc.update)(event);
+	}
+    }
 }
 
 void ku_wayland_pointer_handle_axis_discrete(void* data, struct wl_pointer* wl_pointer, uint axis, int discrete)
@@ -1637,7 +1676,7 @@ static void ku_wayland_handle_global(
     }
     else if (strcmp(interface, wl_seat_interface.name) == 0)
     {
-	wlc.seat = wl_registry_bind(registry, name, &wl_seat_interface, 4);
+	wlc.seat = wl_registry_bind(registry, name, &wl_seat_interface, 6);
 	wl_seat_add_listener(wlc.seat, &seat_listener, NULL);
     }
     else if (strcmp(interface, wl_shm_interface.name) == 0)
@@ -1686,7 +1725,7 @@ static void ku_wayland_handle_global(
     }
     else if (strcmp(interface, xdg_wm_base_interface.name) == 0)
     {
-	wlc.xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, 1);
+	wlc.xdg_wm_base = wl_registry_bind(registry, name, &xdg_wm_base_interface, 2);
 	xdg_wm_base_add_listener(wlc.xdg_wm_base, &xdg_wm_base_listener, NULL);
     }
     else if (strcmp(interface, zwp_pointer_gestures_v1_interface.name) == 0)
