@@ -1,8 +1,8 @@
 # Visual Music Player development roadmap
 
-- shortcuts in about, filter shortcut
 - multiple file selected/edit/delete
-- vertical scroller grab songlist
+- context menu right click changes songlist scroller
+- vertical scroller grab songlist fix
 - add last played/last skipped fields
 - save shuffle state, current song, current position, current volume on exit, use them on start
 - history file - prev button should jump to previously played song

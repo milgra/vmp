@@ -442,7 +442,7 @@ static const struct wl_callback_listener wl_surface_frame_listener = {
 
 static void ku_wayland_layer_surface_configure(void* data, struct zwlr_layer_surface_v1* surface, uint32_t serial, uint32_t width, uint32_t height)
 {
-    mt_log_debug("layer surface configure serial %u width %i height %i", serial, width, height);
+    /* mt_log_debug("layer surface configure serial %u width %i height %i", serial, width, height); */
 
     zwlr_layer_surface_v1_ack_configure(surface, serial);
 
@@ -486,7 +486,7 @@ static void ku_wayland_layer_surface_configure(void* data, struct zwlr_layer_sur
 
 static void ku_wayland_layer_surface_closed(void* _data, struct zwlr_layer_surface_v1* surface)
 {
-    mt_log_debug("layer surface configure");
+    /* mt_log_debug("layer surface configure"); */
 }
 
 struct zwlr_layer_surface_v1_listener layer_surface_listener = {
@@ -498,7 +498,7 @@ struct zwlr_layer_surface_v1_listener layer_surface_listener = {
 
 void xdg_toplevel_configure(void* data, struct xdg_toplevel* xdg_toplevel, int32_t width, int32_t height, struct wl_array* states)
 {
-    mt_log_debug("xdg toplevel configure w %i h %i", width, height);
+    /* mt_log_debug("xdg toplevel configure w %i h %i", width, height); */
 
     wl_window_t* info = data;
 
@@ -517,7 +517,7 @@ void xdg_toplevel_close(void* data, struct xdg_toplevel* xdg_toplevel)
 
 void xdg_toplevel_configure_bounds(void* data, struct xdg_toplevel* xdg_toplevel, int32_t width, int32_t height)
 {
-    mt_log_debug("xdg toplevel configure bounds w %i h %i", width, height);
+    /* mt_log_debug("xdg toplevel configure bounds w %i h %i", width, height); */
 }
 
 void xdg_toplevel_wm_capabilities(void* data, struct xdg_toplevel* xdg_toplevel, struct wl_array* capabilities)
@@ -540,13 +540,14 @@ static void xdg_surface_configure(void* data, struct xdg_surface* xdg_surface, u
 
     wl_window_t* info = data;
 
-    mt_log_debug("xdg surface configure %i %i %i", info->type, info->width, info->height);
+    /* mt_log_debug("xdg surface configure %i %i %i", info->type, info->width, info->height); */
 
     if (info->inited == 0)
     {
 	info->inited = 1;
 
-	if (info->type == WL_WINDOW_EGL) eglSwapBuffers(wlc.windows[0]->egldisplay, wlc.windows[0]->eglsurface);
+	if (info->type == WL_WINDOW_EGL)
+	    eglSwapBuffers(wlc.windows[0]->egldisplay, wlc.windows[0]->eglsurface);
 	if (info->type == WL_WINDOW_NATIVE)
 	{
 	    ku_wayland_create_buffer(info, info->width, info->height);
@@ -569,7 +570,8 @@ static void xdg_surface_configure(void* data, struct xdg_surface* xdg_surface, u
 	    info->bitmap.h = info->buffer_height;
 	    wl_egl_window_resize(info->eglwindow, info->buffer_width, info->buffer_height, 0, 0);
 	}
-	if (info->type == WL_WINDOW_NATIVE) ku_wayland_create_buffer(info, info->buffer_width, info->buffer_height);
+	if (info->type == WL_WINDOW_NATIVE)
+	    ku_wayland_create_buffer(info, info->buffer_width, info->buffer_height);
 
 	/* we shouldn't send events before surface enter ( and ku_event_window_shown ) event */
 	if (info->shown)
@@ -1101,7 +1103,7 @@ static const struct zwp_pointer_gesture_pinch_v1_listener gesture_pinch_listener
 
 void ku_wayland_pointer_handle_enter(void* data, struct wl_pointer* wl_pointer, uint serial, struct wl_surface* surface, wl_fixed_t surface_x, wl_fixed_t surface_y)
 {
-    mt_log_debug("pointer handle enter %zu", (size_t) wl_pointer);
+    /* mt_log_debug("pointer handle enter %zu", (size_t) wl_pointer); */
 
     struct wl_buffer*       buffer;
     struct wl_cursor*       cursor = wlc.default_cursor;
@@ -1145,7 +1147,7 @@ void ku_wayland_pointer_handle_enter(void* data, struct wl_pointer* wl_pointer, 
 
 void ku_wayland_pointer_handle_leave(void* data, struct wl_pointer* wl_pointer, uint serial, struct wl_surface* surface)
 {
-    mt_log_debug("pointer handle leave %zu", (size_t) wl_pointer);
+    /* mt_log_debug("pointer handle leave %zu", (size_t) wl_pointer); */
 
     for (int index = 0; index < wlc.window_count; index++)
     {

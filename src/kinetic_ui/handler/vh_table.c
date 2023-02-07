@@ -710,8 +710,6 @@ void vh_table_attach(
 	textstyle_t rowsstyle = ku_gen_textstyle_parse(rows);
 	textstyle_t headstyle = headrow == NULL ? (textstyle_t){0} : ku_gen_textstyle_parse(headrow);
 
-	mt_log_debug("SEL STYLE %x", rowsstyle.backcolor);
-
 	/* generate ids */
 	char* headid = STRNF(100, "%s_head", view->id);
 	char* layrid = STRNF(100, "%s_layers", view->id);

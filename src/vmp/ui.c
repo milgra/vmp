@@ -761,6 +761,12 @@ void on_table_event(vh_table_event_t event)
 		    ui_show_context_menu(frame.x, frame.y);
 		}
 	    }
+
+	    if (event.ev.keycode == XKB_KEY_f && event.ev.ctrl_down)
+	    {
+		ku_window_activate(ui.window, ui.filtertf, 1);
+		vh_textinput_activate(ui.filtertf, 1);
+	    }
 	}
     }
     else if (strcmp(event.view->id, "contexttable") == 0)
@@ -1035,7 +1041,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     ku_view_t* settingstablev = GETV(bv, "settingstable");
     vh_table_attach(settingstablev, fields, on_table_event);
-    vh_table_show_scrollbar(settingstablev, 0);
+    /* vh_table_show_scrollbar(settingstablev, 0); */
     vh_table_show_selected(settingstablev, 0);
 
     REL(fields);
@@ -1048,6 +1054,10 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "")}));
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Organize Library : %s", config_get("lib_organize"))}));
     VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Library Path : %s", config_get("lib_path"))}));
+    VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "")}));
+    VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Context menu/Paste files : CTRL+V")}));
+    VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Filter/Find : CTRL+F")}));
+    VADDR(items, mapu_pair((mpair_t){"value", STRNF(200, "Cancel popup : ESC")}));
 
     vh_table_set_data(settingstablev, items);
     REL(items);

@@ -38,7 +38,8 @@ struct _vh_tbl_evnt_t
     ku_view_t* tscrl_view;
     ku_view_t* thead_view;
     void*      userdata;
-    int        scroll_drag;
+    int        scroll_on_x;
+    int        scroll_on_y;
     int        scroll_visible;
     ku_view_t* selected_item;
     int        selected_index;
@@ -223,19 +224,13 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 	    if (vh->tscrl_view)
 		vh_tbl_scrl_show(vh->tscrl_view);
 	}
-	if (vh->scroll_drag)
-	{
-	    if (ev.x > view->frame.global.x + view->frame.global.w - SCROLLBAR)
-	    {
-		if (vh->tscrl_view)
-		    vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - vh->scroll_drag_y);
-	    }
-	    if (ev.y > view->frame.global.y + view->frame.global.h - SCROLLBAR)
-	    {
-		if (vh->tscrl_view)
-		    vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - vh->scroll_drag_x);
-	    }
-	}
+
+	if (vh->scroll_on_y)
+	    vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - view->frame.global.y);
+
+	if (vh->scroll_on_x)
+	    vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - view->frame.global.x);
+
 	if (vh->selected_item && ev.drag)
 	{
 	    vh_tbl_evnt_event_t event = {.id = VH_TBL_EVENT_DRAG, .view = view, .rowview = vh->selected_item, .index = 0, .ev = ev, .userdata = vh->userdata};
@@ -271,7 +266,7 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 		if (vh->tscrl_view)
 		{
 		    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
-		    vh->scroll_drag    = 1;
+		    vh->scroll_on_y    = 1;
 		    vh->scroll_drag_y  = ev.y - svh->hori_v->frame.global.y;
 
 		    vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - vh->scroll_drag_y);
@@ -282,7 +277,7 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 		if (vh->tscrl_view)
 		{
 		    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
-		    vh->scroll_drag    = 1;
+		    vh->scroll_on_x    = 1;
 		    vh->scroll_drag_x  = ev.x - svh->hori_v->frame.global.x;
 
 		    vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - vh->scroll_drag_x);
@@ -388,7 +383,8 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 		    (*vh->on_event)(event);
 	    }
 	}
-	vh->scroll_drag = 0;
+	vh->scroll_on_x = 0;
+	vh->scroll_on_y = 0;
     }
     else if (ev.type == KU_EVENT_KEY_DOWN)
     {
