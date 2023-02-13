@@ -44,7 +44,6 @@ void*     mt_map_get(mt_map_t* map, const char* key);
 void      mt_map_del(mt_map_t* map, const char* key);
 void      mt_map_keys(mt_map_t* map, mt_vector_t* res);
 void      mt_map_values(mt_map_t* map, mt_vector_t* res);
-void      mt_map_print_keys(mt_map_t* map);
 void      mt_map_describe(void* p, int level);
 
 #ifdef DEBUG

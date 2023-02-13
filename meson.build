@@ -104,7 +104,7 @@ pkg_datadir = join_paths(get_option('prefix'), get_option('datadir')) / 'vmp'
 add_project_arguments('-DPKG_DATADIR="' + pkg_datadir + '"',
 		      '-DVMP_VERSION=@0@'.format(vmp_version),
 		      language: 'c')
-add_project_arguments('-Wno-unused-but-set-variable', language: 'c')
+#add_project_arguments('-Wno-unused-but-set-variable', language: 'c')
 
 if get_option('buildtype') == 'debug'
     add_project_arguments('-DDEBUG',language: 'c')
@@ -257,9 +257,20 @@ executable(
   install: true,
 )
 
-e = executable('maintest', 'src/tests/test_analyzer.c')
+mt_core_test = executable(
+	   'mt_core_test',
+	   ['src/mt_core/mt_log.c',
+	    'src/mt_core/mt_map.c',
+	    'src/mt_core/mt_vector.c',
+	    'src/mt_core/mt_memory.c',
+	    'src/mt_core_test/mt_core_test.c',
+	    'src/mt_core_test/mt_memory_test.c',
+	    'src/mt_core_test/mt_vector_test.c',
+	    'src/mt_core_test/mt_map_test.c'
+	    ],
+	    include_directories: ['src/mt_core'])
 
-test('MAIN TEST', e)
+test('MT_CORE_TEST', mt_core_test)
 
 # scripttests = find_program('tst/test_run.sh')
 

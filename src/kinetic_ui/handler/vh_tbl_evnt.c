@@ -38,17 +38,12 @@ struct _vh_tbl_evnt_t
     ku_view_t* tscrl_view;
     ku_view_t* thead_view;
     void*      userdata;
-    int        scroll_on_x;
-    int        scroll_on_y;
-    int        scroll_visible;
     ku_view_t* selected_item;
     int        selected_index;
     int        inertia_x;
     int        inertia_y;
     float      sx;
     float      sy;
-    float      scroll_drag_x;
-    float      scroll_drag_y;
     void (*on_event)(vh_tbl_evnt_event_t event);
 };
 
@@ -159,7 +154,7 @@ void vh_tbl_evnt_move(ku_view_t* view)
 
 	if (vh->thead_view)
 	    vh_tbl_head_move(vh->thead_view, dx);
-	if (vh->tscrl_view && vh->scroll_visible == 1)
+	if (vh->tscrl_view)
 	    vh_tbl_scrl_update(vh->tscrl_view);
 	//}
 
@@ -195,8 +190,9 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
     }
     else if (ev.type == KU_EVENT_SCROLL_X_END)
     {
-	if (abs(vh->sx) > 2.0)
+	if (fabs(vh->sx) > 2.0)
 	{
+	    vh->sx *= 1.5;
 	    vh->inertia_x = 1;
 	    // cause dirty rect which causes frame events to flow for later animation
 	    vh->tbody_view->frame.dim_changed = 1;
@@ -204,8 +200,9 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
     }
     else if (ev.type == KU_EVENT_SCROLL_Y_END)
     {
-	if (abs(vh->sy) > 2.0)
+	if (fabs(vh->sy) > 2.0)
 	{
+	    vh->sy *= 1.5;
 	    vh->inertia_y = 1;
 	    // cause dirty rect which causes frame events to flow for later animation
 	    vh->tbody_view->frame.dim_changed = 1;
@@ -217,20 +214,6 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
     }
     else if (ev.type == KU_EVENT_MOUSE_MOVE)
     {
-	// show scroll
-	if (vh->scroll_visible == 0)
-	{
-	    vh->scroll_visible = 1;
-	    if (vh->tscrl_view)
-		vh_tbl_scrl_show(vh->tscrl_view);
-	}
-
-	if (vh->scroll_on_y)
-	    vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - view->frame.global.y);
-
-	if (vh->scroll_on_x)
-	    vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - view->frame.global.x);
-
 	if (vh->selected_item && ev.drag)
 	{
 	    vh_tbl_evnt_event_t event = {.id = VH_TBL_EVENT_DRAG, .view = view, .rowview = vh->selected_item, .index = 0, .ev = ev, .userdata = vh->userdata};
@@ -240,54 +223,10 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 	    vh->selected_item = NULL;
 	}
     }
-    else if (ev.type == KU_EVENT_MOUSE_MOVE_OUT)
-    {
-	// hide scroll
-	if (vh->scroll_visible == 1)
-	{
-	    vh->scroll_visible = 0;
-	    if (vh->tscrl_view)
-		vh_tbl_scrl_hide(vh->tscrl_view);
-	}
-    }
     else if (ev.type == KU_EVENT_MOUSE_DOWN)
     {
-	int scroller_enabled = 0;
-	if (vh->tscrl_view)
-	{
-	    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
-	    scroller_enabled   = svh->enabled;
-	}
-
-	if (scroller_enabled)
-	{
-	    if (ev.x > view->frame.global.x + view->frame.global.w - SCROLLBAR)
-	    {
-		if (vh->tscrl_view)
-		{
-		    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
-		    vh->scroll_on_y    = 1;
-		    vh->scroll_drag_y  = ev.y - svh->hori_v->frame.global.y;
-
-		    vh_tbl_scrl_scroll_v(vh->tscrl_view, ev.y - vh->scroll_drag_y);
-		}
-	    }
-	    if (ev.y > view->frame.global.y + view->frame.global.h - SCROLLBAR)
-	    {
-		if (vh->tscrl_view)
-		{
-		    vh_tbl_scrl_t* svh = vh->tscrl_view->evt_han_data;
-		    vh->scroll_on_x    = 1;
-		    vh->scroll_drag_x  = ev.x - svh->hori_v->frame.global.x;
-
-		    vh_tbl_scrl_scroll_h(vh->tscrl_view, ev.x - vh->scroll_drag_x);
-		}
-	    }
-	}
-
-	if (!scroller_enabled ||
-	    (ev.x < view->frame.global.x + view->frame.global.w - SCROLLBAR &&
-	     ev.y < view->frame.global.y + view->frame.global.h - SCROLLBAR))
+	if (ev.x < view->frame.global.x + view->frame.global.w - SCROLLBAR &&
+	    ev.y < view->frame.global.y + view->frame.global.h - SCROLLBAR)
 	{
 	    vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
@@ -383,8 +322,6 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 		    (*vh->on_event)(event);
 	    }
 	}
-	vh->scroll_on_x = 0;
-	vh->scroll_on_y = 0;
     }
     else if (ev.type == KU_EVENT_KEY_DOWN)
     {
@@ -414,7 +351,7 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 	vh->inertia_y = 0;
     }
 
-    return 0;
+    return (vh->tscrl_view != NULL);
 }
 
 void vh_tbl_evnt_del(void* p)

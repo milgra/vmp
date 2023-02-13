@@ -16,6 +16,13 @@ typedef struct _vh_tbl_scrl_t
     uint32_t   item_cnt;
     void*      userdata;
     int        enabled;
+
+    int   scroll_on_x;
+    int   scroll_on_y;
+    int   scroll_visible;
+    float scroll_drag_x;
+    float scroll_drag_y;
+
 } vh_tbl_scrl_t;
 
 void vh_tbl_scrl_attach(
@@ -36,40 +43,7 @@ void vh_tbl_scrl_enable(ku_view_t* view, int flag);
 
 #if __INCLUDE_LEVEL__ == 0
 
-void vh_tbl_scrl_del(void* p)
-{
-    vh_tbl_scrl_t* vh = p;
-    REL(vh->vert_v);
-    REL(vh->hori_v);
-}
-
-void vh_tbl_scrl_desc(void* p, int level)
-{
-    printf("vh_tbl_scrl");
-}
-
-void vh_tbl_scrl_attach(
-    ku_view_t* view,
-    ku_view_t* tbody_view,
-    ku_view_t* thead_view,
-    void*      userdata)
-{
-    vh_tbl_scrl_t* vh = CAL(sizeof(vh_tbl_scrl_t), vh_tbl_scrl_del, vh_tbl_scrl_desc);
-    vh->userdata      = userdata;
-    vh->tbody_view    = tbody_view;
-    vh->thead_view    = thead_view;
-    vh->enabled       = 1;
-
-    assert(view->views->length > 1);
-
-    vh->vert_v = RET(view->views->data[0]);
-    vh->hori_v = RET(view->views->data[1]);
-
-    ku_view_set_texture_alpha(vh->hori_v, 0.0, 0);
-    ku_view_set_texture_alpha(vh->vert_v, 0.0, 0);
-
-    view->evt_han_data = vh;
-}
+#define SCROLLBAR 20.0
 
 void vh_tbl_scrl_set_item_count(ku_view_t* view, uint32_t count)
 {
@@ -181,7 +155,6 @@ void vh_tbl_scrl_show(ku_view_t* view)
 
     if (vh->enabled)
     {
-
 	if (bvh->items->length > 0 && vh->item_cnt > 0)
 	{
 	    vh->state = 1;
@@ -283,6 +256,101 @@ void vh_tbl_scrl_enable(ku_view_t* view, int flag)
 {
     vh_tbl_scrl_t* vh = view->evt_han_data;
     vh->enabled       = flag;
+}
+
+int vh_tbl_scrl_evt(ku_view_t* view, ku_event_t ev)
+{
+    vh_tbl_scrl_t* vh = view->evt_han_data;
+
+    if (ev.type == KU_EVENT_MOUSE_MOVE)
+    {
+	// show scroll
+	if (vh->scroll_visible == 0)
+	{
+	    vh->scroll_visible = 1;
+	    vh_tbl_scrl_show(view);
+	}
+
+	if (vh->scroll_on_y)
+	    vh_tbl_scrl_scroll_v(view, ev.y - view->frame.global.y);
+
+	if (vh->scroll_on_x)
+	    vh_tbl_scrl_scroll_h(view, ev.x - view->frame.global.x);
+    }
+    else if (ev.type == KU_EVENT_MOUSE_MOVE_OUT)
+    {
+	// hide scroll
+	if (vh->scroll_visible == 1)
+	{
+	    vh->scroll_visible = 0;
+	    vh_tbl_scrl_hide(view);
+	}
+    }
+    else if (ev.type == KU_EVENT_MOUSE_DOWN)
+    {
+	if (vh->enabled)
+	{
+	    if (ev.x > view->frame.global.x + view->frame.global.w - SCROLLBAR)
+	    {
+		vh_tbl_scrl_t* svh = view->evt_han_data;
+		vh->scroll_on_y    = 1;
+		vh->scroll_drag_y  = ev.y - svh->hori_v->frame.global.y;
+
+		vh_tbl_scrl_scroll_v(view, ev.y - vh->scroll_drag_y);
+	    }
+	    if (ev.y > view->frame.global.y + view->frame.global.h - SCROLLBAR)
+	    {
+		vh_tbl_scrl_t* svh = view->evt_han_data;
+		vh->scroll_on_x    = 1;
+		vh->scroll_drag_x  = ev.x - svh->hori_v->frame.global.x;
+
+		vh_tbl_scrl_scroll_h(view, ev.x - vh->scroll_drag_x);
+	    }
+	}
+    }
+    else if (ev.type == KU_EVENT_MOUSE_UP)
+    {
+	vh->scroll_on_x = 0;
+	vh->scroll_on_y = 0;
+    }
+
+    return 0;
+}
+
+void vh_tbl_scrl_del(void* p)
+{
+    vh_tbl_scrl_t* vh = p;
+    REL(vh->vert_v);
+    REL(vh->hori_v);
+}
+
+void vh_tbl_scrl_desc(void* p, int level)
+{
+    printf("vh_tbl_scrl");
+}
+
+void vh_tbl_scrl_attach(
+    ku_view_t* view,
+    ku_view_t* tbody_view,
+    ku_view_t* thead_view,
+    void*      userdata)
+{
+    vh_tbl_scrl_t* vh = CAL(sizeof(vh_tbl_scrl_t), vh_tbl_scrl_del, vh_tbl_scrl_desc);
+    vh->userdata      = userdata;
+    vh->tbody_view    = tbody_view;
+    vh->thead_view    = thead_view;
+    vh->enabled       = 1;
+
+    assert(view->views->length > 1);
+
+    vh->vert_v = RET(view->views->data[0]);
+    vh->hori_v = RET(view->views->data[1]);
+
+    ku_view_set_texture_alpha(vh->hori_v, 0.0, 0);
+    ku_view_set_texture_alpha(vh->vert_v, 0.0, 0);
+
+    view->evt_han      = vh_tbl_scrl_evt;
+    view->evt_han_data = vh;
 }
 
 #endif

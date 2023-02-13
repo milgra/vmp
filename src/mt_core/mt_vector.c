@@ -28,18 +28,20 @@ struct _mt_vector_t
 
 mt_vector_t* mt_vector_new(void);
 void         mt_vector_reset(mt_vector_t* vector);
-void         mt_vector_dec_retcount(mt_vector_t* vector);
+
 void         mt_vector_add(mt_vector_t* vector, void* data);
 void         mt_vector_add_rel(mt_vector_t* vector, void* data);
-void         mt_vector_ins(mt_vector_t* vector, void* data, size_t index);
-void         mt_vector_add_in_vector(mt_vector_t* mt_vector_a, mt_vector_t* mt_vector_b);
 void         mt_vector_add_unique_data(mt_vector_t* vector, void* data);
+void         mt_vector_add_in_vector(mt_vector_t* mt_vector_a, mt_vector_t* mt_vector_b);
+
+void         mt_vector_ins(mt_vector_t* vector, void* data, size_t index);
 void         mt_vector_ins_unique_data(mt_vector_t* vector, void* data, size_t index);
-void         mt_vector_replace_at_index(mt_vector_t* vector, void* data, size_t index);
+
 char         mt_vector_rem(mt_vector_t* vector, void* data);
 char         mt_vector_rem_at_index(mt_vector_t* vector, uint32_t index);
 void         mt_vector_rem_in_range(mt_vector_t* vector, uint32_t start, uint32_t end);
 void         mt_vector_rem_in_vector(mt_vector_t* mt_vector_a, mt_vector_t* mt_vector_b);
+
 void         mt_vector_reverse(mt_vector_t* vector);
 void*        mt_vector_head(mt_vector_t* vector);
 void*        mt_vector_tail(mt_vector_t* vector);
@@ -83,15 +85,6 @@ void mt_vector_reset(mt_vector_t* vector)
     for (uint32_t index = 0; index < vector->length; index++)
 	REL(vector->data[index]);
     vector->length = 0;
-}
-
-/* decreases retain count of items. use when you add items inline and don't want to release every item
-	one by one. Be careful with it, don't release them til dealloc!*/
-
-void mt_vector_dec_retcount(mt_vector_t* vector)
-{
-    for (uint32_t index = 0; index < vector->length; index++)
-	REL(vector->data[index]);
 }
 
 /* expands storage */
@@ -157,16 +150,8 @@ void mt_vector_add_unique_data(mt_vector_t* vector, void* data)
 
 void mt_vector_ins_unique_data(mt_vector_t* vector, void* data, size_t index)
 {
-    if (mt_vector_index_of_data(vector, data) == UINT32_MAX) mt_vector_ins(vector, data, index);
-}
-
-/* replaces data at given index */
-
-void mt_vector_replace_at_index(mt_vector_t* vector, void* data, size_t index)
-{
-    REL(vector->data[index]);
-    RET(data);
-    vector->data[index] = data;
+    if (mt_vector_index_of_data(vector, data) == UINT32_MAX)
+	mt_vector_ins(vector, data, index);
 }
 
 /* removes single data, returns 1 if data is removed and released during removal */

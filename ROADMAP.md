@@ -1,5 +1,7 @@
 # Visual Music Player development roadmap
 
+- enable all warnings!
+- scroll event goes through seekknob
 - multiple file selected/edit/delete
 - context menu right click changes songlist scroller
 - vertical scroller grab songlist fix

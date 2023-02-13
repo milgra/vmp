@@ -12,6 +12,7 @@
 #include "mt_memory.c"
 #include <assert.h>
 #include <pthread.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
