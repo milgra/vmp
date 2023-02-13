@@ -1,3 +1,4 @@
+#include "mt_channel_test.c"
 #include "mt_log.c"
 #include "mt_map_test.c"
 #include "mt_memory_test.c"
@@ -10,6 +11,8 @@ int main(int argc, char* argv[])
     mt_memory_test_main();
     mt_vector_test_main();
     mt_map_test_main();
+    mt_string_test_main();
+    mt_channel_test_main();
 
     return 0;
 }

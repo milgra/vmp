@@ -135,7 +135,7 @@ char* mt_path_new_normalize1(char* path)
 	    else if (strlen(token) == 2 && token[0] == '.' && token[1] == '.')
 	    {
 		// delete last token
-		mt_vector_rem_at_index(newtok, newtok->length - 1);
+		mt_vector_rem_index(newtok, newtok->length - 1);
 	    }
 	    else if (strlen(token) == 1 && token[0] == '.')
 	    {
@@ -156,7 +156,8 @@ char* mt_path_new_normalize1(char* path)
 	    result      = mt_string_append(result, token);
 	}
 
-	if (newtok->length == 0) result = mt_string_new_cstring("/");
+	if (newtok->length == 0)
+	    result = mt_string_new_cstring("/");
 
 	REL(newtok);
     }

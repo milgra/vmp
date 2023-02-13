@@ -282,7 +282,7 @@ ku_view_t* vh_table_item_create(
 	    {
 		/* get cached item */
 		rowview = RET(vh->cache->data[0]);
-		mt_vector_rem_at_index(vh->cache, 0);
+		mt_vector_rem_index(vh->cache, 0);
 	    }
 	    else
 	    {

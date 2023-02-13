@@ -101,7 +101,7 @@ void ku_window_remove(ku_window_t* win, ku_view_t* view)
 void ku_window_activate(ku_window_t* win, ku_view_t* view, int flag)
 {
     if (flag)
-	mt_vector_add_unique_data(win->ptrqueue, view);
+	mt_vector_add(win->ptrqueue, view);
     else
 	mt_vector_rem(win->ptrqueue, view);
 }
@@ -239,7 +239,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 		win->focused = v;
 		if (v->evt_han)
 		    (*v->evt_han)(v, (ku_event_t){.type = KU_EVENT_FOCUS});
-		mt_vector_add_unique_data(win->ptrqueue, v);
+		mt_vector_add(win->ptrqueue, v);
 	    }
 	    else
 	    {
@@ -268,7 +268,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 		win->focused = v;
 		if (v->evt_han)
 		    (*v->evt_han)(v, (ku_event_t){.type = KU_EVENT_FOCUS});
-		mt_vector_add_unique_data(win->ptrqueue, v);
+		mt_vector_add(win->ptrqueue, v);
 	    }
 	}
 

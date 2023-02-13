@@ -362,7 +362,7 @@ void ku_view_coll_touched(ku_view_t* view, ku_event_t ev, mt_vector_t* queue)
 	ev.y <= view->frame.global.y + view->frame.global.h &&
 	ev.y >= view->frame.global.y)
     {
-	mt_vector_add_unique_data(queue, view);
+	mt_vector_add(queue, view);
 	for (int i = 0; i < view->views->length; i++)
 	{
 	    ku_view_t* v = view->views->data[i];

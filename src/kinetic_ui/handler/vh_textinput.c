@@ -138,7 +138,7 @@ void glyphchain_rem(glyphchain_t* chain, uint32_t index)
 
 	chain->length = utf8len(chain->text);
 
-	mt_vector_rem_at_index(chain->views, index);
+	mt_vector_rem_index(chain->views, index);
     }
 }
 

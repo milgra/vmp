@@ -155,7 +155,7 @@ void mt_map_resize(mt_map_t* map)
 
     mt_vector_t* oldkeys = VNEW();
     mt_map_keys(map, oldkeys);
-    for (uint32_t index = 0; index < oldkeys->length; index++)
+    for (size_t index = 0; index < oldkeys->length; index++)
     {
 	char* key   = oldkeys->data[index];
 	void* value = mt_map_get(map, key);

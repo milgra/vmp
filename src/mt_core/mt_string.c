@@ -1,8 +1,6 @@
 #ifndef mt_string_h
 #define mt_string_h
 
-/* TODO separate unit tests */
-
 #include "mt_vector.c"
 #include <stdarg.h>
 #include <stdint.h>

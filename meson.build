@@ -260,13 +260,17 @@ executable(
 mt_core_test = executable(
 	   'mt_core_test',
 	   ['src/mt_core/mt_log.c',
-	    'src/mt_core/mt_map.c',
-	    'src/mt_core/mt_vector.c',
 	    'src/mt_core/mt_memory.c',
+	    'src/mt_core/mt_vector.c',
+	    'src/mt_core/mt_map.c',
+	    'src/mt_core/mt_string.c',
+	    'src/mt_core/mt_channel.c',
 	    'src/mt_core_test/mt_core_test.c',
 	    'src/mt_core_test/mt_memory_test.c',
 	    'src/mt_core_test/mt_vector_test.c',
-	    'src/mt_core_test/mt_map_test.c'
+	    'src/mt_core_test/mt_map_test.c',
+	    'src/mt_core_test/mt_string_test.c',
+	    'src/mt_core_test/mt_channel_test.c'
 	    ],
 	    include_directories: ['src/mt_core'])
 
