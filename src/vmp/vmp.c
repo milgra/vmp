@@ -403,7 +403,8 @@ int main(int argc, char* argv[])
 	switch (option)
 	{
 	    case 0:
-		if (option_index == 5) vmp.softrender = 1;
+		if (option_index == 5)
+		    vmp.softrender = 1;
 		/* printf("option %i %s", option_index, long_options[option_index].name); */
 		/* if (optarg) printf(" with arg %s", optarg); */
 		break;
@@ -425,19 +426,20 @@ int main(int argc, char* argv[])
     char  cwd[PATH_MAX] = {"~"};
     char* res           = getcwd(cwd, sizeof(cwd));
 
-    if (res == NULL) mt_log_error("getcwd error");
+    if (res == NULL)
+	mt_log_error("getcwd error");
 
-    char* wrk_path    = mt_path_new_normalize(cwd, NULL); // REL 5
-    char* lib_path    = lib_par ? mt_path_new_normalize(lib_par, wrk_path) : mt_path_new_normalize("~/Music", wrk_path);
-    char* res_path    = res_par ? mt_path_new_normalize(res_par, wrk_path) : STRNC(PKG_DATADIR);                                     // REL 7
-    char* cfgdir_path = cfg_par ? mt_path_new_normalize(cfg_par, wrk_path) : mt_path_new_normalize("~/.config/vmp", getenv("HOME")); // REL 8
-    char* img_path    = mt_path_new_append(res_path, "img");                                                                         // REL 9
-    char* css_path    = mt_path_new_append(res_path, "html/main.css");                                                               // REL 9
-    char* html_path   = mt_path_new_append(res_path, "html/main.html");                                                              // REL 10
-    char* cfg_path    = mt_path_new_append(cfgdir_path, "config.kvl");                                                               // REL 12
-    char* per_path    = mt_path_new_append(cfgdir_path, "state.kvl");                                                                // REL 13
-    char* rec_path    = rec_par ? mt_path_new_normalize(rec_par, wrk_path) : NULL;                                                   // REL 14
-    char* rep_path    = rep_par ? mt_path_new_normalize(rep_par, wrk_path) : NULL;                                                   // REL 15
+    char* wrk_path    = mt_path_new_normalize(cwd); // REL 5
+    char* lib_path    = lib_par ? mt_path_new_append(wrk_path, lib_par) : mt_path_new_normalize("~/Music");
+    char* res_path    = res_par ? mt_path_new_append(wrk_path, res_par) : STRNC(PKG_DATADIR);                     // REL 7
+    char* cfgdir_path = cfg_par ? mt_path_new_append(wrk_path, cfg_par) : mt_path_new_normalize("~/.config/vmp"); // REL 8
+    char* img_path    = mt_path_new_append(res_path, "img");                                                      // REL 9
+    char* css_path    = mt_path_new_append(res_path, "html/main.css");                                            // REL 9
+    char* html_path   = mt_path_new_append(res_path, "html/main.html");                                           // REL 10
+    char* cfg_path    = mt_path_new_append(cfgdir_path, "config.kvl");                                            // REL 12
+    char* per_path    = mt_path_new_append(cfgdir_path, "state.kvl");                                             // REL 13
+    char* rec_path    = rec_par ? mt_path_new_append(wrk_path, rec_par) : NULL;                                   // REL 14
+    char* rep_path    = rep_par ? mt_path_new_append(wrk_path, rep_par) : NULL;                                   // REL 15
 
     // print path info to console
 
@@ -453,7 +455,8 @@ int main(int argc, char* argv[])
     printf("replay path   : %s\n", rep_path);
     printf("\n");
 
-    if (verbose) mt_log_inc_verbosity();
+    if (verbose)
+	mt_log_inc_verbosity();
 
     // init config
 
@@ -513,8 +516,10 @@ int main(int argc, char* argv[])
     }
 
     /* proxy events through the recorder in case of record/replay */
-    if (rec_path || rep_path) ku_wayland_init(init, ku_recorder_update, destroy, 0);
-    else ku_wayland_init(init, update, destroy, 1000); // needs second updates because of time field
+    if (rec_path || rep_path)
+	ku_wayland_init(init, ku_recorder_update, destroy, 0);
+    else
+	ku_wayland_init(init, update, destroy, 1000); // needs second updates because of time field
 
     config_destroy(); // DESTROY 0
 
@@ -522,12 +527,18 @@ int main(int argc, char* argv[])
 
     ku_recorder_destroy();
 
-    if (cfg_par) REL(cfg_par); // REL 0
-    if (lib_par) REL(lib_par); // REL 1
-    if (res_par) REL(res_par); // REL 1
-    if (rec_par) REL(rec_par); // REL 2
-    if (rep_par) REL(rep_par); // REL 3
-    if (frm_par) REL(frm_par); // REL 4
+    if (cfg_par)
+	REL(cfg_par); // REL 0
+    if (lib_par)
+	REL(lib_par); // REL 1
+    if (res_par)
+	REL(res_par); // REL 1
+    if (rec_par)
+	REL(rec_par); // REL 2
+    if (rep_par)
+	REL(rep_par); // REL 3
+    if (frm_par)
+	REL(frm_par); // REL 4
 
     REL(img_path);
     REL(wrk_path);    // REL 6
@@ -539,8 +550,10 @@ int main(int argc, char* argv[])
     REL(cfg_path);    // REL 12
     REL(per_path);    // REL 13
 
-    if (rec_path) REL(rec_path); // REL 14
-    if (rep_path) REL(rep_path); // REL 15
+    if (rec_path)
+	REL(rec_path); // REL 14
+    if (rep_path)
+	REL(rep_path); // REL 15
 
 #ifdef MT_MEMORY_DEBUG
     mt_memory_stats();

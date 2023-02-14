@@ -1,8 +1,6 @@
 #ifndef mt_map_h
 #define mt_map_h
 
-/* TODO separate unit tests */
-
 #include "mt_vector.c"
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,10 +43,6 @@ void      mt_map_del(mt_map_t* map, const char* key);
 void      mt_map_keys(mt_map_t* map, mt_vector_t* res);
 void      mt_map_values(mt_map_t* map, mt_vector_t* res);
 void      mt_map_describe(void* p, int level);
-
-#ifdef DEBUG
-void mt_map_test(void);
-#endif
 
 #endif
 

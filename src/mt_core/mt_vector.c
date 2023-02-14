@@ -1,8 +1,6 @@
 #ifndef mt_vector_h
 #define mt_vector_h
 
-/* TODO separate unit tests */
-
 #include "mt_memory.c"
 #include "mt_time.c"
 #include <stdint.h>

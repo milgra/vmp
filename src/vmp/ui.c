@@ -609,7 +609,7 @@ void ui_on_text_event(vh_textinput_event_t event)
 	    }
 	    else if (ui.inputmode == UI_IM_COVERART)
 	    {
-		char* path_final = mt_path_new_normalize(event.text, config_get("wrk_path")); // REL 1
+		char* path_final = mt_path_new_append(config_get("wrk_path"), event.text); // REL 1
 		// check if image is valid
 		ku_bitmap_t* image = coder_load_image(path_final);
 

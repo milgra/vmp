@@ -1,16 +1,13 @@
 #ifndef mt_path_h
 #define mt_path_h
 
-/* TODO separate unit tests */
-
 #include "mt_string.c"
 
 char* mt_path_new_append(char* root, char* component);
 char* mt_path_new_remove_last_component(char* path);
 char* mt_path_new_extension(char* path);
 char* mt_path_new_filename(char* path);
-char* mt_path_new_normalize(char* path, char* execpath);
-char* mt_path_new_normalize1(char* path);
+char* mt_path_new_normalize(char* path);
 
 #endif
 
@@ -18,10 +15,11 @@ char* mt_path_new_normalize1(char* path);
 
 #include <limits.h>
 #include <string.h>
-#ifdef __linux__ 
-#include <linux/limits.h>
+#ifdef __linux__
+    #include <linux/limits.h>
 #endif
 
+#include "mt_log.c"
 #include "mt_memory.c"
 
 char* mt_path_new_append(char* root, char* component)
@@ -76,10 +74,12 @@ char* mt_path_new_filename(char* path)
     int dotindex;
     for (dotindex = strlen(path) - 1; dotindex > -1; --dotindex)
     {
-	if (path[dotindex] == '.') break;
+	if (path[dotindex] == '.')
+	    break;
     }
 
-    if (dotindex == -1) dotindex = strlen(path) - 1;
+    if (dotindex == -1)
+	dotindex = strlen(path) - 1;
 
     int slashindex;
     for (slashindex = strlen(path) - 1; slashindex > -1; --slashindex)
@@ -90,31 +90,15 @@ char* mt_path_new_filename(char* path)
 	    break;
 	}
     }
-    if (slashindex == -1) slashindex = 0;
+    if (slashindex == -1)
+	slashindex = 0;
     int   len   = dotindex - slashindex;
     char* title = CAL(len + 1, NULL, mt_string_describe);
     memcpy(title, path + slashindex, len);
     return title;
 }
 
-char* mt_path_new_normalize(char* path, char* execpath)
-{
-    char* result = NULL;
-
-    if (path[0] == '~') // if starts with tilde, insert home dir
-	result = mt_string_new_format(PATH_MAX + NAME_MAX, "%s%s", getenv("HOME"), path + 1);
-    else if (path[0] != '/') // if doesn't start with / insert base dir
-	result = mt_string_new_format(PATH_MAX + NAME_MAX, "%s/%s", execpath, path);
-    else
-	result = mt_string_new_cstring(path);
-
-    // if ends with '/' remove it
-    if (result[strlen(result) - 1] == '/') result[strlen(result) - 1] = '\0';
-
-    return result;
-}
-
-char* mt_path_new_normalize1(char* path)
+char* mt_path_new_normalize(char* path)
 {
     mt_vector_t* tokens = mt_string_tokenize(path, "/");
     char*        result = NULL;
@@ -152,8 +136,9 @@ char* mt_path_new_normalize1(char* path)
 	for (int index = 0; index < newtok->length; index++)
 	{
 	    char* token = newtok->data[index];
-	    result      = mt_string_append(result, "/");
-	    result      = mt_string_append(result, token);
+	    if (token[0] != '/')
+		result = mt_string_append(result, "/");
+	    result = mt_string_append(result, token);
 	}
 
 	if (newtok->length == 0)

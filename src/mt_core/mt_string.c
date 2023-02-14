@@ -9,12 +9,15 @@
 #define STRNC(x) mt_string_new_cstring(x)
 #define STRNF(x, ...) mt_string_new_format(x, __VA_ARGS__)
 
-char*        mt_string_new_format(int size, char* format, ...);
-char*        mt_string_new_cstring(char* string);
-char*        mt_string_reset(char* str);
-char*        mt_string_append(char* str, char* add);
-char*        mt_string_append_cp(char* str, uint32_t cp);
-char*        mt_string_append_sub(char* str, char* add, int from, int len);
+char* mt_string_new_format(int size, char* format, ...);
+char* mt_string_new_cstring(char* string);
+char* mt_string_new_substring(char* string, int from, int len);
+char* mt_string_reset(char* str);
+
+char* mt_string_append(char* str, char* add);
+char* mt_string_append_cp(char* str, uint32_t cp);
+char* mt_string_append_sub(char* str, char* add, int from, int len);
+
 char*        mt_string_delete_utf_codepoints(char* str, int from, int len);
 mt_vector_t* mt_string_tokenize(char* str, char* del);
 void         mt_string_describe(void* p, int level);
@@ -57,6 +60,20 @@ char* mt_string_new_cstring(char* string)
     return result;
 }
 
+/* TODO calculate UTF8 length */
+
+char* mt_string_new_substring(char* string, int from, int len)
+{
+    char* result = NULL;
+    if (string != NULL && len > from)
+    {
+	result = CAL((strlen(string) + 1) * sizeof(char), mt_string_del, mt_string_describe);
+	memcpy(result, string + from, len);
+	result[len] = '\0';
+    }
+    return result;
+}
+
 char* mt_string_reset(char* str)
 {
     str[0] = '\0';
@@ -67,19 +84,22 @@ char* mt_string_append(char* str, char* add)
 {
     size_t needed = strlen(str) + strlen(add) + 1;
 
-    if (strlen(str) < needed) str = mt_memory_realloc(str, needed);
+    if (strlen(str) < needed)
+	str = mt_memory_realloc(str, needed);
 
     str = utf8cat(str, add);
 
     return str;
 }
+
 char* mt_string_append_cp(char* str, uint32_t cp)
 {
     size_t size   = utf8size(str);
     size_t cpsize = utf8codepointsize(cp);
     size_t needed = strlen(str) + size + 1;
 
-    if (strlen(str) < needed) str = mt_memory_realloc(str, needed);
+    if (strlen(str) < needed)
+	str = mt_memory_realloc(str, needed);
 
     char* end = str + size - 1;
 

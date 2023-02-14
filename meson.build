@@ -265,12 +265,14 @@ mt_core_test = executable(
 	    'src/mt_core/mt_map.c',
 	    'src/mt_core/mt_string.c',
 	    'src/mt_core/mt_channel.c',
+	    'src/mt_core/mt_path.c',
 	    'src/mt_core_test/mt_core_test.c',
 	    'src/mt_core_test/mt_memory_test.c',
 	    'src/mt_core_test/mt_vector_test.c',
 	    'src/mt_core_test/mt_map_test.c',
 	    'src/mt_core_test/mt_string_test.c',
-	    'src/mt_core_test/mt_channel_test.c'
+	    'src/mt_core_test/mt_channel_test.c',
+	    'src/mt_core_test/mt_path_test.c'
 	    ],
 	    include_directories: ['src/mt_core'])
 
