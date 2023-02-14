@@ -429,8 +429,8 @@ void ku_text_render_glyph(glyph_t g, textstyle_t style, ku_bitmap_t* bitmap)
     if ((style.backcolor & 0xFF) > 0)
 	ku_draw_rect(bitmap, 0, 0, bitmap->w, bitmap->h, style.backcolor, 0);
 
-    < mt_wrapper_t* facewrp = MGET(txt_ft.fonts, style.font);
-    mt_wrapper_t*   libwrp  = MGET(txt_ft.libs, style.font);
+    mt_wrapper_t* facewrp = MGET(txt_ft.fonts, style.font);
+    mt_wrapper_t* libwrp  = MGET(txt_ft.libs, style.font);
     if (facewrp == NULL)
     {
 	ku_text_font_load(style.font);

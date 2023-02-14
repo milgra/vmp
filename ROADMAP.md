@@ -1,6 +1,6 @@
 # Visual Music Player development roadmap
 
-- error handling in mt core functions ( add, del, rel, expand, etc)
+- error handling in mt core functions ( add, del, rel, expand, etc should return with int)
 - enable all warnings!
 - scroll event goes through seekknob
 - multiple file selected/edit/delete

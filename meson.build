@@ -104,7 +104,6 @@ pkg_datadir = join_paths(get_option('prefix'), get_option('datadir')) / 'vmp'
 add_project_arguments('-DPKG_DATADIR="' + pkg_datadir + '"',
 		      '-DVMP_VERSION=@0@'.format(vmp_version),
 		      language: 'c')
-#add_project_arguments('-Wno-unused-but-set-variable', language: 'c')
 
 if get_option('buildtype') == 'debug'
     add_project_arguments('-DDEBUG',language: 'c')
