@@ -109,17 +109,17 @@ mt_vector_t* vh_table_get_fields(
 void vh_table_head_update_cells(vh_table_t* vh, int fixed_index, int fixed_pos)
 {
     float scale = vh->body_v->style.scale;
-    for (int ri = 0; ri < vh->body_v->views->length; ri++)
+    for (size_t ri = 0; ri < vh->body_v->views->length; ri++)
     {
 	ku_view_t* rowview = vh->body_v->views->data[ri];
 	float      wth     = 0;
 
-	for (int ci = 0; ci < rowview->views->length; ci++)
+	for (size_t ci = 0; ci < rowview->views->length; ci++)
 	{
 	    ku_view_t*   cellview = rowview->views->data[ci];
 	    ku_rect_t    frame    = cellview->frame.local;
 	    mt_number_t* sizep    = vh->fields->data[ci * 2 + 1];
-	    frame.x               = ci == fixed_index ? (float) fixed_pos : wth;
+	    frame.x               = (int32_t) ci == fixed_index ? (float) fixed_pos : wth;
 	    frame.w               = (float) sizep->intv * scale;
 	    ku_view_set_frame(cellview, frame);
 	    wth += (frame.w + 2) * scale;
@@ -188,7 +188,7 @@ void vh_table_head_reorder(ku_view_t* hview, int ind1, int ind2, void* userdata)
 	vh->fields->data[ind2 * 2]     = field1;
 	vh->fields->data[ind2 * 2 + 1] = size1;
 
-	for (int ri = 0; ri < vh->body_v->views->length; ri++)
+	for (size_t ri = 0; ri < vh->body_v->views->length; ri++)
 	{
 	    ku_view_t* rowview = vh->body_v->views->data[ri];
 
@@ -232,7 +232,7 @@ ku_view_t* vh_table_head_create(
 
     /* create header fields/cells */
 
-    for (int i = 0; i < vh->fields->length; i += 2)
+    for (size_t i = 0; i < vh->fields->length; i += 2)
     {
 	char*        field    = vh->fields->data[i];
 	mt_number_t* size     = vh->fields->data[i + 1];
@@ -274,7 +274,7 @@ ku_view_t* vh_table_item_create(
 
     if (vh->items)
     {
-	if (index > -1 && index < vh->items->length)
+	if (index > -1 && index < (int32_t) vh->items->length)
 	{
 	    mt_map_t* data = vh->items->data[index];
 
@@ -296,7 +296,7 @@ ku_view_t* vh_table_item_create(
 		/* create cells */
 		int wth = 0;
 
-		for (int i = 0; i < vh->fields->length; i += 2)
+		for (size_t i = 0; i < vh->fields->length; i += 2)
 		{
 		    char*        field    = vh->fields->data[i];
 		    mt_number_t* size     = vh->fields->data[i + 1];
@@ -329,7 +329,7 @@ ku_view_t* vh_table_item_create(
 	    /* update cells */
 	    int wth = 0;
 
-	    for (int i = 0; i < vh->fields->length; i += 2)
+	    for (size_t i = 0; i < vh->fields->length; i += 2)
 	    {
 		char*        field    = vh->fields->data[i];
 		mt_number_t* size     = vh->fields->data[i + 1];
@@ -394,13 +394,13 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 		mt_vector_reset(vh->selected_items);
 		vh_tbl_body_t* bvh = vh->body_v->evt_han_data;
 
-		for (int index = 0; index < bvh->items->length; index++)
+		for (size_t index = 0; index < bvh->items->length; index++)
 		{
 		    ku_view_t* item = bvh->items->data[index];
 
 		    textstyle_t style = index % 2 == 0 ? vh->rowastyle : vh->rowbstyle;
 
-		    for (int i = 0; i < item->views->length; i++)
+		    for (size_t i = 0; i < item->views->length; i++)
 		    {
 			ku_view_t* cellview = item->views->data[i];
 			tg_text_set_style(cellview, style);
@@ -412,7 +412,7 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 
 	    if (vh->show_selected)
 	    {
-		for (int i = 0; i < event.rowview->views->length; i++)
+		for (size_t i = 0; i < event.rowview->views->length; i++)
 		{
 		    ku_view_t* cellview = event.rowview->views->data[i];
 		    tg_text_set_style(cellview, vh->rowsstyle);
@@ -425,7 +425,7 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 
 	    textstyle_t style = event.index % 2 == 0 ? vh->rowastyle : vh->rowbstyle;
 
-	    for (int i = 0; i < event.rowview->views->length; i++)
+	    for (size_t i = 0; i < event.rowview->views->length; i++)
 	    {
 		ku_view_t* cellview = event.rowview->views->data[i];
 		tg_text_set_style(cellview, style);
@@ -464,13 +464,13 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 		    mt_vector_reset(vh->selected_items);
 		    vh_tbl_body_t* bvh = vh->body_v->evt_han_data;
 
-		    for (int index = 0; index < bvh->items->length; index++)
+		    for (size_t index = 0; index < bvh->items->length; index++)
 		    {
 			ku_view_t* item = bvh->items->data[index];
 
 			textstyle_t style = index % 2 == 0 ? vh->rowastyle : vh->rowbstyle;
 
-			for (int i = 0; i < item->views->length; i++)
+			for (size_t i = 0; i < item->views->length; i++)
 			{
 			    ku_view_t* cellview = item->views->data[i];
 			    tg_text_set_style(cellview, style);
@@ -482,7 +482,7 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 
 		if (vh->show_selected)
 		{
-		    for (int i = 0; i < event.rowview->views->length; i++)
+		    for (size_t i = 0; i < event.rowview->views->length; i++)
 		    {
 			ku_view_t* cellview = event.rowview->views->data[i];
 			tg_text_set_style(cellview, vh->rowsstyle);
@@ -495,7 +495,7 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 
 		textstyle_t style = event.index % 2 == 0 ? vh->rowastyle : vh->rowbstyle;
 
-		for (int i = 0; i < event.rowview->views->length; i++)
+		for (size_t i = 0; i < event.rowview->views->length; i++)
 		{
 		    ku_view_t* cellview = event.rowview->views->data[i];
 		    tg_text_set_style(cellview, style);
@@ -872,7 +872,7 @@ void vh_table_set_data(
     vh->selected_index = 0;
 
     mt_vector_reset(vh->selected_items);
-    if (vh->selected_index < vh->items->length)
+    if (vh->selected_index < (int32_t) vh->items->length)
     {
 	mt_map_t* sel = vh->items->data[vh->selected_index];
 	VADD(vh->selected_items, sel);
@@ -900,8 +900,8 @@ void vh_table_select(
     vh->selected_index = index;
     if (vh->selected_index < 0)
 	vh->selected_index = 0;
-    if (vh->selected_index > vh->items->length - 1)
-	vh->selected_index = vh->items->length - 1;
+    if (vh->selected_index > (int32_t) vh->items->length - 1)
+	vh->selected_index = (int32_t) vh->items->length - 1;
 
     if (bvh->bot_index < vh->selected_index)
     {
@@ -933,7 +933,7 @@ void vh_table_select(
 
     /* color item */
 
-    for (int i = 0; i < bvh->items->length; i++)
+    for (size_t i = 0; i < bvh->items->length; i++)
     {
 	int        realindex = bvh->head_index + i;
 	mt_map_t*  data      = vh->items->data[realindex];
@@ -943,7 +943,7 @@ void vh_table_select(
 	if (mt_vector_index_of_data(vh->selected_items, data) < UINT32_MAX)
 	    style = vh->rowsstyle;
 
-	for (int i = 0; i < item->views->length; i++)
+	for (size_t i = 0; i < item->views->length; i++)
 	{
 	    ku_view_t* cellview   = item->views->data[i];
 	    cellview->style.scale = scale;

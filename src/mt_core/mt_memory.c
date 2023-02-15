@@ -43,7 +43,7 @@ struct mt_memory_head
 #endif
     void (*destructor)(void*);
     void (*descriptor)(void*, int);
-    int32_t retaincount;
+    size_t retaincount;
 };
 
 #ifdef MT_MEMORY_DEBUG
@@ -189,6 +189,8 @@ char mt_memory_release(void* pointer)
     bytes -= sizeof(struct mt_memory_head);
     struct mt_memory_head* head = (struct mt_memory_head*) bytes;
 
+    assert(head->retaincount > 0);
+
     head->retaincount -= 1;
 
 #ifdef MT_MEMORY_DEBUG
@@ -197,8 +199,6 @@ char mt_memory_release(void* pointer)
     if (head->retaincount == -1)
 	mt_memory_trace("RELEASE RETAINCOUNT -1!!!", head);
 #endif
-
-    assert(head->retaincount > -1);
 
     if (head->retaincount == 0)
     {

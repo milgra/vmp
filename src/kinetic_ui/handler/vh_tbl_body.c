@@ -12,21 +12,21 @@ typedef struct _vh_tbl_body_t
 
     float head_xpos; // horizontal position of head
 
-    int full;       // list is full, no more elements needed
-    int head_index; // index of upper element
-    int tail_index; // index of lower element
+    int     full;       // list is full, no more elements needed
+    int32_t head_index; // index of upper element
+    int32_t tail_index; // index of lower element
 
-    int top_index; // index of visible top element
-    int bot_index; // index of visible bottom element
+    int32_t top_index; // index of visible top element
+    int32_t bot_index; // index of visible bottom element
 
-    ku_view_t* (*item_create)(ku_view_t* tview, int index, void* userdata);
+    ku_view_t* (*item_create)(ku_view_t* tview, int32_t index, void* userdata);
     void (*item_recycle)(ku_view_t* tview, ku_view_t* item, void* userdata);
 
 } vh_tbl_body_t;
 
 void vh_tbl_body_attach(
     ku_view_t* view,
-    ku_view_t* (*item_create)(ku_view_t* tview, int index, void* userdata),
+    ku_view_t* (*item_create)(ku_view_t* tview, int32_t index, void* userdata),
     void (*item_recycle)(ku_view_t* tview, ku_view_t* item, void* userdata),
     void* userdata);
 
@@ -44,10 +44,10 @@ void vh_tbl_body_hjump(
 
 void vh_tbl_body_vjump(
     ku_view_t* view,
-    int        topindex,
+    int32_t    topindex,
     int        aligntop);
 
-ku_view_t* vh_tbl_body_item_for_index(ku_view_t* view, int index);
+ku_view_t* vh_tbl_body_item_for_index(ku_view_t* view, int32_t index);
 
 #endif
 
@@ -61,7 +61,7 @@ void vh_tbl_body_del(void* p)
 
     // remove items
 
-    for (int index = 0;
+    for (size_t index = 0;
 	 index < vh->items->length;
 	 index++)
     {
@@ -79,7 +79,7 @@ void vh_tbl_body_desc(void* p, int level)
 
 void vh_tbl_body_attach(
     ku_view_t* view,
-    ku_view_t* (*item_create)(ku_view_t* tview, int index, void* userdata),
+    ku_view_t* (*item_create)(ku_view_t* tview, int32_t index, void* userdata),
     void (*item_recycle)(ku_view_t* tview, ku_view_t* item, void* userdata),
     void* userdata)
 {
@@ -106,7 +106,7 @@ void vh_tbl_body_move(
 
     vh->head_xpos += dx;
 
-    for (int index = 0;
+    for (size_t index = 0;
 	 index < vh->items->length;
 	 index++)
     {
@@ -245,7 +245,7 @@ void vh_tbl_body_move(
     // get top and bot indexes
 
     vh->top_index = vh->head_index;
-    for (int index = 0;
+    for (size_t index = 0;
 	 index < vh->items->length;
 	 index++)
     {
@@ -264,7 +264,7 @@ void vh_tbl_body_reset(
 {
     vh_tbl_body_t* vh = view->evt_han_data;
 
-    for (int index = 0;
+    for (size_t index = 0;
 	 index < vh->items->length;
 	 index++)
     {
@@ -290,7 +290,7 @@ void vh_tbl_body_hjump(
 
     vh->head_xpos = x;
 
-    for (int index = 0;
+    for (size_t index = 0;
 	 index < vh->items->length;
 	 index++)
     {
@@ -303,7 +303,7 @@ void vh_tbl_body_hjump(
 
 void vh_tbl_body_vjump(
     ku_view_t* view,
-    int        topindex,
+    int32_t    topindex,
     int        aligntop)
 {
     vh_tbl_body_t* vh = view->evt_han_data;
@@ -312,7 +312,7 @@ void vh_tbl_body_vjump(
 
     int count = vh->bot_index - vh->top_index + 1;
 
-    for (int index = 0;
+    for (size_t index = 0;
 	 index < vh->items->length;
 	 index++)
     {
@@ -353,13 +353,13 @@ void vh_tbl_body_vjump(
     vh_tbl_body_move(view, 0, 0);
 }
 
-ku_view_t* vh_tbl_body_item_for_index(ku_view_t* view, int index)
+ku_view_t* vh_tbl_body_item_for_index(ku_view_t* view, int32_t index)
 {
     vh_tbl_body_t* vh = view->evt_han_data;
 
     if (index < vh->head_index || index > vh->tail_index)
 	return NULL;
-    if (vh->head_index + index > vh->items->length - 1)
+    if (vh->head_index + index > (int32_t) vh->items->length - 1)
 	return NULL;
 
     return vh->items->data[vh->head_index + index];

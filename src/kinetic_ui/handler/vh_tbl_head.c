@@ -38,7 +38,7 @@ void vh_tbl_head_align(ku_view_t* view)
 {
     vh_tbl_head_t* vh  = view->evt_han_data;
     int            pos = 0;
-    for (int index = 0; index < vh->head->views->length; index++)
+    for (size_t index = 0; index < vh->head->views->length; index++)
     {
 	ku_view_t* sv   = vh->head->views->data[index];
 	ku_rect_t  svfl = sv->frame.local;
@@ -57,7 +57,7 @@ int vh_tbl_head_evt(ku_view_t* view, ku_event_t ev)
 	if (ev.type == KU_EVENT_MOUSE_DOWN)
 	{
 	    // look for
-	    for (int index = 0; index < vh->head->views->length; index++)
+	    for (size_t index = 0; index < vh->head->views->length; index++)
 	    {
 		ku_view_t* sv  = vh->head->views->data[index];
 		ku_rect_t  svf = sv->frame.global;
@@ -94,14 +94,14 @@ int vh_tbl_head_evt(ku_view_t* view, ku_event_t ev)
 		if (vh->resize == 0)
 		{
 		    // look for
-		    for (int index = 0; index < vh->head->views->length; index++)
+		    for (size_t index = 0; index < vh->head->views->length; index++)
 		    {
 			ku_view_t* sv  = vh->head->views->data[index];
 			ku_rect_t  svf = sv->frame.global;
 			// inside
 			if (ev.x > svf.x && ev.x < svf.x + svf.w)
 			{
-			    if (index != vh->active)
+			    if ((int) index != vh->active)
 			    {
 				// drop on different cell
 				ku_view_t* cell1 = RET(vh->head->views->data[vh->active]);
@@ -149,7 +149,7 @@ int vh_tbl_head_evt(ku_view_t* view, ku_event_t ev)
 	{
 	    if (vh->active > -1)
 	    {
-		if (vh->active < vh->head->views->length)
+		if (vh->active < (int) vh->head->views->length)
 		{
 		    ku_view_t* sv   = vh->head->views->data[vh->active];
 		    ku_rect_t  svfg = sv->frame.global;

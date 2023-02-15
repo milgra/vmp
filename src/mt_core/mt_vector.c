@@ -191,7 +191,7 @@ void mt_vector_rem_range(mt_vector_t* vector, size_t start, size_t end)
 
 void mt_vector_rem_in_vector(mt_vector_t* mt_vector_a, mt_vector_t* mt_vector_b)
 {
-    for (int index = 0; index < mt_vector_b->length; index++)
+    for (size_t index = 0; index < mt_vector_b->length; index++)
     {
 	mt_vector_rem(mt_vector_a, mt_vector_b->data[index]);
     }
@@ -201,8 +201,8 @@ void mt_vector_rem_in_vector(mt_vector_t* mt_vector_a, mt_vector_t* mt_vector_b)
 
 void mt_vector_reverse(mt_vector_t* vector)
 {
-    int length = vector->length;
-    for (int index = length - 1; index > -1; index--)
+    size_t length = vector->length;
+    for (size_t index = length; index-- > 0;)
     {
 	mt_vector_add(vector, vector->data[index]);
     }
@@ -233,7 +233,7 @@ void* mt_vector_tail(mt_vector_t* vector)
 
 size_t mt_vector_index_of_data(mt_vector_t* vector, void* data)
 {
-    for (int index = 0; index < vector->length; index++)
+    for (size_t index = 0; index < vector->length; index++)
     {
 	if (vector->data[index] == data)
 	    return index;
@@ -302,7 +302,7 @@ void mt_vector_sort(mt_vector_t* vector, int (*comp)(void* left, void* right))
     cache  = CAL(sizeof(mtvn_t) * vector->length, NULL, NULL);
     cachei = 1;
 
-    for (int index = 0; index < vector->length; index++) mt_vector_sort_ins(cache, vector->data[index], comp);
+    for (size_t index = 0; index < vector->length; index++) mt_vector_sort_ins(cache, vector->data[index], comp);
     int index = 0;
 
     mt_vector_sort_ord(cache, vector, &index);

@@ -23,7 +23,7 @@ void ku_gen_css_apply_style(ku_view_t* view, mt_map_t* style, char* imgpath)
     mt_vector_t* keys = VNEW(); // REL 0
     mt_map_keys(style, keys);
 
-    for (int index = 0; index < keys->length; index++)
+    for (size_t index = 0; index < keys->length; index++)
     {
 	char* key = keys->data[index];
 	char* val = MGET(style, key);
@@ -294,7 +294,7 @@ void ku_gen_css_apply(mt_vector_t* views, char* csspath, char* imgpath)
     mt_map_t* styles = ku_css_new(csspath);
     mt_map_t* style;
 
-    for (int index = 0; index < views->length; index++)
+    for (size_t index = 0; index < views->length; index++)
     {
 	ku_view_t* view = views->data[index];
 

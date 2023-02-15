@@ -56,13 +56,13 @@ void ui_update_cursor(ku_rect_t frame);
 #include "vh_touch.c"
 #include <xkbcommon/xkbcommon.h>
 
-typedef enum _ui_inputmode ui_inputmode;
 enum _ui_inputmode
 {
     UI_IM_SORTING,
     UI_IM_EDITING,
     UI_IM_COVERART
 };
+typedef enum _ui_inputmode ui_inputmode;
 
 struct _ui_t
 {
@@ -229,7 +229,7 @@ void ui_open_metadata_editor()
 	    mt_vector_t* pairs = VNEW();
 	    mt_vector_t* keys  = VNEW();
 	    mt_map_keys(info, keys);
-	    for (int index = 0; index < keys->length; index++)
+	    for (size_t index = 0; index < keys->length; index++)
 	    {
 		char*     key   = keys->data[index];
 		char*     value = MGET(info, key);
@@ -574,7 +574,7 @@ void ui_on_text_event(vh_textinput_event_t event)
 		mt_vector_t* keys  = VNEW();
 		mt_map_keys(ui.edited_song, keys);
 
-		for (int index = 0; index < keys->length; index++)
+		for (size_t index = 0; index < keys->length; index++)
 		{
 		    char*     key   = keys->data[index];
 		    char*     value = MGET(ui.edited_song, key);
@@ -683,7 +683,7 @@ void on_table_event(vh_table_event_t event)
 	{
 	    mt_vector_t* fields   = event.fields;
 	    char*        fieldstr = mt_string_new_cstring("");
-	    for (int index = 0; index < fields->length; index += 2)
+	    for (size_t index = 0; index < fields->length; index += 2)
 	    {
 		char*        field = fields->data[index];
 		mt_number_t* value = fields->data[index + 1];
@@ -1008,7 +1008,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     mt_vector_t* words       = mt_string_split(fieldconfig, " ");
     mt_vector_t* fields      = VNEW();
 
-    for (int index = 0; index < words->length; index += 2)
+    for (size_t index = 0; index < words->length; index += 2)
     {
 	char* field = words->data[index];
 	char* value = words->data[index + 1];

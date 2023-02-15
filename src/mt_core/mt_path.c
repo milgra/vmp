@@ -108,7 +108,7 @@ char* mt_path_new_normalize(char* path)
 	result              = mt_string_new_cstring("");
 	mt_vector_t* newtok = VNEW();
 
-	for (int index = 0; index < tokens->length; index++)
+	for (size_t index = 0; index < tokens->length; index++)
 	{
 	    char* token = tokens->data[index];
 	    if (token[0] == '~')
@@ -133,7 +133,7 @@ char* mt_path_new_normalize(char* path)
 
 	/* assemble new tokens */
 
-	for (int index = 0; index < newtok->length; index++)
+	for (size_t index = 0; index < newtok->length; index++)
 	{
 	    char* token = newtok->data[index];
 	    if (token[0] != '/')

@@ -234,7 +234,8 @@ void ku_gl_add_textures(mt_vector_t* views, int force)
 	}
 
 	/* reset atlas */
-	if (kugl.atlas) REL(kugl.atlas);
+	if (kugl.atlas)
+	    REL(kugl.atlas);
 	kugl.atlas = ku_gl_atlas_new(kugl.texturesize, kugl.texturesize);
     }
 
@@ -244,7 +245,7 @@ void ku_gl_add_textures(mt_vector_t* views, int force)
     int reset = 0;
 
     /* add texture to atlas */
-    for (int index = 0; index < views->length; index++)
+    for (size_t index = 0; index < views->length; index++)
     {
 	ku_view_t* view = views->data[index];
 
@@ -327,7 +328,8 @@ void ku_gl_add_textures(mt_vector_t* views, int force)
     glBindTexture(GL_TEXTURE_2D, 0);
 
     /* in case of reset do the whole thing once again with forced reset*/
-    if (reset == 1) ku_gl_add_textures(views, 1);
+    if (reset == 1)
+	ku_gl_add_textures(views, 1);
 }
 
 /* upload vertexes */
@@ -337,7 +339,7 @@ void ku_gl_add_vertexes(mt_vector_t* views)
     ku_floatbuffer_reset(kugl.floatbuffer);
 
     /* add vertexes to buffer */
-    for (int index = 0; index < views->length; index++)
+    for (size_t index = 0; index < views->length; index++)
     {
 	ku_view_t* view = views->data[index];
 

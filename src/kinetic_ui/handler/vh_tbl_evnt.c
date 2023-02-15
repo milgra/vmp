@@ -233,7 +233,7 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 	    ku_view_t* context_item  = NULL;
 	    int        context_index = -1;
 
-	    for (int index = 0; index < bvh->items->length; index++)
+	    for (size_t index = 0; index < bvh->items->length; index++)
 	    {
 		ku_view_t* item = bvh->items->data[index];
 		if (ev.x > item->frame.global.x &&
@@ -303,7 +303,7 @@ int vh_tbl_evnt_evt(ku_view_t* view, ku_event_t ev)
 	    {
 		vh_tbl_body_t* bvh = vh->tbody_view->evt_han_data;
 
-		int index = 0;
+		size_t index = 0;
 		// ku_view_t* item  = NULL;
 		for (index = 0; index < bvh->items->length; index++)
 		{

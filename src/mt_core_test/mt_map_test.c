@@ -58,7 +58,7 @@ void mt_map_test_main()
 
     assert(keys->length == 2);
 
-    for (int index = 0; index < keys->length; index++)
+    for (size_t index = 0; index < keys->length; index++)
     {
 	char* key = keys->data[index];
 
@@ -77,7 +77,7 @@ void mt_map_test_main()
 
     assert(vals->length == 2);
 
-    for (int index = 0; index < vals->length; index++)
+    for (size_t index = 0; index < vals->length; index++)
     {
 	char* val = vals->data[index];
 

@@ -111,15 +111,15 @@ enum wl_window_type
 typedef struct _wl_window_t wl_window_t;
 struct _wl_window_t
 {
-    int  scale;
-    int  width;
-    int  height;
-    int  buffer_width;
-    int  buffer_height;
-    int  fullscreen;
-    int  hidden;
-    int  margin;
-    char anchor[4];
+    int      scale;
+    uint32_t width;
+    uint32_t height;
+    int      buffer_width;
+    int      buffer_height;
+    int      fullscreen;
+    int      hidden;
+    int      margin;
+    char     anchor[4];
 
     int shown;  /* surface_enter is called, scaling is set */
     int inited; /* egl is swapped or buffer is attached for the first time to trigger surface_enter event */
@@ -152,9 +152,9 @@ struct _wl_window_t
 
     /* needed for resize events */
 
-    int new_scale;
-    int new_width;
-    int new_height;
+    int      new_scale;
+    uint32_t new_width;
+    uint32_t new_height;
 
     /* egl window related */
 

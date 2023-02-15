@@ -105,21 +105,23 @@ void lib_remove_entry(mt_map_t* entry)
 
 void lib_add_entries(mt_vector_t* entries)
 {
-    for (int index = 0; index < entries->length; index++)
+    for (size_t index = 0; index < entries->length; index++)
     {
 	mt_map_t* entry = entries->data[index];
 	char*     path  = MGET(entry, "path");
-	if (path) lib_add_entry(path, entry);
+	if (path)
+	    lib_add_entry(path, entry);
     }
 }
 
 void lib_remove_entries(mt_vector_t* entries)
 {
-    for (int index = 0; index < entries->length; index++)
+    for (size_t index = 0; index < entries->length; index++)
     {
 	mt_map_t* entry = entries->data[index];
 	char*     path  = MGET(entry, "path");
-	if (path && MGET(db, path)) lib_remove_entry(entry);
+	if (path && MGET(db, path))
+	    lib_remove_entry(entry);
     }
 }
 
@@ -150,7 +152,7 @@ void lib_remove_non_existing(mt_map_t* files)
     mt_vector_t* paths = VNEW(); // REL 0
     mt_map_keys(db, paths);
 
-    for (int index = 0; index < paths->length; index++)
+    for (size_t index = 0; index < paths->length; index++)
     {
 	char*     path = paths->data[index];
 	mt_map_t* map  = MGET(files, path);
@@ -170,7 +172,7 @@ void lib_filter_existing(mt_map_t* files)
     mt_vector_t* paths = VNEW(); // REL 0
     mt_map_keys(files, paths);
 
-    for (int index = 0; index < paths->length; index++)
+    for (size_t index = 0; index < paths->length; index++)
     {
 	char*     path = paths->data[index];
 	mt_map_t* map  = MGET(db, path);
@@ -266,12 +268,13 @@ void lib_organize(char* libpath, mt_map_t* db)
 
     mt_map_keys(db, paths);
 
-    for (int index = 0; index < paths->length; index++)
+    for (size_t index = 0; index < paths->length; index++)
     {
 	char*     path  = paths->data[index];
 	mt_map_t* entry = MGET(db, path);
 
-	if (entry) lib_organize_entry(libpath, db, entry);
+	if (entry)
+	    lib_organize_entry(libpath, db, entry);
     }
 
     REL(paths); // REL 0
@@ -295,7 +298,7 @@ int lib_comp_artist(void* left, void* right)
 
 void lib_get_genres(mt_vector_t* vec)
 {
-    int ei; // entry, genre index
+    size_t ei; // entry, genre index
 
     mt_vector_t* songs  = VNEW(); // REL 0
     mt_map_t*    genres = MNEW(); // REL 1
@@ -324,7 +327,7 @@ void lib_get_genres(mt_vector_t* vec)
 
 void lib_get_artists(mt_vector_t* vec)
 {
-    int ei;
+    size_t ei;
 
     mt_vector_t* songs   = VNEW(); // REL 0
     mt_map_t*    artists = MNEW(); // REL 1
@@ -338,7 +341,8 @@ void lib_get_artists(mt_vector_t* vec)
 	mt_map_t* entry  = songs->data[ei];
 	char*     artist = MGET(entry, "artist");
 
-	if (artist) MPUT(artists, artist, entry);
+	if (artist)
+	    MPUT(artists, artist, entry);
     }
 
     mt_map_values(artists, vec);
@@ -356,7 +360,7 @@ void lib_update_metadata(char* path, mt_map_t* changed, mt_vector_t* removed)
 
     // update changed
 
-    for (int index = 0; index < keys->length; index++)
+    for (size_t index = 0; index < keys->length; index++)
     {
 	char* key = keys->data[index];
 	MPUT(song, key, MGET(changed, key));
@@ -364,7 +368,7 @@ void lib_update_metadata(char* path, mt_map_t* changed, mt_vector_t* removed)
 
     // remove removed
 
-    for (int index = 0; index < removed->length; index++)
+    for (size_t index = 0; index < removed->length; index++)
     {
 	char* field = keys->data[index];
 	MDEL(song, field);

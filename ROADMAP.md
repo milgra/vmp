@@ -1,8 +1,7 @@
 # Visual Music Player development roadmap
 
-- enable all warnings!
 - remove all warnings
-- remove all leaks from unit tests
+- remove unnecessary libs
 - error handling in mt core functions ( add, del, rel, expand, etc should return with int)
 - scroll event goes through seekknob
 - multiple file selected/edit/delete

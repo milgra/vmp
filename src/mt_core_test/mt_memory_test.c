@@ -44,7 +44,7 @@ void test_stack_to_heap()
     mt_log_debug("testing mt_memory_stack_to_heap");
 
     char* text  = "This is a test string";
-    char* ttext = mt_memory_stack_to_heap(strlen(text) + 1, NULL, NULL, (uint8_t*) text);
+    char* ttext = mt_memory_stack_to_heap(strlen(text) + 1, NULL, NULL, (char*) text);
 
     assert(ttext != NULL);
     assert(mt_memory_retaincount(ttext) == 1);

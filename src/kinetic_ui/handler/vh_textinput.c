@@ -45,13 +45,13 @@ struct _vh_textinput_t
     ku_view_t* holder_v; // placeholder text view
     ku_rect_t  frame_s;  // starting frame for autosize minimal values
 
-    int         glyph_index;
+    size_t      glyph_index;
     textstyle_t style;
     char        active;
 
-    int limit;
-    int mouse_out_deact;
-    int new_glyph_index;
+    size_t limit;
+    int    mouse_out_deact;
+    size_t new_glyph_index;
 
     glyphchain_t glyphchain;
 
@@ -149,7 +149,7 @@ glyph_t* vh_textinput_glyphs_from_string(char* text, size_t* count)
     glyph_t*     glyphs = malloc(sizeof(glyph_t) * length); // REL 0
     utf8_int32_t cp;
 
-    for (int i = 0; i < length; i++)
+    for (size_t i = 0; i < length; i++)
     {
 	part         = utf8codepoint(part, &cp);
 	glyphs[i].cp = cp;
@@ -208,7 +208,7 @@ void vh_textinput_upd(ku_view_t* view)
 	    }
 	}
 
-	for (int i = 0; i < count; i++)
+	for (size_t i = 0; i < count; i++)
 	{
 	    glyph_t g = glyphs[i];
 
@@ -583,7 +583,7 @@ void vh_textinput_add(ku_view_t* view, char* text, char* phtext, void (*on_event
     {
 	char*        part = text;
 	utf8_int32_t cp;
-	for (int i = 0; i < utf8len(text); i++)
+	for (size_t i = 0; i < utf8len(text); i++)
 	{
 	    part = utf8codepoint(part, &cp);
 	    glyphchain_add(&data->glyphchain, cp, view->id, view);
@@ -606,7 +606,7 @@ void vh_textinput_set_text(ku_view_t* view, char* text)
 
     // remove glyphs
 
-    for (int i = data->glyphchain.length - 1; i > -1; i--)
+    for (size_t i = data->glyphchain.length; i-- > 0;)
     {
 	ku_view_t* gv = data->glyphchain.views->data[i];
 
@@ -633,7 +633,7 @@ void vh_textinput_set_text(ku_view_t* view, char* text)
     {
 	char*        part = text;
 	utf8_int32_t cp;
-	for (int i = 0; i < utf8len(text); i++)
+	for (size_t i = 0; i < utf8len(text); i++)
 	{
 	    part = utf8codepoint(part, &cp);
 	    glyphchain_add(&data->glyphchain, cp, view->id, view);

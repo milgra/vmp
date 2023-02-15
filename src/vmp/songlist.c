@@ -114,8 +114,10 @@ uint32_t songlist_get_index(mt_map_t* song)
 
 void songlist_apply_filter()
 {
-    if (sl.visible_songs) mt_vector_reset(sl.visible_songs);
-    else sl.visible_songs = VNEW();
+    if (sl.visible_songs)
+	mt_vector_reset(sl.visible_songs);
+    else
+	sl.visible_songs = VNEW();
 
     mt_time(NULL);
 
@@ -126,17 +128,18 @@ void songlist_apply_filter()
 
 	mt_map_keys(sl.fields, fields);
 
-	for (int index = 0;
+	for (size_t index = 0;
 	     index < sl.songs->length;
 	     index++)
 	{
 	    mt_map_t* entry = sl.songs->data[index];
 
-	    for (int fi = 0; fi < fields->length; fi++)
+	    for (size_t fi = 0; fi < fields->length; fi++)
 	    {
 		char* field       = fields->data[fi];
 		char* filtervalue = MGET(sl.filtermap, field);
-		if (filtervalue == NULL) filtervalue = MGET(sl.filtermap, "*");
+		if (filtervalue == NULL)
+		    filtervalue = MGET(sl.filtermap, "*");
 
 		if (filtervalue != NULL)
 		{
@@ -167,32 +170,39 @@ void songlist_apply_filter()
 
 void songlist_set_filter(char* filter)
 {
-    if (sl.filter != NULL) REL(sl.filter);
+    if (sl.filter != NULL)
+	REL(sl.filter);
     sl.filter = NULL;
-    if (filter) sl.filter = STRNC(filter);
+    if (filter)
+	sl.filter = STRNC(filter);
 
     if (sl.filter)
     {
 	mt_vector_t* words = mt_string_split(sl.filter, " "); // REL WORDS
 
-	if (sl.filtermap) REL(sl.filtermap);
+	if (sl.filtermap)
+	    REL(sl.filtermap);
 	sl.filtermap = MNEW();
 
 	char* currentfield = NULL;
 	char* currentword  = STRNC("");
 
-	for (int index = 0; index < words->length; index++)
+	for (size_t index = 0; index < words->length; index++)
 	{
 	    char* word = words->data[index];
 
-	    if (strcmp(word, "is") == 0) continue;
+	    if (strcmp(word, "is") == 0)
+		continue;
 
 	    if (mt_map_get(sl.fields, word) != NULL)
 	    {
-		if (currentword != NULL && currentfield != NULL) MPUT(sl.filtermap, currentfield, currentword);
+		if (currentword != NULL && currentfield != NULL)
+		    MPUT(sl.filtermap, currentfield, currentword);
 
-		if (currentword) REL(currentword);
-		if (currentfield) REL(currentfield);
+		if (currentword)
+		    REL(currentword);
+		if (currentfield)
+		    REL(currentfield);
 
 		// store as field
 		currentfield = RET(word);
@@ -200,23 +210,29 @@ void songlist_set_filter(char* filter)
 	    }
 	    else
 	    {
-		if (strlen(currentword) > 0) currentword = mt_string_append(currentword, " ");
+		if (strlen(currentword) > 0)
+		    currentword = mt_string_append(currentword, " ");
 		currentword = mt_string_append(currentword, word);
 	    }
 	}
 
 	// add final words
 
-	if (currentword != NULL && currentfield != NULL) MPUT(sl.filtermap, currentfield, currentword);
-	else if (currentword != NULL) MPUT(sl.filtermap, "*", currentword);
+	if (currentword != NULL && currentfield != NULL)
+	    MPUT(sl.filtermap, currentfield, currentword);
+	else if (currentword != NULL)
+	    MPUT(sl.filtermap, "*", currentword);
 
-	if (currentword) REL(currentword);
-	if (currentfield) REL(currentfield);
+	if (currentword)
+	    REL(currentword);
+	if (currentfield)
+	    REL(currentfield);
 
 	REL(words);
     }
 
-    if (sl.songs) songlist_apply_filter();
+    if (sl.songs)
+	songlist_apply_filter();
 }
 
 int songlist_comp_entry(void* left, void* right)
@@ -224,13 +240,14 @@ int songlist_comp_entry(void* left, void* right)
     mt_map_t* l = left;
     mt_map_t* r = right;
 
-    for (int index = 0; index < sl.sortvec->length; index += 2)
+    for (size_t index = 0; index < sl.sortvec->length; index += 2)
     {
 	char* field = sl.sortvec->data[index];
 	char* sorts = sl.sortvec->data[index + 1];
 
 	int dir = -1;
-	if (sorts[0] == '1') dir = 1;
+	if (sorts[0] == '1')
+	    dir = 1;
 
 	char* la = MGET(l, field);
 	char* ra = MGET(r, field);
@@ -240,18 +257,24 @@ int songlist_comp_entry(void* left, void* right)
 	    int ln = la ? atoi(la) : 0;
 	    int rn = ra ? atoi(ra) : 0;
 
-	    if (ln == rn) continue;
+	    if (ln == rn)
+		continue;
 
-	    if (ln < rn) return dir * -1;
-	    else return dir;
+	    if (ln < rn)
+		return dir * -1;
+	    else
+		return dir;
 	}
 	else
 	{
 
-	    if (la == NULL) la = "";
-	    if (ra == NULL) ra = "";
+	    if (la == NULL)
+		la = "";
+	    if (ra == NULL)
+		ra = "";
 
-	    if (strcmp(la, ra) == 0) continue;
+	    if (strcmp(la, ra) == 0)
+		continue;
 
 	    return dir * strcmp(la, ra);
 	}

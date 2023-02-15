@@ -40,8 +40,7 @@ struct SwsContext* coder_sws_context = NULL;
 
 ku_bitmap_t* coder_load_image(const char* path)
 {
-    ku_bitmap_t* bitmap  = NULL;
-    int          success = 0;
+    ku_bitmap_t* bitmap = NULL;
 
     AVFormatContext* src_ctx = avformat_alloc_context(); // FREE 0
 
@@ -49,7 +48,7 @@ ku_bitmap_t* coder_load_image(const char* path)
     if (avformat_open_input(&src_ctx, path, NULL, NULL) == 0) // CLOSE 0
     {
 	// find the first attached picture, if available
-	for (int index = 0; index < src_ctx->nb_streams; index++)
+	for (unsigned int index = 0; index < src_ctx->nb_streams; index++)
 	{
 	    if (src_ctx->streams[index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
 	    {
@@ -146,8 +145,6 @@ ku_bitmap_t* coder_load_image(const char* path)
 			    bitmap->h,
 			    scaledpixels,
 			    stride);
-
-			success = 1;
 		    }
 
 		    av_frame_free(&frame);   // FREE 0
@@ -155,7 +152,8 @@ ku_bitmap_t* coder_load_image(const char* path)
 
 		    avcodec_free_context(&codecContext);
 		}
-		else mt_log_error("Cannot allocate context");
+		else
+		    mt_log_error("Cannot allocate context");
 	    }
 	}
 
@@ -175,7 +173,7 @@ void coder_load_image_into(const char* path, ku_bitmap_t* bitmap)
     if (avformat_open_input(&src_ctx, path, NULL, NULL) == 0) // CLOSE 0
     {
 	// find the first attached picture, if available
-	for (int index = 0; index < src_ctx->nb_streams; index++)
+	for (unsigned int index = 0; index < src_ctx->nb_streams; index++)
 	{
 	    if (src_ctx->streams[index]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
 	    {
@@ -236,7 +234,8 @@ void coder_load_image_into(const char* path, ku_bitmap_t* bitmap)
 
 	avformat_close_input(&src_ctx); // CLOSE 0
     }
-    else mt_log_error("cannot find file : %s", path);
+    else
+	mt_log_error("cannot find file : %s", path);
 
     avformat_free_context(src_ctx); // FREE 0
 }
@@ -245,7 +244,6 @@ int coder_load_cover_into(const char* path, ku_bitmap_t* bitmap)
 {
     assert(path != NULL);
 
-    int i   = 0;
     int ret = 0;
 
     AVFormatContext* src_ctx = avformat_alloc_context(); // FREE 0
@@ -254,7 +252,7 @@ int coder_load_cover_into(const char* path, ku_bitmap_t* bitmap)
 	mt_log_error("avformat_open_input() failed");
 
     // find the first attached picture, if available
-    for (i = 0; i < src_ctx->nb_streams; i++)
+    for (unsigned int i = 0; i < src_ctx->nb_streams; i++)
     {
 	if (src_ctx->streams[i]->disposition & AV_DISPOSITION_ATTACHED_PIC)
 	{
@@ -468,7 +466,6 @@ coder_media_type_t coder_get_type(const char* path)
     assert(path != NULL);
 
     coder_media_type_t type = CODER_MEDIA_TYPE_OTHER;
-    int                retv = 0;
 
     AVFormatContext* pFormatCtx  = avformat_alloc_context(); // FREE 0
     AVDictionary*    format_opts = NULL;
@@ -480,10 +477,11 @@ coder_media_type_t coder_get_type(const char* path)
     {
 	if (pFormatCtx)
 	{
-	    if (pFormatCtx->duration < 0) type = CODER_MEDIA_TYPE_IMAGE;
+	    if (pFormatCtx->duration < 0)
+		type = CODER_MEDIA_TYPE_IMAGE;
 
 	    // Retrieve stream information
-	    retv = avformat_find_stream_info(pFormatCtx, NULL);
+	    avformat_find_stream_info(pFormatCtx, NULL);
 
 	    for (unsigned i = 0; i < pFormatCtx->nb_streams; i++)
 	    {
@@ -493,11 +491,13 @@ coder_media_type_t coder_get_type(const char* path)
 		{
 		    if (param->codec_type == AVMEDIA_TYPE_AUDIO)
 		    {
-			if (type == CODER_MEDIA_TYPE_OTHER) type = CODER_MEDIA_TYPE_AUDIO;
+			if (type == CODER_MEDIA_TYPE_OTHER)
+			    type = CODER_MEDIA_TYPE_AUDIO;
 		    }
 		    else if (param->codec_type == AVMEDIA_TYPE_VIDEO)
 		    {
-			if (type != CODER_MEDIA_TYPE_IMAGE) type = CODER_MEDIA_TYPE_VIDEO;
+			if (type != CODER_MEDIA_TYPE_IMAGE)
+			    type = CODER_MEDIA_TYPE_VIDEO;
 		    }
 		}
 	    }
@@ -506,7 +506,8 @@ coder_media_type_t coder_get_type(const char* path)
 	avformat_close_input(&pFormatCtx); // CLOSE 0
     }
 
-    if (format_opts) av_dict_free(&format_opts);
+    if (format_opts)
+	av_dict_free(&format_opts);
 
     avformat_free_context(pFormatCtx); // FREE 0
 
@@ -565,7 +566,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 			int dec_enc_strm[10]   = {0};
 			int dec_cov_strm_index = -1;
 
-			for (int si = 0; si < dec_ctx->nb_streams; si++)
+			for (unsigned int si = 0; si < dec_ctx->nb_streams; si++)
 			{
 			    AVCodecParameters* param = dec_ctx->streams[si]->codecpar;
 			    const AVCodec*     codec = avcodec_find_encoder(dec_ctx->streams[si]->codecpar->codec_id);
@@ -602,7 +603,8 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 				    mt_log_debug("Mapping decoder stream index %i to encoder stream index %i", si, enc_stream->index);
 				}
 			    }
-			    else mt_log_error("No encoder found for stream no %i", si);
+			    else
+				mt_log_error("No encoder found for stream no %i", si);
 			}
 
 			//
@@ -627,7 +629,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 				    // find stream info
 
-				    for (int si = 0; si < cov_ctx->nb_streams; si++)
+				    for (unsigned int si = 0; si < cov_ctx->nb_streams; si++)
 				    {
 					AVCodecParameters* param = cov_ctx->streams[si]->codecpar;
 					const AVCodec*     codec = avcodec_find_encoder(cov_ctx->streams[si]->codecpar->codec_id);
@@ -658,7 +660,8 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 						mt_log_debug("Mapping cover stream index %i to encoder stream index %i", cov_dec_index, cov_enc_index);
 					    }
 					}
-					else mt_log_error("No encoder found for stream no %i", si);
+					else
+					    mt_log_error("No encoder found for stream no %i", si);
 				    }
 				}
 			    }
@@ -678,7 +681,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 			mt_map_keys(changed, fields);
 
-			for (int fi = 0; fi < fields->length; fi++)
+			for (size_t fi = 0; fi < fields->length; fi++)
 			{
 			    char* field = fields->data[fi];
 			    char* value = MGET(changed, field);
@@ -688,7 +691,7 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 			REL(fields);
 
-			for (int fi = 0; fi < drop->length; fi++)
+			for (size_t fi = 0; fi < drop->length; fi++)
 			{
 			    char* field = drop->data[fi];
 			    av_dict_set(&enc_ctx->metadata, field, NULL, 0);
@@ -730,7 +733,8 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 				    else
 				    {
 
-					if (last_di == -1) last_di = dec_pkt->stream_index;
+					if (last_di == -1)
+					    last_di = dec_pkt->stream_index;
 
 					int enc_index = dec_enc_strm[dec_pkt->stream_index];
 
@@ -788,33 +792,44 @@ int coder_write_metadata(char* libpath, char* path, char* cover_path, mt_map_t* 
 
 				success = 1;
 			    }
-			    else mt_log_error("Cannot write header.");
+			    else
+				mt_log_error("Cannot write header.");
 			}
-			else mt_log_error("Cannot init output.");
+			else
+			    mt_log_error("Cannot init output.");
 
-			if (cov_ctx) avformat_free_context(cov_ctx);
+			if (cov_ctx)
+			    avformat_free_context(cov_ctx);
 
-			if (avio_close(enc_ctx->pb) >= 0) mt_log_debug("Closed target file."); // CLOSE 0
+			if (avio_close(enc_ctx->pb) >= 0)
+			    mt_log_debug("Closed target file."); // CLOSE 0
 
 			if (success)
 			{
-			    if (rename(new_path, old_path) == 0) mt_log_debug("Temporary file renamed to original file.");
-			    else mt_log_error("Couldn't rename temporary file to original file.");
+			    if (rename(new_path, old_path) == 0)
+				mt_log_debug("Temporary file renamed to original file.");
+			    else
+				mt_log_error("Couldn't rename temporary file to original file.");
 			}
 		    }
-		    else mt_log_error("Cannot open file for encode %s", new_path);
+		    else
+			mt_log_error("Cannot open file for encode %s", new_path);
 		}
-		else mt_log_error("Output is a fileless codec.");
+		else
+		    mt_log_error("Output is a fileless codec.");
 
 		avformat_free_context(enc_ctx); // FREE 1
 	    }
-	    else mt_log_error("Cannot allocate output context for %s", old_name);
+	    else
+		mt_log_error("Cannot allocate output context for %s", old_name);
 	}
-	else mt_log_error("Cannot find stream info");
+	else
+	    mt_log_error("Cannot find stream info");
 
 	avformat_close_input(&dec_ctx);
     }
-    else mt_log_error("Cannot open file for decode %s", old_path);
+    else
+	mt_log_error("Cannot open file for decode %s", old_path);
 
     avformat_free_context(dec_ctx); // FREE 0
 

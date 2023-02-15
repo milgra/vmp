@@ -36,7 +36,7 @@ int analyzer_thread(void* chptr)
     char*       libpath  = config_get("lib_path");
     int         autotest = config_get("autotest") != NULL;
 
-    for (int index = 0; index < analyzer->songs->length; index++)
+    for (size_t index = 0; index < analyzer->songs->length; index++)
     {
 	mt_map_t* song     = analyzer->songs->data[index];
 	char*     path     = MGET(song, "path");
@@ -49,7 +49,8 @@ int analyzer_thread(void* chptr)
 
 	// add file data
 
-	if (!autotest) MPUT(song, "added", time_str);
+	if (!autotest)
+	    MPUT(song, "added", time_str);
 	MPUTR(song, "played", STRNC("0"));
 	MPUTR(song, "skipped", STRNC("0"));
 	MPUTR(song, "plays", STRNC("0"));
@@ -66,9 +67,12 @@ int analyzer_thread(void* chptr)
 	    char* artist = MGET(song, "artist");
 	    char* album  = MGET(song, "album");
 	    char* title  = MGET(song, "title");
-	    if (strcmp(artist, "...") == 0) MPUTR(song, "artist", STRNC("Unknown"));
-	    if (strcmp(album, "...") == 0) MPUTR(song, "album", STRNC("Unknown"));
-	    if (strcmp(title, "...") == 0) MPUTR(song, "title", mt_path_new_filename(path));
+	    if (strcmp(artist, "...") == 0)
+		MPUTR(song, "artist", STRNC("Unknown"));
+	    if (strcmp(album, "...") == 0)
+		MPUTR(song, "album", STRNC("Unknown"));
+	    if (strcmp(title, "...") == 0)
+		MPUTR(song, "title", mt_path_new_filename(path));
 
 	    char* duration = MGET(song, "duration");
 	    if (strcmp(duration, "0") == 0 || strcmp(duration, "0:00") == 0)

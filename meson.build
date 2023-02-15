@@ -3,7 +3,8 @@ project(
   'c',
   version: '0.88b',
   license: 'MIT',
-  default_options: ['c_std=gnu99']
+  default_options: ['warning_level=3',
+  		    'c_std=gnu99']
 )
 
 cc = meson.get_compiler('c')
@@ -103,6 +104,7 @@ vmp_version = '"@0@"'.format(meson.project_version())
 pkg_datadir = join_paths(get_option('prefix'), get_option('datadir')) / 'vmp'
 add_project_arguments('-DPKG_DATADIR="' + pkg_datadir + '"',
 		      '-DVMP_VERSION=@0@'.format(vmp_version),
+		      '-Wno-unused-parameter',
 		      language: 'c')
 
 if get_option('buildtype') == 'debug'

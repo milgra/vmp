@@ -230,7 +230,7 @@ ku_view_t* ku_view_new(char* id, ku_rect_t frame)
     view->texture.alpha     = 1.0;
     view->texture.resizable = 1;
 
-    view->frame.region = (ku_rect_t){-1, -1, -1. - 1};
+    view->frame.region = (ku_rect_t){-1, -1, -1, -1};
 
     // reset margins
 
@@ -284,7 +284,7 @@ void ku_view_set_masked(ku_view_t* view, char masked)
 
 void ku_view_add_subview(ku_view_t* view, ku_view_t* subview)
 {
-    for (int i = 0; i < view->views->length; i++)
+    for (size_t i = 0; i < view->views->length; i++)
     {
 	ku_view_t* sview = view->views->data[i];
 	if (strcmp(sview->id, subview->id) == 0)
@@ -308,7 +308,7 @@ void ku_view_add_subview(ku_view_t* view, ku_view_t* subview)
 
 void ku_view_insert_subview(ku_view_t* view, ku_view_t* subview, uint32_t index)
 {
-    for (int i = 0; i < view->views->length; i++)
+    for (size_t i = 0; i < view->views->length; i++)
     {
 	ku_view_t* sview = view->views->data[i];
 	if (strcmp(sview->id, subview->id) == 0)
@@ -363,7 +363,7 @@ void ku_view_coll_touched(ku_view_t* view, ku_event_t ev, mt_vector_t* queue)
 	ev.y >= view->frame.global.y)
     {
 	mt_vector_add(queue, view);
-	for (int i = 0; i < view->views->length; i++)
+	for (size_t i = 0; i < view->views->length; i++)
 	{
 	    ku_view_t* v = view->views->data[i];
 	    ku_view_coll_touched(v, ev, queue);
@@ -373,19 +373,21 @@ void ku_view_coll_touched(ku_view_t* view, ku_event_t ev, mt_vector_t* queue)
 
 ku_view_t* ku_view_get_subview(ku_view_t* view, char* id)
 {
-    if (strcmp(view->id, id) == 0) return view;
-    for (int i = 0; i < view->views->length; i++)
+    if (strcmp(view->id, id) == 0)
+	return view;
+    for (size_t i = 0; i < view->views->length; i++)
     {
 	ku_view_t* sv = view->views->data[i];
 	ku_view_t* re = ku_view_get_subview(sv, id);
-	if (re) return re;
+	if (re)
+	    return re;
     }
     return NULL;
 }
 
 void ku_view_evt(ku_view_t* view, ku_event_t ev)
 {
-    for (int i = 0; i < view->views->length; i++)
+    for (size_t i = 0; i < view->views->length; i++)
     {
 	ku_view_t* v = view->views->data[i];
 	ku_view_evt(v, ev);
@@ -398,7 +400,8 @@ void ku_view_evt(ku_view_t* view, ku_event_t ev)
 void ku_view_calc_global(ku_view_t* view)
 {
     ku_rect_t frame_parent = {0};
-    if (view->parent != NULL) frame_parent = view->parent->frame.global;
+    if (view->parent != NULL)
+	frame_parent = view->parent->frame.global;
 
     ku_rect_t frame_global = view->frame.local;
     ku_rect_t old_global   = view->frame.global;
@@ -409,11 +412,12 @@ void ku_view_calc_global(ku_view_t* view)
     // notify about pos change
 
     if (fabs(frame_global.x - old_global.x) > 0.001 ||
-	fabs(frame_global.y - old_global.y) > 0.001) view->frame.pos_changed = 1;
+	fabs(frame_global.y - old_global.y) > 0.001)
+	view->frame.pos_changed = 1;
 
     view->frame.global = frame_global;
 
-    for (int i = 0; i < view->views->length; i++)
+    for (size_t i = 0; i < view->views->length; i++)
     {
 	ku_view_t* v = view->views->data[i];
 	ku_view_calc_global(v);
@@ -464,7 +468,7 @@ void ku_view_set_texture_alpha(ku_view_t* view, float alpha, char recur)
 
     if (recur)
     {
-	for (int i = 0; i < view->views->length; i++)
+	for (size_t i = 0; i < view->views->length; i++)
 	{
 	    ku_view_t* v = view->views->data[i];
 	    ku_view_set_texture_alpha(v, alpha, recur);
@@ -508,7 +512,7 @@ void ku_view_layout(ku_view_t* view, float scale)
 	if (view->style.flexdir == FD_ROW)
 	{
 	    // calculate width of all fixed width views
-	    for (int i = 0; i < view->views->length; i++)
+	    for (size_t i = 0; i < view->views->length; i++)
 	    {
 		ku_view_t* v = view->views->data[i];
 		if (v->style.width > 0)
@@ -523,7 +527,7 @@ void ku_view_layout(ku_view_t* view, float scale)
 	if (view->style.flexdir == FD_COL)
 	{
 	    // calculate height of all fixed height views
-	    for (int i = 0; i < view->views->length; i++)
+	    for (size_t i = 0; i < view->views->length; i++)
 	    {
 		ku_view_t* v = view->views->data[i];
 		if (v->style.height > 0)
@@ -537,7 +541,7 @@ void ku_view_layout(ku_view_t* view, float scale)
 	}
     }
 
-    for (int i = 0; i < view->views->length; i++)
+    for (size_t i = 0; i < view->views->length; i++)
     {
 	ku_view_t* v     = view->views->data[i];
 	ku_rect_t  frame = v->frame.local;
@@ -648,7 +652,7 @@ void ku_view_layout(ku_view_t* view, float scale)
 	ku_view_set_frame(v, frame);
     }
 
-    for (int i = 0; i < view->views->length; i++)
+    for (size_t i = 0; i < view->views->length; i++)
     {
 	ku_view_t* v = view->views->data[i];
 	ku_view_layout(v, scale);
@@ -689,7 +693,7 @@ void ku_view_describe(void* pointer, int level)
 
     printf("%s [x:%.2f y:%.2f w:%.2f h:%.2f eh:%i tg:%i rc:%zu]\n", view->id, view->frame.local.x, view->frame.local.y, view->frame.local.w, view->frame.local.h, view->evt_han != NULL, view->tex_gen != NULL, mt_memory_retaincount(view));
 
-    for (int i = 0; i < view->views->length; i++) ku_view_describe(view->views->data[i], level + 1);
+    for (size_t i = 0; i < view->views->length; i++) ku_view_describe(view->views->data[i], level + 1);
 }
 
 void ku_view_desc_style(vstyle_t l)

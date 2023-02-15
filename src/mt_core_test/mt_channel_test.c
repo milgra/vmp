@@ -16,9 +16,10 @@ void mt_channel_test_main();
 
 static int success = 1;
 
-void send_test(mt_channel_t* ch)
+void* send_test(void* chp)
 {
-    uint32_t counter = 0;
+    mt_channel_t* ch      = chp;
+    uint32_t      counter = 0;
     while (1)
     {
 	if (success == 0)
@@ -44,11 +45,14 @@ void send_test(mt_channel_t* ch)
 	//            time.tv_nsec = rand() % 100000;
 	//            nanosleep(&time , (struct timespec *)NULL);
     }
+
+    return NULL;
 }
 
-void recv_test(mt_channel_t* ch)
+void* recv_test(void* chp)
 {
-    uint32_t last = 0;
+    mt_channel_t* ch   = chp;
+    uint32_t      last = 0;
     while (1)
     {
 	if (success == 0)
@@ -76,6 +80,8 @@ void recv_test(mt_channel_t* ch)
 	    //                nanosleep(&time , (struct timespec *)NULL);
 	}
     }
+
+    return NULL;
 }
 
 mt_channel_t** testarray;
@@ -93,11 +99,11 @@ void mt_channel_test_main()
     for (int index = 0; index < kChTestThreads; index++)
     {
 	testarray[index] = mt_channel_new(100);
-	pthread_create(&threads[threadidx++], NULL, (void*) send_test, testarray[index]);
-	pthread_create(&threads[threadidx++], NULL, (void*) recv_test, testarray[index]);
+	pthread_create(&threads[threadidx++], NULL, send_test, testarray[index]);
+	pthread_create(&threads[threadidx++], NULL, recv_test, testarray[index]);
     }
 
-    for (int index = 0; index < threadidx; index++)
+    for (uint32_t index = 0; index < threadidx; index++)
     {
 	pthread_join(threads[index], NULL);
     }

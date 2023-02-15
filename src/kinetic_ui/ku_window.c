@@ -139,7 +139,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	ku_event_t outev = ev;
 	outev.type       = KU_EVENT_MOUSE_MOVE_OUT;
 
-	for (int i = win->movqueue->length - 1; i > -1; i--)
+	for (size_t i = win->movqueue->length; i-- > 0;)
 	{
 	    ku_view_t* v = win->movqueue->data[i];
 	    if (!(ev.x < v->frame.global.x &&
@@ -158,7 +158,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	mt_vector_reset(win->movqueue);
 	ku_view_coll_touched(win->root, ev, win->movqueue);
 
-	for (int i = win->movqueue->length - 1; i > -1; i--)
+	for (size_t i = win->movqueue->length; i-- > 0;)
 	{
 	    ku_view_t* v = win->movqueue->data[i];
 	    if (v->evt_han)
@@ -178,7 +178,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 
 	if (ev.type == KU_EVENT_MOUSE_DOWN)
 	{
-	    for (int i = win->ptrqueue->length - 1; i > -1; i--)
+	    for (size_t i = win->ptrqueue->length; i-- > 0;)
 	    {
 		ku_view_t* v = win->ptrqueue->data[i];
 		if (v->evt_han)
@@ -192,7 +192,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	    ku_view_coll_touched(win->root, ev, win->ptrqueue);
 	}
 
-	for (int i = win->ptrqueue->length - 1; i > -1; i--)
+	for (size_t i = win->ptrqueue->length; i-- > 0;)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
 	    if (v->evt_han)
@@ -207,7 +207,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	mt_vector_reset(win->ptrqueue);
 	ku_view_coll_touched(win->root, ev, win->ptrqueue);
 
-	for (int i = win->ptrqueue->length - 1; i > -1; i--)
+	for (size_t i = win->ptrqueue->length; i-- > 0;)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
 	    if (v->evt_han)
@@ -219,7 +219,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
     }
     else if (ev.type == KU_EVENT_TEXT)
     {
-	for (int i = win->ptrqueue->length - 1; i > -1; i--)
+	for (size_t i = win->ptrqueue->length; i-- > 0;)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
 	    if (v->evt_han)
@@ -244,7 +244,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	    else
 	    {
 		/* unfocus first */
-		int index = 0;
+		size_t index = 0;
 		for (index = 0; index < win->focusable->length; index++)
 		{
 		    ku_view_t* v = win->focusable->data[index];
@@ -272,7 +272,7 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 	    }
 	}
 
-	for (int i = win->ptrqueue->length - 1; i > -1; i--)
+	for (size_t i = win->ptrqueue->length; i-- > 0;)
 	{
 	    ku_view_t* v = win->ptrqueue->data[i];
 
@@ -288,9 +288,10 @@ void ku_window_event(ku_window_t* win, ku_event_t ev)
 void ku_window_rearrange(ku_window_t* win, ku_view_t* view, mt_vector_t* views)
 {
     VADD(views, view);
-    if (view->style.unmask == 1) view->style.unmask = 0; // reset unmasking
+    if (view->style.unmask == 1)
+	view->style.unmask = 0; // reset unmasking
     mt_vector_t* vec = view->views;
-    for (int i = 0; i < vec->length; i++) ku_window_rearrange(win, vec->data[i], views);
+    for (size_t i = 0; i < vec->length; i++) ku_window_rearrange(win, vec->data[i], views);
     if (view->style.masked)
     {
 	ku_view_t* last    = views->data[views->length - 1];
@@ -312,11 +313,12 @@ ku_rect_t ku_window_update(ku_window_t* win, uint32_t time)
 	win->root->rearrange = 0;
     }
 
-    for (int i = 0; i < win->views->length; i++)
+    for (size_t i = 0; i < win->views->length; i++)
     {
 	ku_view_t* view = win->views->data[i];
 
-	if (view->texture.ready == 0) ku_view_gen_texture(view);
+	if (view->texture.ready == 0)
+	    ku_view_gen_texture(view);
 
 	if (view->texture.changed)
 	{

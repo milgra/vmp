@@ -416,7 +416,7 @@ void mt_map_printkeys(mt_map_t* map)
     mt_vector_t* keys = VNEW();
     mt_map_keys(map, keys);
     printf(" \n");
-    for (int index = 0; index < keys->length; index++)
+    for (size_t index = 0; index < keys->length; index++)
 	printf(" %s", (char*) keys->data[index]);
 }
 
@@ -426,7 +426,7 @@ void mt_map_describe(void* p, int level)
     mt_vector_t* keys = VNEW(); // REL 0
     mt_map_keys(map, keys);
     printf("{");
-    for (int index = 0; index < keys->length; index++)
+    for (size_t index = 0; index < keys->length; index++)
     {
 	char* key = (char*) keys->data[index];
 	printf("\n%*s(K)%s\n%*s(V)", level, " ", key, level, " ");

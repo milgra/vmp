@@ -170,7 +170,7 @@ int vh_anim_evt(ku_view_t* view, ku_event_t ev)
 
 		if (delta == vh->rsteps)
 		{
-		    ku_view_set_region(view, (ku_rect_t){-1, -1, -1. - 1});
+		    ku_view_set_region(view, (ku_rect_t){-1, -1, -1, -1});
 		    vh_anim_event_t event = {.id = VH_ANIM_END, .view = view, .userdata = vh->userdata};
 		    if (vh->on_event)
 			(*vh->on_event)(event);
