@@ -1,7 +1,9 @@
 # Visual Music Player development roadmap
 
-- error handling in mt core functions ( add, del, rel, expand, etc should return with int)
 - enable all warnings!
+- remove all warnings
+- remove all leaks from unit tests
+- error handling in mt core functions ( add, del, rel, expand, etc should return with int)
 - scroll event goes through seekknob
 - multiple file selected/edit/delete
 - context menu right click changes songlist scroller

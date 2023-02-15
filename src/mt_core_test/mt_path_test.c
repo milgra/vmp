@@ -53,6 +53,12 @@ void mt_path_test_main()
     char* path5 = mt_path_new_normalize("//milcsi/../whatever.ext");
 
     assert(strcmp(path5, "//whatever.ext"));
+
+    REL(path1);
+    REL(path2);
+    REL(path3);
+    REL(path4);
+    REL(path5);
 }
 
 #endif

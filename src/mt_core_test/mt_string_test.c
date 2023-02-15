@@ -89,6 +89,11 @@ void mt_string_test_main()
     assert(strcmp(vec->data[0], "ONE") == 0);
     assert(strcmp(vec->data[1], "TWO") == 0);
     assert(strcmp(vec->data[2], "THREE") == 0);
+
+    REL(vec);
+    REL(str1);
+    REL(str2);
+    REL(str3);
 }
 
 #endif

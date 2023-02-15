@@ -65,6 +65,8 @@ void mt_map_test_main()
 	assert(strcmp(key, "text1") == 0 || strcmp(key, "text2") == 0);
     }
 
+    REL(keys);
+
     /* checking if map_values working correctly */
 
     mt_log_debug("testing mt_map_values");
@@ -81,6 +83,8 @@ void mt_map_test_main()
 
 	assert(val == ttext1 || val == ttext2);
     }
+
+    REL(vals);
 
     /* checking if map_del working correctly */
 
@@ -102,6 +106,7 @@ void mt_map_test_main()
     /* cleanup, run with leak sanitizer on to check for hidden leaks */
 
     REL(ttext1);
+    REL(map1);
 }
 
 #endif

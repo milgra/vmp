@@ -69,6 +69,8 @@ void mt_vector_test_main()
     assert(vec1->data[2] == ttext4);
     assert(mt_memory_retaincount(ttext4) == 1);
 
+    RET(ttext4);
+
     /* checking if remove data works correctly */
 
     mt_log_debug("testing mt_vector_rem");
@@ -160,7 +162,10 @@ void mt_vector_test_main()
     REL(vec1);
     REL(vec2);
     REL(ttext1);
+    REL(ttext2);
     REL(ttext3);
+    REL(ttext4);
+    REL(ttext4);
 }
 
 #endif

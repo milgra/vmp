@@ -102,6 +102,8 @@ void mt_channel_test_main()
 	pthread_join(threads[index], NULL);
     }
 
+    REL(threads);
+
     assert(success == 1);
 }
 
