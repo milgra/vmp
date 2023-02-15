@@ -283,8 +283,6 @@ void ui_show_context_menu(int x, int y)
 
 	ku_rect_t start = contextpopup->frame.local;
 
-	printf("FRAME %f %f %f %f\n", start.x, start.y, start.w, start.h);
-
 	ku_rect_t end = start;
 
 	//start.x += 40;

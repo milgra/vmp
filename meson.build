@@ -9,13 +9,13 @@ project(
 
 cc = meson.get_compiler('c')
 
-z = cc.find_library('z')
-rt = cc.find_library('rt')
-hb = cc.find_library('harfbuzz')
+#z = cc.find_library('z')
+#rt = cc.find_library('rt')
+#hb = cc.find_library('harfbuzz')
 png = cc.find_library('png')
 math = cc.find_library('m')
 sdl2 = cc.find_library('SDL2')
-pthread = cc.find_library('pthread')
+#pthread = cc.find_library('pthread')
 freetype = cc.find_library('freetype')
 xkbcommon = dependency('xkbcommon')
 
@@ -24,9 +24,9 @@ egl = cc.find_library('EGL')
 wegl = cc.find_library('wayland-egl')
 glew = cc.find_library('GLEW')
 
-jpeg = cc.find_library('jpeg')
-jbig = cc.find_library('jbig2dec')
-ojpeg = cc.find_library('openjp2')
+#jpeg = cc.find_library('jpeg')
+#jbig = cc.find_library('jbig2dec')
+#ojpeg = cc.find_library('openjp2')
 
 avutil = cc.find_library('avutil')
 avcodec = cc.find_library('avcodec')
@@ -77,7 +77,6 @@ vmp_dependencies = [
 		  wayland_client,
 		  wayland_cursor,
 		  png,
-		  rt,
 		  freetype,
 		  math,
 		  gl,
@@ -90,12 +89,6 @@ vmp_dependencies = [
 		  avfilter,
 		  swresample,
 		  swscale,
-		  pthread,
-		  jpeg,
-		  ojpeg,
-		  jbig,
-		  hb,
-		  z,
 		  xkbcommon,
 		  egl,
 		  wegl]
@@ -158,7 +151,6 @@ com_sources = ['src/vmp/analyzer.c',
 	       'src/mt_core_ext/mt_string_ext.c',
 	       'src/mt_core_ext/mt_map_ext.c',
 
-#	       'src/mt_core/mt_channel.c',
 	       'src/mt_core/mt_string.c',
 	       'src/mt_core/mt_path.c',
 	       'src/mt_core/mt_log.c',
@@ -169,13 +161,7 @@ com_sources = ['src/vmp/analyzer.c',
 	       'src/mt_core/mt_vector.c',
 	       'src/mt_core/mt_wrapper.c',
 
-#	       'src/mt_math/mt_matrix_3d.c',
 	       'src/mt_math/mt_matrix_4d.c',
-#	       'src/mt_math/mt_vector_2d.c',
-#	       'src/mt_math/mt_vector_3d.c',
-#	       'src/mt_math/mt_vector_4d.c',
-#	       'src/mt_math/mt_math_2d.c',
-#	       'src/mt_math/mt_math_3d.c',
 
 	       'src/media_coder/coder.c',
 	       'src/media_player/decoder.c',

@@ -1,11 +1,9 @@
 # Visual Music Player development roadmap
 
-- remove all warnings
-- remove unnecessary libs
-- error handling in mt core functions ( add, del, rel, expand, etc should return with int)
 - scroll event goes through seekknob
 - multiple file selected/edit/delete
 - context menu right click changes songlist scroller
+- error handling in mt core functions ( add, del, rel, expand, etc should return with int)
 - vertical scroller grab songlist fix
 - add last played/last skipped fields
 - save shuffle state, current song, current position, current volume on exit, use them on start
