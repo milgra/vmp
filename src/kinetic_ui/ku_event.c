@@ -94,13 +94,14 @@ ku_event_t ku_event_read(FILE* file);
 #include "mt_log.c"
 
 /*                  frame type  x  y  w  h dx dy ratio drag dclick button time time_frame keycode repeat ctrl_down shift_down text */
-char* ku_event_format = "%i %i %i %i %i %i %f %f %f %i %i %i %u %f %u %i %i %i %s\n";
+char* ku_print_format = "%i %i %i %i %i %i %f %f %f %i %i %i %u %f %u %i %i %i '%s'\n";
+char* ku_scan_format  = "%i %i %i %i %i %i %f %f %f %i %i %i %u %f %u %i %i %i '%[^']'\n";
 
 void ku_event_write(FILE* file, ku_event_t ev)
 {
     fprintf(
 	file,
-	ku_event_format,
+	ku_print_format,
 	ev.frame,
 	ev.type,
 	ev.x,
@@ -127,7 +128,7 @@ ku_event_t ku_event_read(FILE* file)
     ku_event_t ev  = {0};
     int        res = fscanf(
         file,
-        ku_event_format,
+        ku_scan_format,
         &ev.frame,
         &ev.type,
         &ev.x,
@@ -148,7 +149,8 @@ ku_event_t ku_event_read(FILE* file)
         &ev.shift_down,
         &ev.text);
 
-    if (res < 0) mt_log_error("Couldn't scanf file");
+    if (res < 0)
+	mt_log_error("Couldn't scanf file");
 
     return ev;
 }

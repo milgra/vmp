@@ -13,7 +13,7 @@ typedef struct _vh_tbl_scrl_t
     ku_view_t* hori_v;
     int        state; // 0 scroll 1 open 2 close
     int        steps;
-    uint32_t   item_cnt;
+    size_t     item_cnt;
     void*      userdata;
     int        enabled;
 
@@ -34,7 +34,7 @@ void vh_tbl_scrl_attach(
 void vh_tbl_scrl_update(ku_view_t* view);
 void vh_tbl_scrl_show(ku_view_t* view);
 void vh_tbl_scrl_hide(ku_view_t* view);
-void vh_tbl_scrl_set_item_count(ku_view_t* view, uint32_t count);
+void vh_tbl_scrl_set_item_count(ku_view_t* view, size_t count);
 void vh_tbl_scrl_scroll_v(ku_view_t* view, int y);
 void vh_tbl_scrl_scroll_h(ku_view_t* view, int x);
 void vh_tbl_scrl_enable(ku_view_t* view, int flag);
@@ -45,7 +45,7 @@ void vh_tbl_scrl_enable(ku_view_t* view, int flag);
 
 #define SCROLLBAR 20.0
 
-void vh_tbl_scrl_set_item_count(ku_view_t* view, uint32_t count)
+void vh_tbl_scrl_set_item_count(ku_view_t* view, size_t count)
 {
     vh_tbl_scrl_t* vh = view->evt_han_data;
 

@@ -69,6 +69,8 @@ void vh_anim_add(ku_view_t* view, void (*on_event)(vh_anim_event_t), void* userd
 
 #if __INCLUDE_LEVEL__ == 0
 
+#include "mt_log.c"
+
 int vh_anim_evt(ku_view_t* view, ku_event_t ev)
 {
     vh_anim_t* vh = view->evt_han_data;

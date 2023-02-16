@@ -37,7 +37,7 @@ void glyphchain_init(glyphchain_t* chain);
 void glyphchain_reset(glyphchain_t* chain);
 void glyphchain_destroy(glyphchain_t* chain);
 void glyphchain_add(glyphchain_t* chain, uint32_t cp, char* id, void* data);
-void glyphchain_rem(glyphchain_t* chain, uint32_t index);
+void glyphchain_rem(glyphchain_t* chain, size_t index);
 
 struct _vh_textinput_t
 {
@@ -72,6 +72,7 @@ void  vh_textinput_activate(ku_view_t* view, char state);
 #include "ku_bitmap.c"
 #include "ku_draw.c"
 #include "ku_gen_textstyle.c"
+#include "mt_log.c"
 #include "mt_string.c"
 #include "mt_vector.c"
 #include "tg_css.c"
@@ -85,7 +86,7 @@ void vh_textinput_on_anim(vh_anim_event_t event)
 
     vh_textinput_t* data = tiview->evt_han_data;
 
-    if (mt_vector_index_of_data(data->glyphchain.views, event.view) == UINT32_MAX)
+    if (mt_vector_index_of_data(data->glyphchain.views, event.view) == SIZE_MAX)
 	ku_view_remove_from_parent(event.view);
 }
 
@@ -130,7 +131,7 @@ void glyphchain_add(glyphchain_t* chain, uint32_t cp, char* id, void* data)
     chain->length = utf8len(chain->text);
 }
 
-void glyphchain_rem(glyphchain_t* chain, uint32_t index)
+void glyphchain_rem(glyphchain_t* chain, size_t index)
 {
     if (index < chain->length)
     {

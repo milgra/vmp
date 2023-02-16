@@ -37,7 +37,7 @@ typedef struct _vh_table_event_t
 struct _vh_table_t
 {
     char*      id;  // unique id for item generation
-    uint32_t   cnt; // item count for item generation
+    size_t     cnt; // item count for item generation
     ku_view_t* view;
     int        show_selected; // use selected style for selected views
 
@@ -321,8 +321,8 @@ ku_view_t* vh_table_item_create(
 
 	    if (vh->selected_items->length > 0 && vh->show_selected)
 	    {
-		uint32_t pos = mt_vector_index_of_data(vh->selected_items, data);
-		if (pos < UINT32_MAX)
+		size_t pos = mt_vector_index_of_data(vh->selected_items, data);
+		if (pos < SIZE_MAX)
 		    style = vh->rowsstyle;
 	    }
 
@@ -381,11 +381,11 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 
 	mt_map_t* data = vh->items->data[event.index];
 
-	uint32_t pos = mt_vector_index_of_data(vh->selected_items, data);
+	size_t pos = mt_vector_index_of_data(vh->selected_items, data);
 
 	// TODO this is duplicated in CONTEXT event, simplify
 
-	if (pos == UINT32_MAX)
+	if (pos == SIZE_MAX)
 	{
 	    /* reset selected if control is not down */
 
@@ -451,11 +451,11 @@ void vh_table_evnt_event(vh_tbl_evnt_event_t event)
 
 	    mt_map_t* data = vh->items->data[event.index];
 
-	    uint32_t pos = mt_vector_index_of_data(vh->selected_items, data);
+	    size_t pos = mt_vector_index_of_data(vh->selected_items, data);
 
 	    // TODO this is duplicated in CONTEXT event, simplify
 
-	    if (pos == UINT32_MAX)
+	    if (pos == SIZE_MAX)
 	    {
 		/* reset selected if control is not down */
 
@@ -940,7 +940,7 @@ void vh_table_select(
 	ku_view_t* item      = bvh->items->data[i];
 
 	textstyle_t style = realindex % 2 == 0 ? vh->rowastyle : vh->rowbstyle;
-	if (mt_vector_index_of_data(vh->selected_items, data) < UINT32_MAX)
+	if (mt_vector_index_of_data(vh->selected_items, data) < SIZE_MAX)
 	    style = vh->rowsstyle;
 
 	for (size_t i = 0; i < item->views->length; i++)

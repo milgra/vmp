@@ -21,16 +21,16 @@ struct pair_t
 typedef struct bucket_t bucket_t;
 struct bucket_t
 {
-    unsigned int count;
-    pair_t*      pairs;
+    size_t  count;
+    pair_t* pairs;
 };
 
 typedef struct _mt_map_t mt_map_t;
 struct _mt_map_t
 {
-    unsigned int count_real;
-    unsigned int count;
-    bucket_t*    buckets;
+    size_t    count_real;
+    size_t    count;
+    bucket_t* buckets;
 };
 
 mt_map_t* mt_map_new(void);

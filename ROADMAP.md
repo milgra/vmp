@@ -1,5 +1,8 @@
 # Visual Music Player development roadmap
 
+- automatically parse test folders
+- more test files
+- more undestandable record/replay/tests
 - scroll event goes through seekknob
 - multiple file selected/edit/delete
 - context menu right click changes songlist scroller

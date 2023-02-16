@@ -22,7 +22,7 @@ void lib_get_artists(mt_vector_t* vec);
 
 mt_map_t* lib_get_db();
 void      lib_get_entries(mt_vector_t* entries);
-uint32_t  lib_count();
+size_t    lib_count();
 void      lib_reset();
 
 void lib_update_metadata(char* path, mt_map_t* changed, mt_vector_t* removed);
@@ -141,7 +141,7 @@ void lib_get_entries(mt_vector_t* entries)
     mt_map_values(db, entries);
 }
 
-uint32_t lib_count()
+size_t lib_count()
 {
     return db->count;
 }

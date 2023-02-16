@@ -1,20 +1,38 @@
 #!/bin/bash
 
+# usage of script :
+# ./tst/test_rec.sh tst/delete_non_organized build/vmp
+
+# $1 - test folder name
+# $2 - executable
+# $3 - organize
+
+# to record a session :
+# cp -r "tst/test_library" "tst/delete_non_organized/library_master" 
+# vmp --record="tst/tdelete_non_organized/session.rec" \
+#     --library="tst/delete_non_organized/library_master" \
+#     --organize
+
 if [ $# -eq 0 ]; then
     echo "PLEASE PROVIDE TEST FOLDER"
 else
-    # move stuff to testdir so all path remain the same during testing and recording
-    basedir="tst/test_files"
-    testdir="$1_test"
-    savedir="$1_test/record"
-    masterdir="$1_master"
-    rm -rf $testdir
-    cp -r $basedir $testdir 
-    echo "(RE-)RECORDING $1"
-    echo "COMMAND: build/vmp -r res -v -p $savedir -l $testdir -c $savedir -f 1200x800 $3"
-    build/vmp -r res -v -s $savedir -l $testdir -c $savedir -f 1200x800 $3
+    
+    source_library="tst/test_library"
+    session_library="$1/library_master"
+    session_file="$1/session.rec"
+
+    rm -rf $session_library
+    cp -r $source_library $session_library 
+
+    echo "RECORDING $1"    
+    echo "COMMAND: $1 --resources=res --record=$session_file --library=$session_library -frame=1200x800 $3"
+
+    $2 --resources=res \
+       --record=$session_file \
+       --library=$session_library \
+       --frame=1200x800 \
+       $3
+    
     echo "RECORDING FINISHED"
-    rm -rf $masterdir
-    cp -r $testdir $masterdir
-    rm -rf $testdir
+
 fi

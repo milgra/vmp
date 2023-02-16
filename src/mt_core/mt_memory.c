@@ -39,7 +39,7 @@ void mt_memory_stats();
 struct mt_memory_head
 {
 #ifdef MT_MEMORY_DEBUG
-    uint32_t index; /* allocation index for debugging/statistics */
+    size_t index; /* allocation index for debugging/statistics */
 #endif
     void (*destructor)(void*);
     void (*descriptor)(void*, int);
@@ -52,7 +52,7 @@ struct mt_memory_head
     #define MT_MEMORY_DEBUG_INDEX 0      /* head index to stop at error */
 
 struct mt_memory_head* mt_memory_heads[MT_MEMORY_DEBUG_SIZE] = {0};
-static uint32_t        mt_memory_index                       = 1; /* live object counter for debugging */
+static size_t          mt_memory_index                       = 1; /* live object counter for debugging */
 
 void mt_memory_trace(
     char* id, struct mt_memory_head* head)

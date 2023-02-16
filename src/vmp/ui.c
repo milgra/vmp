@@ -162,11 +162,13 @@ void ui_play_song(mt_map_t* song)
     }
 
     /* close existing ms */
-    if (ui.ms) mp_close(ui.ms);
+    if (ui.ms)
+	mp_close(ui.ms);
     ui.ms = NULL;
 
     /* update played song */
-    if (ui.played_song) REL(ui.played_song);
+    if (ui.played_song)
+	REL(ui.played_song);
     ui.played_song = RET(song);
 
     /* create new ms */
@@ -184,8 +186,9 @@ void ui_play_song(mt_map_t* song)
     ku_draw_rect(ui.cover->texture.bitmap, 0, 0, ui.cover->texture.bitmap->w, ui.cover->texture.bitmap->h, 0x151515FF, 1);
 
     /* update song list table */
-    uint32_t index = songlist_get_index(song);
-    if (index < UINT32_MAX) vh_table_select(ui.songtablev, index, 0);
+    size_t index = songlist_get_index(song);
+    if (index < SIZE_MAX)
+	vh_table_select(ui.songtablev, index, 0);
 
     /* update info text */
     char info[200];
@@ -193,7 +196,8 @@ void ui_play_song(mt_map_t* song)
     tg_text_set1(ui.infotf, info);
 
     ku_view_t* playbtn = ku_view_get_subview(ui.view_base, "playbtn");
-    if (playbtn) vh_button_set_state(playbtn, VH_BUTTON_DOWN);
+    if (playbtn)
+	vh_button_set_state(playbtn, VH_BUTTON_DOWN);
 }
 
 void ui_open_metadata_editor()
@@ -796,8 +800,8 @@ void on_table_event(vh_table_event_t event)
 	    {
 		if (ui.played_song)
 		{
-		    uint32_t index = songlist_get_index(ui.played_song);
-		    if (index < UINT32_MAX)
+		    size_t index = songlist_get_index(ui.played_song);
+		    if (index < SIZE_MAX)
 			vh_table_select(ui.songtablev, index, 0);
 		}
 	    }

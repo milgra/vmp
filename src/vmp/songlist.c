@@ -9,7 +9,7 @@ mt_map_t*    songlist_get_song(int shuffle);
 mt_map_t*    songlist_get_prev_song(mt_map_t* song);
 mt_map_t*    songlist_get_next_song(mt_map_t* song);
 void         songlist_set_songs(mt_vector_t* songs);
-uint32_t     songlist_get_index(mt_map_t* song);
+size_t       songlist_get_index(mt_map_t* song);
 void         songlist_apply_filter();
 void         songlist_apply_sorting();
 void         songlist_set_filter(char* filter);
@@ -81,8 +81,8 @@ mt_map_t* songlist_get_prev_song(mt_map_t* song)
     mt_map_t* result = NULL;
     if (sl.visible_songs && sl.visible_songs->length > 0)
     {
-	uint32_t index = mt_vector_index_of_data(sl.visible_songs, song);
-	if (index < UINT32_MAX && index > 0)
+	size_t index = mt_vector_index_of_data(sl.visible_songs, song);
+	if (index < SIZE_MAX && index > 0)
 	{
 	    index -= 1;
 	    result = sl.visible_songs->data[index];
@@ -96,8 +96,8 @@ mt_map_t* songlist_get_next_song(mt_map_t* song)
     mt_map_t* result = NULL;
     if (sl.visible_songs && sl.visible_songs->length > 0)
     {
-	uint32_t index = mt_vector_index_of_data(sl.visible_songs, song);
-	if (index < UINT32_MAX && index < sl.visible_songs->length)
+	size_t index = mt_vector_index_of_data(sl.visible_songs, song);
+	if (index < SIZE_MAX && index < sl.visible_songs->length)
 	{
 	    index += 1;
 	    result = sl.visible_songs->data[index];
@@ -106,9 +106,9 @@ mt_map_t* songlist_get_next_song(mt_map_t* song)
     return result;
 }
 
-uint32_t songlist_get_index(mt_map_t* song)
+size_t songlist_get_index(mt_map_t* song)
 {
-    uint32_t result = mt_vector_index_of_data(sl.visible_songs, song);
+    size_t result = mt_vector_index_of_data(sl.visible_songs, song);
     return result;
 }
 

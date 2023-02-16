@@ -368,8 +368,8 @@ int main(int argc, char* argv[])
 	"  -o --organize                         Organize library, rename new songs to /artist/album/trackno title.ext\n"
 	/* "  -c --config= [config file]            Use config file for session\n" */
 	"  -r --resources= [resources folder]    Resources dir for current session\n"
-	"  -s --record= [recorder file]          Record session to file\n"
-	"  -p --replay= [recorder file]          Replay session from file\n"
+	"  -R --record= [recorder file]          Record session to file\n"
+	"  -P --replay= [recorder file]          Replay session from file\n"
 	"  -f --frame= [widthxheight]            Initial window dimension\n"
 	"\n";
 
@@ -381,8 +381,8 @@ int main(int argc, char* argv[])
 	    {"organize", optional_argument, 0, 'l'},
 	    {"resources", optional_argument, 0, 'r'},
 	    {"software_renderer", optional_argument, 0, 0},
-	    {"record", optional_argument, 0, 's'},
-	    {"replay", optional_argument, 0, 'p'},
+	    {"record", optional_argument, 0, 'R'},
+	    {"replay", optional_argument, 0, 'P'},
 	    {"config", optional_argument, 0, 'c'},
 	    {"frame", optional_argument, 0, 'f'}};
 
@@ -398,7 +398,7 @@ int main(int argc, char* argv[])
     int option       = 0;
     int option_index = 0;
 
-    while ((option = getopt_long(argc, argv, "vhr:s:p:c:f:l:o", long_options, &option_index)) != -1)
+    while ((option = getopt_long(argc, argv, "vhr:R:P:c:f:l:o", long_options, &option_index)) != -1)
     {
 	switch (option)
 	{
@@ -413,8 +413,8 @@ int main(int argc, char* argv[])
 	    case 'l': lib_par = STRNC(optarg); break; // REL 1
 	    case 'o': org_par = "true"; break;
 	    case 'r': res_par = STRNC(optarg); break; // REL 1
-	    case 's': rec_par = STRNC(optarg); break; // REL 2
-	    case 'p': rep_par = STRNC(optarg); break; // REL 3
+	    case 'R': rec_par = STRNC(optarg); break; // REL 2
+	    case 'P': rep_par = STRNC(optarg); break; // REL 3
 	    case 'f': frm_par = STRNC(optarg); break; // REL 4
 	    case 'v': verbose = 1; break;
 	    default: fprintf(stderr, "%s", usage); return EXIT_FAILURE;
@@ -481,6 +481,8 @@ int main(int argc, char* argv[])
     config_set("css_path", css_path);
     config_set("html_path", html_path);
 
+    vmp.pngpath = lib_path;
+
     if (frm_par != NULL)
     {
 	vmp.width  = atoi(frm_par);
@@ -501,19 +503,9 @@ int main(int argc, char* argv[])
 	config_set("autotest", "autotest");
     }
     if (rec_path)
-    {
-	char* tgt_path = mt_path_new_append(rec_path, "session.rec");
-	ku_recorder_record(tgt_path);
-	REL(tgt_path);
-	vmp.pngpath = rec_path;
-    }
+	ku_recorder_record(rec_path);
     if (rep_path)
-    {
-	char* tgt_path = mt_path_new_append(rep_path, "session.rec");
-	ku_recorder_replay(tgt_path);
-	REL(tgt_path);
-	vmp.pngpath = rep_path;
-    }
+	ku_recorder_replay(rep_path);
 
     /* proxy events through the recorder in case of record/replay */
     if (rec_path || rep_path)
