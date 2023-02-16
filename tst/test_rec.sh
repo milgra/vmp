@@ -25,7 +25,7 @@ else
     cp -r $source_library $session_library 
 
     echo "RECORDING $1"    
-    echo "COMMAND: $1 --resources=res --record=$session_file --library=$session_library -frame=1200x800 $3"
+    echo "COMMAND: $1 -v --resources=res --record=$session_file --library=$session_library -frame=1200x800 $3"
 
     $2 --resources=res \
        --record=$session_file \

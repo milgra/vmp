@@ -430,16 +430,16 @@ int main(int argc, char* argv[])
 	mt_log_error("getcwd error");
 
     char* wrk_path    = mt_path_new_normalize(cwd); // REL 5
-    char* lib_path    = lib_par ? mt_path_new_append(wrk_path, lib_par) : mt_path_new_normalize("~/Music");
-    char* res_path    = res_par ? mt_path_new_append(wrk_path, res_par) : STRNC(PKG_DATADIR);                     // REL 7
-    char* cfgdir_path = cfg_par ? mt_path_new_append(wrk_path, cfg_par) : mt_path_new_normalize("~/.config/vmp"); // REL 8
-    char* img_path    = mt_path_new_append(res_path, "img");                                                      // REL 9
-    char* css_path    = mt_path_new_append(res_path, "html/main.css");                                            // REL 9
-    char* html_path   = mt_path_new_append(res_path, "html/main.html");                                           // REL 10
-    char* cfg_path    = mt_path_new_append(cfgdir_path, "config.kvl");                                            // REL 12
-    char* per_path    = mt_path_new_append(cfgdir_path, "state.kvl");                                             // REL 13
-    char* rec_path    = rec_par ? mt_path_new_append(wrk_path, rec_par) : NULL;                                   // REL 14
-    char* rep_path    = rep_par ? mt_path_new_append(wrk_path, rep_par) : NULL;                                   // REL 15
+    char* lib_path    = lib_par ? mt_path_new_normalize(lib_par) : mt_path_new_normalize("~/Music");
+    char* res_path    = res_par ? mt_path_new_normalize(res_par) : STRNC(PKG_DATADIR);                     // REL 7
+    char* cfgdir_path = cfg_par ? mt_path_new_normalize(cfg_par) : mt_path_new_normalize("~/.config/vmp"); // REL 8
+    char* img_path    = mt_path_new_append(res_path, "img");                                               // REL 9
+    char* css_path    = mt_path_new_append(res_path, "html/main.css");                                     // REL 9
+    char* html_path   = mt_path_new_append(res_path, "html/main.html");                                    // REL 10
+    char* cfg_path    = mt_path_new_append(cfgdir_path, "config.kvl");                                     // REL 12
+    char* per_path    = mt_path_new_append(cfgdir_path, "state.kvl");                                      // REL 13
+    char* rec_path    = rec_par ? mt_path_new_normalize(rec_par) : NULL;                                   // REL 14
+    char* rep_path    = rep_par ? mt_path_new_normalize(rep_par) : NULL;                                   // REL 15
 
     // print path info to console
 

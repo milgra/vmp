@@ -136,7 +136,7 @@ char* mt_path_new_normalize(char* path)
 	for (size_t index = 0; index < newtok->length; index++)
 	{
 	    char* token = newtok->data[index];
-	    if (token[0] != '/')
+	    if (index > 0 || path[0] == '/' || path[0] == '"')
 		result = mt_string_append(result, "/");
 	    result = mt_string_append(result, token);
 	}

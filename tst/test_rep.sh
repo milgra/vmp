@@ -1,11 +1,13 @@
 #!/bin/bash
 
 # usage of script :
-# ./tst/test_rep.sh tst/delete_non_organized build/vmp
+# ./tst/test_rep.sh build/vmp tst/test_library tst/delete_non_organized res 
 
-# $1 - test folder name
-# $2 - executable
-# $3 - organize
+# $1 - executable
+# $2 - test library source
+# $3 - test folder name
+# $4 - resources folder
+# $5 - organize
 
 # to record a session :
 # cp -r "tst/test_library" "tst/delete_non_organized/library_master" 
@@ -17,22 +19,22 @@ if [ $# -eq 0 ]; then
     echo "PLEASE PROVIDE TEST FOLDER"
 else
     
-    source_library="tst/test_library"
-    master_library="$1/library_master"
-    session_library="$1/library_test"
-    session_file="$1/session.rec"
+    source_library=$2
+    master_library="$3/library_master"
+    session_library="$3/library_test"
+    session_file="$3/session.rec"
 
     rm -rf $session_library
     cp -r $source_library $session_library 
 
-    echo "REPLAYING $1"    
-    echo "COMMAND: $1 --resources=res --replay=$session_file --library=$session_library -frame=1200x800 $3"
+    echo "REPLAYING $3"    
+    echo "COMMAND: $1 --resources=$4 --replay=$session_file --library=$session_library -frame=1200x800 $5"
 
-    $2 --resources=res \
+    $1 --resources=$4 \
        --replay=$session_file \
        --library=$session_library \
        --frame=1200x800 \
-       $3
+       $5
     
     echo "REPLAYING FINISHED"
 

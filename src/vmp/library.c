@@ -73,11 +73,12 @@ int lib_write(char* libpath)
 
     if (db_changed)
     {
-	char* dbpath = STRNF(PATH_MAX + NAME_MAX, "/%s/vmp.kvl", libpath); // REL 0
+	char* dbpath = STRNF(PATH_MAX + NAME_MAX, "%s/vmp.kvl", libpath); // REL 0
 
 	int res = kvlist_write(dbpath, db);
 
-	if (res < 0) mt_log_debug("ERROR lib_write cannot write database %s\n", dbpath);
+	if (res < 0)
+	    mt_log_debug("ERROR lib_write cannot write database %s\n", dbpath);
 
 	mt_log_debug("%i entries written", db->count);
 
