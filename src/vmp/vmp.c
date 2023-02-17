@@ -112,7 +112,6 @@ void load_data()
 {
     if (!vmp.loaded)
     {
-
 	vmp.loaded       = 1;
 	mt_map_t* fields = MNEW();
 
@@ -465,7 +464,7 @@ int main(int argc, char* argv[])
     // set default values
 
     config_set("fields", "artist 200 album 200 title 350 date 60 genre 100 track 60 disc 60 duration 50 channels 40 bitrate 100 samplerate 80 plays 55 skips 55 added 150 type 80 container 80");
-    config_set("sorting", "artist 1 album 1 track 1");
+    config_set("sorting", "artist 1 album 1 track 1 title 1");
 
     // read config, it overwrites defaults if exists
 
