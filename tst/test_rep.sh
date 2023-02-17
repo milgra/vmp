@@ -38,6 +38,11 @@ else
     
     echo "REPLAYING FINISHED"
 
+    # remove empty dirs from both directiories to make diff work
+
+    find master_library --empty -type d --delete
+    find session_library --empty -type d --delete
+
     diff -r $master_library $session_library
     
     error=$?
