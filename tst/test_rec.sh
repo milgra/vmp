@@ -31,6 +31,7 @@ else
        --record=$session_file \
        --library=$session_library \
        --frame=1200x800 \
+       -v \
        $3
     
     echo "RECORDING FINISHED"

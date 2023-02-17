@@ -244,6 +244,8 @@ void update(ku_event_t ev)
 
 	    if (vmp.analyzer->ratio == 1.0)
 	    {
+		mt_log_debug("RATIO %f", vmp.analyzer->ratio);
+
 		lib_remove_entries(vmp.analyzer->remove);
 		lib_add_entries(vmp.analyzer->add);
 

@@ -72,16 +72,22 @@ int kvlist_write(char* libpath, mt_map_t* db)
 
     if (file)
     {
-	retv              = 0;
-	mt_vector_t* vals = VNEW(); // REL 1
-	mt_map_values(db, vals);
+	retv               = 0;
+	mt_vector_t* paths = VNEW(); // REL
+	mt_map_keys(db, paths);
+	mt_vector_sort(paths, (int (*)(void*, void*)) strcmp);
 
-	for (size_t vali = 0; vali < vals->length; vali++)
+	for (size_t pathi = 0; pathi < paths->length; pathi++)
 	{
-	    mt_map_t*    entry = vals->data[vali];
-	    mt_vector_t* keys  = VNEW(); // REL 2
+	    char* path = paths->data[pathi];
+
+	    mt_log_debug("writing %s", path);
+
+	    mt_map_t*    entry = MGET(db, path); // REL
+	    mt_vector_t* keys  = VNEW();         // REL
 
 	    mt_map_keys(entry, keys);
+	    mt_vector_sort(keys, (int (*)(void*, void*)) strcmp);
 
 	    for (size_t keyi = 0; keyi < keys->length; keyi++)
 	    {
@@ -106,7 +112,7 @@ int kvlist_write(char* libpath, mt_map_t* db)
 	if (fclose(file) == EOF)
 	    retv = -1; // CLOSE 0
 
-	REL(vals); // REL 1
+	REL(paths); // REL 1
 
 	if (retv == 0)
 	{
