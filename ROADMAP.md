@@ -1,8 +1,8 @@
 # Visual Music Player development roadmap
 
-- automatically parse test folders
-- more test files
-- more undestandable record/replay/tests
+- CTRL V not working for second time
+- leak free auto ui tests
+- media player shouldn't draw, it should provide audio info/video bitmap
 - scroll event goes through seekknob
 - multiple file selected/edit/delete
 - context menu right click changes songlist scroller

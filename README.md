@@ -37,8 +37,7 @@ Install the needed dependencies and libraries:
 
 ```
 git meson ninja-build pkg-config - build tools
-libgl,libglew,libegl,libwegl,libgles2,libfreetype,libxkbcommon,wayland-client,wayland-protocols - for rendering the ui and handling key events
-libpng,libjpg,libjbig2dec,libopenjp2,libharfbuzz - mupdf related
+libpng,libgl,libglew,libegl,libwegl,libgles2,libfreetype,libxkbcommon,wayland-client,wayland-protocols - for rendering the ui and handling key events
 libavutil,libavcodec,libavdevice,libavformat,libavfilter,libswscale,libswresample,libsdl2 - for media encode/decode
 fonts-terminus - for default font
 

@@ -9,10 +9,10 @@
 # $4 - resources folder
 # $5 - organize
 
-# to record a session :
+# to replay a session :
 # cp -r "tst/test_library" "tst/delete_non_organized/library_master" 
 # vmp --replay="tst/tdelete_non_organized/session.rec" \
-#     --library="tst/delete_non_organized/library_master" \
+#     --library="tst/delete_non_organized/library_test" \
 #     --organize
 
 if [ $# -eq 0 ]; then

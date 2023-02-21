@@ -2,7 +2,6 @@
 #include "coder.c"
 #include "config.c"
 #include "filemanager.c"
-#include "ku_bitmap_ext.c"
 #include "ku_connector_wayland.c"
 #include "ku_gl.c"
 #include "ku_recorder.c"

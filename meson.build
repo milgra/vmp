@@ -9,13 +9,9 @@ project(
 
 cc = meson.get_compiler('c')
 
-#z = cc.find_library('z')
-#rt = cc.find_library('rt')
-#hb = cc.find_library('harfbuzz')
 png = cc.find_library('png')
 math = cc.find_library('m')
 sdl2 = cc.find_library('SDL2')
-#pthread = cc.find_library('pthread')
 freetype = cc.find_library('freetype')
 xkbcommon = dependency('xkbcommon')
 
@@ -23,10 +19,6 @@ gl = cc.find_library('GL')
 egl = cc.find_library('EGL')
 wegl = cc.find_library('wayland-egl')
 glew = cc.find_library('GLEW')
-
-#jpeg = cc.find_library('jpeg')
-#jbig = cc.find_library('jbig2dec')
-#ojpeg = cc.find_library('openjp2')
 
 avutil = cc.find_library('avutil')
 avcodec = cc.find_library('avcodec')
