@@ -1,7 +1,7 @@
 project(
   'vmp',
   'c',
-  version: '0.9b',
+  version: '0.91b',
   license: 'MIT',
   default_options: ['warning_level=3',
   		    'c_std=gnu99']
@@ -9,16 +9,14 @@ project(
 
 cc = meson.get_compiler('c')
 
-png = cc.find_library('png')
+egl = dependency('egl')
+png = dependency('libpng')
+wegl = dependency('wayland-egl')
 math = cc.find_library('m')
-sdl2 = cc.find_library('SDL2')
-freetype = cc.find_library('freetype')
+sdl2 = dependency('sdl2')
+glesv2 = dependency('glesv2')
+freetype = dependency('freetype2')
 xkbcommon = dependency('xkbcommon')
-
-gl = cc.find_library('GL')
-egl = cc.find_library('EGL')
-wegl = cc.find_library('wayland-egl')
-glew = cc.find_library('GLEW')
 
 avutil = cc.find_library('avutil')
 avcodec = cc.find_library('avcodec')
@@ -71,9 +69,8 @@ vmp_dependencies = [
 		  png,
 		  freetype,
 		  math,
-		  gl,
-		  glew,
 		  sdl2,
+		  glesv2,
 		  avutil,
 		  avcodec,
 		  avdevice,
@@ -109,25 +106,8 @@ vmp_inc = include_directories(
 	'src/mt_core_ext')
 
 if build_machine.system() == 'freebsd'
-   vmp_inc = [
-   	   vmp_inc,
-	   include_directories( 
-   	   '/usr/local/include',
-	   '/usr/local/include/GLES2',
-	   '/usr/local/include/EGL',
-	   '/usr/local/include/SDL2',
-	   '/usr/local/include/freetype2')]
    epoll = cc.find_library('epoll-shim')
    vmp_dependencies += epoll
-else
-   vmp_inc = [
-   	   vmp_inc,
-	   include_directories( 
-   	   '/usr/include',
-	   '/usr/include/GLES2',
-	   '/usr/include/EGL',
-	   '/usr/include/SDL2',
-	   '/usr/include/freetype2')]
 endif
 
 com_sources = ['src/vmp/analyzer.c',

@@ -3,7 +3,6 @@
 
 #include "ku_bitmap.c"
 #include "mt_vector.c"
-/* #include <GL/glew.h> */
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
 #include <stdio.h>
@@ -31,7 +30,6 @@ void ku_gl_save_framebuffer(ku_bitmap_t* bitmap);
 typedef struct _glbuf_t
 {
     GLuint vbo;
-    GLuint vao;
 } glbuf_t;
 
 typedef struct _gltex_t
@@ -76,7 +74,7 @@ glsha_t ku_gl_create_texture_shader()
 	"{"
 	" highp float alpha = vUv.w;"
 	" highp vec4 col = texture2D(sampler[0], vUv.xy);"
-	" if (alpha < 1.0) col.w *= alpha;"
+	" if (alpha != 1.0) col.w = alpha;"
 	" gl_FragColor = col;"
 	"}";
 
@@ -102,13 +100,6 @@ glbuf_t ku_gl_create_vertex_buffer()
 
     glGenBuffers(1, &vb.vbo); // DEL 0
     glBindBuffer(GL_ARRAY_BUFFER, vb.vbo);
-    glGenVertexArrays(1, &vb.vao); // DEL 1
-    glBindVertexArray(vb.vao);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 24, 0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 24, (const GLvoid*) 8);
-    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return vb;
@@ -119,7 +110,6 @@ glbuf_t ku_gl_create_vertex_buffer()
 void ku_gl_delete_vertex_buffer(glbuf_t buf)
 {
     glDeleteBuffers(1, &buf.vbo);
-    glDeleteVertexArrays(1, &buf.vao);
 }
 
 /* create texture */
@@ -136,8 +126,9 @@ gltex_t ku_gl_create_texture(int index, uint32_t w, uint32_t h)
 
     glActiveTexture(GL_TEXTURE0 + tex.index);
     glBindTexture(GL_TEXTURE_2D, tex.tx);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    /* !!! GL_LINEAR breaks session record/replay determinism, interpolated values can somehow differ */
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -167,10 +158,6 @@ void ku_gl_delete_texture(gltex_t tex)
 
 void ku_gl_init(int max_dev_width, int max_dev_height)
 {
-    GLenum err = glewInit();
-    if (GLEW_OK != err)
-	mt_log_debug("GLEW Init error %s\n", glewGetErrorString(err));
-
     kugl.shader = ku_gl_create_texture_shader();
     kugl.buffer = ku_gl_create_vertex_buffer();
 
@@ -430,7 +417,10 @@ void ku_gl_add_vertexes(mt_vector_t* views)
 void ku_gl_render(ku_bitmap_t* bitmap)
 {
     /* glBindFramebuffer(GL_FRAMEBUFFER, tex_frame.fb); */
-    glBindVertexArray(kugl.buffer.vao);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 24, 0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 24, (const GLvoid*) 8);
 
     glActiveTexture(GL_TEXTURE0 + kugl.texture.index);
     glBindTexture(GL_TEXTURE_2D, kugl.texture.tx);
@@ -447,7 +437,6 @@ void ku_gl_render(ku_bitmap_t* bitmap)
     glViewport(0, 0, bitmap->w, bitmap->h);
 
     glDrawArrays(GL_TRIANGLES, 0, kugl.floatbuffer->pos);
-    glBindVertexArray(0);
 }
 
 /* render one quad */
@@ -455,7 +444,10 @@ void ku_gl_render(ku_bitmap_t* bitmap)
 void ku_gl_render_quad(ku_bitmap_t* bitmap, uint32_t index, bmr_t mask)
 {
     /* glBindFramebuffer(GL_FRAMEBUFFER, tex_frame.fb); */
-    glBindVertexArray(kugl.buffer.vao);
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 24, 0);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 24, (const GLvoid*) 8);
 
     glActiveTexture(GL_TEXTURE0 + kugl.texture.index);
     glBindTexture(GL_TEXTURE_2D, kugl.texture.tx);
@@ -475,7 +467,6 @@ void ku_gl_render_quad(ku_bitmap_t* bitmap, uint32_t index, bmr_t mask)
 
     glDrawArrays(GL_TRIANGLES, index * 6, 6);
 
-    glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 

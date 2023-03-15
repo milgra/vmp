@@ -931,7 +931,7 @@ wl_window_t* ku_wayland_create_generic_layer(struct monitor_info* monitor, int w
     info->margin        = margin;
     info->monitor       = monitor;
     info->hidden        = 1;
-    memcpy(info->anchor, anchor, 4);
+    memcpy(info->anchor, anchor, strlen(anchor) < 5 ? strlen(anchor) : 4);
 
     info->type = WL_WINDOW_LAYER;
 
@@ -1210,8 +1210,6 @@ void ku_wayland_pointer_handle_button(void* data, struct wl_pointer* wl_pointer,
 
 	if (window->wl_pointer == wl_pointer)
 	{
-	    window->pointer.drag = window->pointer.down;
-
 	    ku_event_t event = init_event();
 	    event.x          = window->pointer.px;
 	    event.y          = window->pointer.py;
