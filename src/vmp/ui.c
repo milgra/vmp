@@ -195,7 +195,7 @@ void ui_play_song(mt_map_t* song)
     snprintf(info, 200, "%s / %s", (char*) MGET(song, "artist"), (char*) MGET(song, "title"));
     tg_text_set1(ui.infotf, info);
 
-    ku_view_t* playbtn = ku_view_get_subview(ui.view_base, "playbtn");
+    ku_view_t* playbtn = GETV(ui.view_base, "playbtn");
     if (playbtn)
 	vh_button_set_state(playbtn, VH_BUTTON_DOWN);
 }
@@ -214,7 +214,7 @@ void ui_open_metadata_editor()
 	{
 	    mt_map_t* info = vh->selected_items->data[0];
 
-	    ku_view_t* cover    = ku_view_get_subview(ui.metapopupcont, "metacover");
+	    ku_view_t* cover    = GETV(ui.metapopupcont, "metacover");
 	    char*      path     = MGET(info, "path");
 	    char*      realpath = mt_path_new_append(config_get("lib_path"), path);
 
@@ -264,6 +264,14 @@ void ui_cancel_input()
     ku_view_remove_subview(ui.view_base, ui.inputarea);
 }
 
+void on_contextanim_end(vh_anim_event_t event)
+{
+    if (strcmp(event.view->id, "contextpopup") == 0 && event.view->texture.alpha == 0.0)
+    {
+	ku_view_remove_from_parent(ui.contextpopupcont);
+    }
+}
+
 void ui_show_context_menu(int x, int y)
 {
     if (ui.contextpopupcont->parent == NULL)
@@ -289,20 +297,23 @@ void ui_show_context_menu(int x, int y)
 
 	ku_rect_t end = start;
 
-	//start.x += 40;
-	//start.w -= 80;
+	// start.x += 40;
+	// start.w -= 80;
 	start.h = 10;
 	start.y -= 5;
 	ku_view_set_frame(contextpopup, start);
 
+	vh_anim_alpha(contextpopup, 0.0, 1.0, 20, AT_EASE);
 	vh_anim_frame(contextpopup, start, end, 0, 20, AT_EASE);
+
+	ku_view_set_texture_alpha(contextpopup, 0.0, 0);
 
 	ku_view_t* contextanim = GETV(contextpopup, "contextpopupanim");
 
 	start = contextanim->frame.local;
 	end   = start;
 
-	//start.w -= 80;
+	// start.w -= 80;
 	start.h = 10;
 	start.y -= 5;
 	ku_view_set_frame(contextanim, start);
@@ -355,7 +366,8 @@ int ui_on_touch(vh_touch_event_t event)
     }
     if (strcmp(event.view->id, "contextpopupcont") == 0)
     {
-	ku_view_remove_from_parent(ui.contextpopupcont);
+	ku_view_t* contextpopup = ui.contextpopupcont->views->data[0];
+	vh_anim_alpha(contextpopup, 1.0, 0.0, 20, AT_EASE);
     }
     if (strcmp(event.view->id, "visL") == 0)
     {
@@ -373,8 +385,9 @@ int ui_on_touch(vh_touch_event_t event)
     return cancel;
 }
 
-void ui_on_btn_event(vh_button_event_t event)
+int ui_on_btn_event(vh_button_event_t event)
 {
+    int cancel = 1;
 
     if (strcmp(event.view->id, "playbtn") == 0)
     {
@@ -445,7 +458,7 @@ void ui_on_btn_event(vh_button_event_t event)
     {
 	ui.hide_visuals = 1 - ui.hide_visuals;
 
-	ku_view_t* songs = ku_view_get_subview(ui.view_base, "songs");
+	ku_view_t* songs = GETV(ui.view_base, "songs");
 
 	if (ui.hide_visuals)
 	{
@@ -575,6 +588,8 @@ void ui_on_btn_event(vh_button_event_t event)
 
 	ui.inputmode = UI_IM_COVERART;
     }
+
+    return cancel;
 }
 
 void ui_on_text_event(vh_textinput_event_t event)
@@ -657,7 +672,7 @@ void ui_on_text_event(vh_textinput_event_t event)
 		if (image)
 		{
 		    printf("loading image\n");
-		    ku_view_t* cover = ku_view_get_subview(ui.metapopupcont, "metacover");
+		    ku_view_t* cover = GETV(ui.metapopupcont, "metacover");
 
 		    if (!cover->texture.bitmap)
 			ku_view_gen_texture(cover);
@@ -837,7 +852,9 @@ int on_table_event(vh_table_event_t event)
 	    }
 	    ku_view_t* contexttableevt = GETV(ui.contextpopupcont, "contexttable_event");
 	    ku_window_activate(ui.window, contexttableevt, 0);
-	    ku_view_remove_from_parent(ui.contextpopupcont);
+
+	    ku_view_t* contextpopup = ui.contextpopupcont->views->data[0];
+	    vh_anim_alpha(contextpopup, 1.0, 0.0, 20, AT_EASE);
 	}
 	else if (event.id == VH_TABLE_EVENT_KEY_UP)
 	{
@@ -845,7 +862,9 @@ int on_table_event(vh_table_event_t event)
 	    {
 		ku_view_t* contexttableevt = GETV(ui.contextpopupcont, "contexttable_event");
 		ku_window_activate(ui.window, contexttableevt, 0);
-		ku_view_remove_from_parent(ui.contextpopupcont);
+
+		ku_view_t* contextpopup = ui.contextpopupcont->views->data[0];
+		vh_anim_alpha(contextpopup, 1.0, 0.0, 20, AT_EASE);
 	    }
 	}
     }
@@ -1003,8 +1022,10 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     /* knobs */
 
-    ku_view_t* seekknob = ku_view_get_subview(ui.view_base, "seekknob");
-    ku_view_t* volknob  = ku_view_get_subview(ui.view_base, "volknob");
+    ku_view_t* seekknob = GETV(ui.view_base, "seekknob");
+    ku_view_t* volknob  = GETV(ui.view_base, "volknob");
+
+    assert(seekknob && volknob);
 
     tg_knob_add(seekknob);
     vh_knob_add(seekknob, ui_pos_change);
@@ -1022,20 +1043,17 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     /* textfields */
 
-    ui.infotf = ku_view_get_subview(ui.view_base, "infotf");
+    ui.infotf    = GETV(ui.view_base, "infotf");
+    ui.filtertf  = GETV(ui.view_base, "filtertf");
+    ui.timetf    = GETV(ui.view_base, "timetf");
+    ui.inputarea = RET(GETV(ui.view_base, "inputarea"));
+    ui.inputbck  = GETV(ui.view_base, "inputbck");
+    ui.inputtf   = GETV(ui.view_base, "inputtf");
 
-    ui.filtertf = ku_view_get_subview(ui.view_base, "filtertf");
+    assert(ui.infotf && ui.filtertf && ui.timetf && ui.inputarea && ui.inputbck && ui.inputtf);
 
     vh_textinput_add(ui.filtertf, "", "Filter", ui_on_text_event);
-
-    ui.timetf = ku_view_get_subview(ui.view_base, "timetf");
-
-    ui.inputarea = RET(ku_view_get_subview(ui.view_base, "inputarea"));
-    ui.inputbck  = ku_view_get_subview(ui.view_base, "inputbck");
-    ui.inputtf   = ku_view_get_subview(ui.view_base, "inputtf");
-
     vh_textinput_add(ui.inputtf, "Generic input", "", ui_on_text_event);
-
     vh_touch_add(ui.inputarea, ui_on_touch);
 
     ku_view_remove_from_parent(ui.inputarea);
@@ -1058,6 +1076,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     REL(words);
 
     ui.songtablev = GETV(bv, "songtable");
+    assert(ui.songtablev);
 
     vh_table_attach(ui.songtablev, fields, on_table_event);
 
@@ -1068,7 +1087,7 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     /* settings list */
 
-    ku_view_t* settingspopupcont = ku_view_get_subview(ui.view_base, "settingspopupcont");
+    ku_view_t* settingspopupcont = GETV(ui.view_base, "settingspopupcont");
 
     ui.settingspopupcont = RET(settingspopupcont);
 
@@ -1104,7 +1123,8 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     /* genre and artist lists */
 
-    ku_view_t* filterpopupcont = ku_view_get_subview(ui.view_base, "filterpopupcont");
+    ku_view_t* filterpopupcont = GETV(ui.view_base, "filterpopupcont");
+    assert(filterpopupcont);
 
     ui.filterpopupcont = RET(filterpopupcont);
 
@@ -1120,6 +1140,8 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     ui.genretablev  = GETV(bv, "genretable");
     ui.artisttablev = GETV(bv, "artisttable");
 
+    assert(ui.genretablev && ui.artisttablev);
+
     vh_table_attach(ui.genretablev, genrefields, on_table_event);
     vh_table_attach(ui.artisttablev, artistfields, on_table_event);
 
@@ -1130,10 +1152,12 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     /* song metadata */
 
-    ku_view_t* metapopupcont = ku_view_get_subview(ui.view_base, "metapopupcont");
-    ku_view_t* metaacceptbtn = ku_view_get_subview(ui.view_base, "metaacceptbtn");
+    ku_view_t* metapopupcont = GETV(ui.view_base, "metapopupcont");
+    ku_view_t* metaacceptbtn = GETV(ui.view_base, "metaacceptbtn");
+    ui.metashadow            = GETV(ui.view_base, "metashadow");
 
-    ui.metashadow    = ku_view_get_subview(ui.view_base, "metashadow");
+    assert(metapopupcont && metaacceptbtn && ui.metashadow);
+
     ui.metaacceptbtn = RET(metaacceptbtn);
 
     ku_view_remove_from_parent(ui.metaacceptbtn);
@@ -1148,6 +1172,8 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
     VADDR(metafields, mt_number_new_int(350));
 
     ui.metatablev = GETV(bv, "metatable");
+    assert(ui.metatablev);
+
     vh_table_attach(ui.metatablev, metafields, on_table_event);
 
     REL(metafields);
@@ -1156,15 +1182,17 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     /* context list */
 
-    ku_view_t* contextpopupcont = ku_view_get_subview(ui.view_base, "contextpopupcont");
-    ku_view_t* contextpopup     = ku_view_get_subview(ui.view_base, "contextpopup");
+    ku_view_t* contextpopupcont = GETV(ui.view_base, "contextpopupcont");
+    ku_view_t* contextpopup     = GETV(ui.view_base, "contextpopup");
     ku_view_t* contextanimv     = GETV(bv, "contextpopupanim");
 
-    vh_anim_add(contextanimv, NULL, NULL);
+    assert(contextpopupcont && contextpopup && contextanimv);
+
+    vh_anim_add(contextanimv, on_contextanim_end, NULL);
 
     ui.contextpopupcont = RET(contextpopupcont);
 
-    vh_anim_add(contextpopup, NULL, NULL);
+    vh_anim_add(contextpopup, on_contextanim_end, NULL);
 
     fields = VNEW();
 
@@ -1173,6 +1201,8 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     /* TODO re-think the popup animation, too much stuff is needed to set it up */
     ku_view_t* contexttablev = GETV(bv, "contexttable");
+    assert(contexttablev);
+
     vh_table_attach(contexttablev, fields, on_table_event);
     vh_table_show_scrollbar(contexttablev, 0);
 
@@ -1198,11 +1228,13 @@ void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_
 
     /* get visual views */
 
-    ui.cover       = ku_view_get_subview(ui.view_base, "cover");
-    ui.visL        = ku_view_get_subview(ui.view_base, "visL");
-    ui.visR        = ku_view_get_subview(ui.view_base, "visR");
-    ui.visuals     = RET(ku_view_get_subview(ui.view_base, "visuals"));
-    ui.songlisttop = RET(ku_view_get_subview(ui.view_base, "songlisttop"));
+    ui.cover       = GETV(ui.view_base, "cover");
+    ui.visL        = GETV(ui.view_base, "visL");
+    ui.visR        = GETV(ui.view_base, "visR");
+    ui.visuals     = RET(GETV(ui.view_base, "visuals"));
+    ui.songlisttop = RET(GETV(ui.view_base, "songlisttop"));
+
+    assert(ui.cover && ui.visL && ui.visR && ui.visuals && ui.songlisttop);
 
     ku_view_gen_texture(ui.visL);
     ku_view_gen_texture(ui.visR);
@@ -1280,7 +1312,7 @@ void ui_toggle_pause()
 {
     if (ui.ms)
     {
-	ku_view_t* playbtn = ku_view_get_subview(ui.view_base, "playbtn");
+	ku_view_t* playbtn = GETV(ui.view_base, "playbtn");
 
 	if (!ui.ms->paused)
 	{

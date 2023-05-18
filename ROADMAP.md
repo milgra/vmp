@@ -1,12 +1,9 @@
 # Visual Music Player development roadmap
 
-- CTRL V not working for second time
-- leak free auto ui tests
+- kurzor valtozzon at column move eseten
 - media player shouldn't draw, it should provide audio info/video bitmap
-- scroll event goes through seekknob
 - multiple file selected/edit/delete
 - context menu right click changes songlist scroller
-- error handling in mt core functions ( add, del, rel, expand, etc should return with int)
 - vertical scroller grab songlist fix
 - add last played/last skipped fields
 - save shuffle state, current song, current position, current volume on exit, use them on start
@@ -23,10 +20,11 @@
 
 TEST
 
+- leak free auto ui tests
 - user manual update
-- create test case for library organization
 - auto test with 2x scaling
-- tech video, automated ui/full test, logban meg a leakek is lathatoak
+- tech video, automated ui/full test, travis test with softrender, logban meg a leakek is lathatoak
+- Travis build & test with software rendering
 
 VISUALIZERS
 
