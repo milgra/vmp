@@ -371,6 +371,7 @@ int main(int argc, char* argv[])
 	"  -R --record= [recorder file]          Record session to file\n"
 	"  -P --replay= [recorder file]          Replay session from file\n"
 	"  -f --frame= [widthxheight]            Initial window dimension\n"
+	"  --font= [font path]                 Force font\n"
 	"\n";
 
     const struct option long_options[] =
@@ -378,21 +379,23 @@ int main(int argc, char* argv[])
 	    {"help", no_argument, NULL, 'h'},
 	    {"verbose", no_argument, NULL, 'v'},
 	    {"library", optional_argument, 0, 'l'},
-	    {"organize", optional_argument, 0, 'l'},
+	    {"organize", optional_argument, 0, 0},
 	    {"resources", optional_argument, 0, 'r'},
 	    {"software_renderer", optional_argument, 0, 0},
 	    {"record", optional_argument, 0, 'R'},
 	    {"replay", optional_argument, 0, 'P'},
 	    {"config", optional_argument, 0, 'c'},
-	    {"frame", optional_argument, 0, 'f'}};
+	    {"frame", optional_argument, 0, 'f'},
+	    {"font", optional_argument, 0, 0}};
 
     char* cfg_par = NULL;
     char* res_par = NULL;
     char* rec_par = NULL;
     char* rep_par = NULL;
     char* frm_par = NULL;
-    char* org_par = "false";
+    char* org_par = STRNC("false");
     char* lib_par = NULL;
+    char* fnt_par = NULL;
 
     int verbose      = 0;
     int option       = 0;
@@ -403,15 +406,16 @@ int main(int argc, char* argv[])
 	switch (option)
 	{
 	    case 0:
+		if (option_index == 3)
+		    org_par = STRNC(optarg);
 		if (option_index == 5)
 		    vmp.softrender = 1;
-		/* printf("option %i %s", option_index, long_options[option_index].name); */
-		/* if (optarg) printf(" with arg %s", optarg); */
+		if (option_index == 10)
+		    fnt_par = mt_string_new_cstring(optarg);
 		break;
 	    case '?': printf("parsing option %c value: %s\n", option, optarg); break;
 	    case 'c': cfg_par = STRNC(optarg); break; // REL 0
 	    case 'l': lib_par = STRNC(optarg); break; // REL 1
-	    case 'o': org_par = "true"; break;
 	    case 'r': res_par = STRNC(optarg); break; // REL 1
 	    case 'R': rec_par = STRNC(optarg); break; // REL 2
 	    case 'P': rep_par = STRNC(optarg); break; // REL 3
@@ -440,6 +444,7 @@ int main(int argc, char* argv[])
     char* per_path    = mt_path_new_append(cfgdir_path, "state.kvl");                                      // REL 13
     char* rec_path    = rec_par ? mt_path_new_normalize(rec_par) : NULL;                                   // REL 14
     char* rep_path    = rep_par ? mt_path_new_normalize(rep_par) : NULL;                                   // REL 15
+    char* font_path   = fnt_par ? mt_path_new_normalize(fnt_par) : NULL;
 
     // print path info to console
 
@@ -453,6 +458,8 @@ int main(int argc, char* argv[])
     printf("html path     : %s\n", html_path);
     printf("record path   : %s\n", rec_path);
     printf("replay path   : %s\n", rep_path);
+    printf("font path     : %s\n", font_path);
+    printf("organize      : %s\n", org_par);
     printf("\n");
 
     if (verbose)
@@ -531,6 +538,8 @@ int main(int argc, char* argv[])
 	REL(rep_par); // REL 3
     if (frm_par)
 	REL(frm_par); // REL 4
+    if (fnt_par)
+	REL(fnt_par);
 
     REL(img_path);
     REL(wrk_path);    // REL 6
@@ -541,6 +550,7 @@ int main(int argc, char* argv[])
     REL(html_path);   // REL 10
     REL(cfg_path);    // REL 12
     REL(per_path);    // REL 13
+    REL(org_par);
 
     if (rec_path)
 	REL(rec_path); // REL 14

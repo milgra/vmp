@@ -311,12 +311,44 @@ void ui_show_context_menu(int x, int y)
     }
 }
 
-void ui_on_key_down(vh_key_event_t event)
+int ui_on_key_down(vh_key_event_t event)
 {
+    if (event.ev.keycode == XKB_KEY_space)
+	ui_toggle_pause();
+
+    if (event.ev.keycode == XKB_KEY_v && event.ev.ctrl_down)
+    {
+	if (ui.rowview_for_context_menu)
+	{
+	    ku_rect_t frame = ui.rowview_for_context_menu->frame.global;
+	    ui_show_context_menu(frame.x, frame.y);
+	}
+    }
+
+    if (event.ev.keycode == XKB_KEY_f && event.ev.ctrl_down)
+    {
+	ku_window_activate(ui.window, ui.filtertf, 1);
+	vh_textinput_activate(ui.filtertf, 1);
+    }
+
+    if (event.ev.keycode == XKB_KEY_Down)
+    {
+	vh_table_t* vh = (vh_table_t*) ui.songtablev->evt_han_data;
+	vh_table_select(ui.songtablev, vh->selected_index + 1, 0);
+    }
+    else if (event.ev.keycode == XKB_KEY_Up)
+    {
+	vh_table_t* vh = (vh_table_t*) ui.songtablev->evt_han_data;
+	vh_table_select(ui.songtablev, vh->selected_index - 1, 0);
+    }
+
+    return 0;
 }
 
-void ui_on_touch(vh_touch_event_t event)
+int ui_on_touch(vh_touch_event_t event)
 {
+    int cancel = 0;
+
     if (strcmp(event.view->id, "inputarea") == 0)
     {
 	ui_cancel_input();
@@ -328,17 +360,22 @@ void ui_on_touch(vh_touch_event_t event)
     if (strcmp(event.view->id, "visL") == 0)
     {
 	ui.visutype = 1 - ui.visutype;
-	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
+	if (ui.ms)
+	    mp_set_visutype(ui.ms, ui.visutype);
     }
     if (strcmp(event.view->id, "visR") == 0)
     {
 	ui.visutype = 1 - ui.visutype;
-	if (ui.ms) mp_set_visutype(ui.ms, ui.visutype);
+	if (ui.ms)
+	    mp_set_visutype(ui.ms, ui.visutype);
     }
+
+    return cancel;
 }
 
 void ui_on_btn_event(vh_button_event_t event)
 {
+
     if (strcmp(event.view->id, "playbtn") == 0)
     {
 	if (event.vh->state == VH_BUTTON_DOWN)
@@ -677,8 +714,10 @@ void ui_update_songlist()
     vh_table_set_data(ui.songtablev, songlist_get_visible_songs());
 }
 
-void on_table_event(vh_table_event_t event)
+int on_table_event(vh_table_event_t event)
 {
+    int cancel = 0;
+
     if (strcmp(event.view->id, "songtable") == 0)
     {
 	if (event.id == VH_TABLE_EVENT_FIELDS_UPDATE)
@@ -752,27 +791,18 @@ void on_table_event(vh_table_event_t event)
 	}
 	else if (event.id == VH_TABLE_EVENT_KEY_UP)
 	{
-	    if (event.ev.keycode == XKB_KEY_space)
-		ui_toggle_pause();
-
-	    if (event.ev.keycode == XKB_KEY_v && event.ev.ctrl_down)
-	    {
-		if (ui.rowview_for_context_menu)
-		{
-		    ku_rect_t frame = ui.rowview_for_context_menu->frame.global;
-		    ui_show_context_menu(frame.x, frame.y);
-		}
-	    }
-
-	    if (event.ev.keycode == XKB_KEY_f && event.ev.ctrl_down)
-	    {
-		ku_window_activate(ui.window, ui.filtertf, 1);
-		vh_textinput_activate(ui.filtertf, 1);
-	    }
+	    if (event.ev.keycode == XKB_KEY_Down || event.ev.keycode == XKB_KEY_Up)
+		cancel = 1;
+	}
+	else if (event.id == VH_TABLE_EVENT_KEY_DOWN)
+	{
+	    if (event.ev.keycode == XKB_KEY_Down || event.ev.keycode == XKB_KEY_Up)
+		cancel = 1;
 	}
     }
     else if (strcmp(event.view->id, "contexttable") == 0)
     {
+	cancel = 1;
 	if (event.id == VH_TABLE_EVENT_OPEN || (event.id == VH_TABLE_EVENT_SELECT && event.ev.type == KU_EVENT_MOUSE_DOWN))
 	{
 	    if (event.selected_index == 0)
@@ -821,6 +851,7 @@ void on_table_event(vh_table_event_t event)
     }
     else if (strcmp(event.view->id, "genretable") == 0)
     {
+	cancel = 1;
 	if (event.id == VH_TABLE_EVENT_SELECT)
 	{
 	    mt_vector_t* selected = event.selected_items;
@@ -838,6 +869,7 @@ void on_table_event(vh_table_event_t event)
     }
     else if (strcmp(event.view->id, "artisttable") == 0)
     {
+	cancel = 1;
 	if (event.id == VH_TABLE_EVENT_SELECT)
 	{
 	    mt_vector_t* selected = event.selected_items;
@@ -855,6 +887,7 @@ void on_table_event(vh_table_event_t event)
     }
     else if (strcmp(event.view->id, "metatable") == 0)
     {
+	cancel = 1;
 	if (event.id == VH_TABLE_EVENT_OPEN)
 	{
 	    // show input textfield above rowwiew
@@ -911,6 +944,7 @@ void on_table_event(vh_table_event_t event)
     }
     else if (strcmp(event.view->id, "settingstable") == 0)
     {
+	cancel = 1;
 	if (event.id == VH_TABLE_EVENT_SELECT)
 	{
 	    if (event.selected_index == 2)
@@ -933,6 +967,8 @@ void on_table_event(vh_table_event_t event)
 	    }
 	}
     }
+
+    return cancel;
 }
 
 void ui_init(int width, int height, float scale, ku_window_t* window, wl_window_t* wlwindow)

@@ -59,13 +59,13 @@
 .font16center {
     font-size: 16px;
     text-align: center;
-    font-family: "Terminus (TTF):style=Bold";
+    font-family: "Terminus:style=Bold:size=16";
 }
 
 .font16left {
     font-size: 16px;
     text-align: left;
-    font-family: "Terminus (TTF):style=Bold";
+    font-family: "Terminus:style=Bold:size=16";
     word-wrap: break-word;
     line-height: 16px;
 }
@@ -123,13 +123,13 @@
 .rowtext {
     color: #DEDEDEFF;
     font-size: 16px;
-    font-family: "Terminus (TTF):style=Bold";
+    font-family: "Terminus:style=Bold:size=16";
 }
 
 .rowtextcenter {
     color: #DEDEDEFF;
     font-size: 16px;
-    font-family: "Terminus (TTF):style=Bold";
+    font-family: "Terminus:style=Bold:size=16";
     text-align: center;
 }
 

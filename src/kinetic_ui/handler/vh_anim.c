@@ -204,7 +204,7 @@ int vh_anim_evt(ku_view_t* view, ku_event_t ev)
 		if (vh->astep == vh->asteps - 1)
 		    ca = ea;
 
-		ku_view_set_texture_alpha(view, ca, 1);
+		ku_view_set_texture_alpha(view, ca, 0);
 
 		vh->astep += 1;
 
@@ -219,7 +219,7 @@ int vh_anim_evt(ku_view_t* view, ku_event_t ev)
 	}
     }
 
-    return 1;
+    return 0;
 }
 
 void vh_anim_frame(ku_view_t* view, ku_rect_t sf, ku_rect_t ef, int start, int steps, animtype_t type)
