@@ -24,7 +24,7 @@ TESTLIB="$PROJECT_ROOT/tst/test_library"
 
 for FOLDER in $PROJECT_ROOT/tst/*organized; do
     echo "FOLDER" $FOLDER
-    sh tst/test_rep.sh TEST_NAME=$(basename $FOLDER) TEST_FOLDER=tst EXECUTABLE=$EXECUTABLE RESOURCES=$$RESOURCES
+    sh tst/replay.sh TEST_NAME=$(basename $FOLDER) TEST_FOLDER=tst EXECUTABLE=$EXECUTABLE RESOURCES=$$RESOURCES
     
     error=$?
     if [ $error -eq 0 ]
