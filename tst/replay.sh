@@ -13,12 +13,15 @@ ORGANIZE=true
 
 # parse arguments
 
+echo "REPLAY"
+
 for ARGUMENT in "$@"
 do
    KEY=$(echo $ARGUMENT | cut -f1 -d=)
    KEY_LENGTH=${#KEY}
    VALUE="${ARGUMENT:$KEY_LENGTH+1}"
    export "$KEY"="$VALUE"
+   echo "$KEY"="$VALUE"
 done
 
 if [[ "$TEST_NAME" == *"non_organized"* ]];then
