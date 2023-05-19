@@ -1,7 +1,7 @@
 project(
   'vmp',
   'c',
-  version: '0.91b',
+  version: '0.92b',
   license: 'MIT',
   default_options: ['warning_level=3',
   		    'c_std=gnu99']
