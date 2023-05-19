@@ -1,9 +1,9 @@
 added
-2023-05-19 22:12
+...
 album
 Unknown
 artist
-Adele
+Unknown
 audio_0/bitrate
 127345
 audio_0/channels
@@ -34,11 +34,11 @@ type
 audio
 -
 added
-2023-05-19 22:12
+...
 album
 Unknown
 artist
-Danzig
+Unknown
 audio_0/bitrate
 0
 audio_0/channels
@@ -56,7 +56,7 @@ played
 plays
 0
 size
-73225
+73218
 skipped
 0
 skips
@@ -71,7 +71,7 @@ audio
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Best Of
 artist
@@ -126,7 +126,7 @@ video_1/samplerate
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Unknown
 artist
@@ -171,7 +171,7 @@ audio
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Collection1
 artist
@@ -189,7 +189,7 @@ disc
 duration
 0:20
 encoder
-Lavf58.76.100
+Lavf59.27.100
 genre
 Rock
 path
@@ -199,7 +199,7 @@ played
 plays
 0
 size
-320962
+321172
 skipped
 0
 skips
@@ -214,11 +214,11 @@ type
 audio
 -
 added
-2023-05-19 22:12
+...
 album
 Unknown
 artist
-Royksopp
+Unknown
 audio_1/bitrate
 127946
 audio_1/channels
@@ -232,7 +232,7 @@ mp4
 duration
 0:06
 encoder
-Lavf58.45.100
+Lavf59.27.100
 major_brand
 isom
 minor_version
@@ -244,7 +244,7 @@ played
 plays
 0
 size
-255293
+255302
 skipped
 0
 skips
@@ -256,7 +256,7 @@ ROYKSOPP nocover nometa
 type
 video
 video_0/bitrate
-203554
+1431243
 video_0/channels
 0
 video_0/d_height
@@ -269,7 +269,7 @@ video_0/samplerate
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Collection
 artist
@@ -324,7 +324,7 @@ video_1/samplerate
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Skyfall - Single
 artist
@@ -369,7 +369,7 @@ audio
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Collection
 artist
@@ -412,7 +412,7 @@ type
 audio
 -
 added
-2023-05-19 22:12
+...
 album
 Flashdance
 artist

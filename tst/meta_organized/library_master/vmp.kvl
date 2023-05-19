@@ -1,7 +1,7 @@
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Best Of
 artist
@@ -56,7 +56,7 @@ video_1/samplerate
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Skyfall - Single
 artist
@@ -98,80 +98,10 @@ track
 type
 audio
 -
-added
-2023-05-19 22:12
-album
-Unknown
-artist
-Adele
-audio_0/bitrate
-127345
-audio_0/channels
-2
-audio_0/samplerate
-48000
-container
-aac
-duration
-0:06
-path
-Adele/Unknown/ADELE nocover nometa.aac
-played
-0
-plays
-0
-size
-98305
-skipped
-0
-skips
-0
-streams
-1
-title
-ADELE nocover nometa
-type
-audio
--
-added
-2023-05-19 22:12
-album
-Unknown
-artist
-Danzig
-audio_0/bitrate
-0
-audio_0/channels
-2
-audio_0/samplerate
-48000
-container
-ogg
-duration
-0:06
-path
-Danzig/Unknown/MOTHER nocover nometa.opus
-played
-0
-plays
-0
-size
-73225
-skipped
-0
-skips
-0
-streams
-1
-title
-MOTHER nocover nometa
-type
-audio
--
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Collection
 artist
@@ -226,7 +156,7 @@ video_1/samplerate
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Collection
 artist
@@ -271,7 +201,7 @@ audio
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Collection1
 artist
@@ -289,7 +219,7 @@ disc
 duration
 0:20
 encoder
-Lavf58.76.100
+Lavf59.27.100
 genre
 Rock
 path
@@ -299,7 +229,7 @@ played
 plays
 0
 size
-320962
+321172
 skipped
 0
 skips
@@ -314,7 +244,7 @@ type
 audio
 -
 added
-2023-05-19 22:12
+...
 album
 Flashdance
 artist
@@ -371,7 +301,7 @@ video_1/samplerate
 TYER
 0
 added
-2023-05-19 22:12
+...
 album
 Unknown
 artist
@@ -414,11 +344,81 @@ type
 audio
 -
 added
-2023-05-19 22:12
+...
 album
 Unknown
 artist
-Royksopp
+Unknown
+audio_0/bitrate
+127345
+audio_0/channels
+2
+audio_0/samplerate
+48000
+container
+aac
+duration
+0:06
+path
+Unknown/Unknown/ADELE nocover nometa.aac
+played
+0
+plays
+0
+size
+98305
+skipped
+0
+skips
+0
+streams
+1
+title
+ADELE nocover nometa
+type
+audio
+-
+added
+...
+album
+Unknown
+artist
+Unknown
+audio_0/bitrate
+0
+audio_0/channels
+2
+audio_0/samplerate
+48000
+container
+ogg
+duration
+0:06
+path
+Unknown/Unknown/MOTHER nocover nometa.opus
+played
+0
+plays
+0
+size
+73218
+skipped
+0
+skips
+0
+streams
+1
+title
+MOTHER nocover nometa
+type
+audio
+-
+added
+...
+album
+Unknown
+artist
+Unknown
 audio_1/bitrate
 127946
 audio_1/channels
@@ -432,19 +432,19 @@ mp4
 duration
 0:06
 encoder
-Lavf58.45.100
+Lavf59.27.100
 major_brand
 isom
 minor_version
 512
 path
-Royksopp/Unknown/ROYKSOPP nocover nometa.mp4
+Unknown/Unknown/ROYKSOPP nocover nometa.mp4
 played
 0
 plays
 0
 size
-255293
+255302
 skipped
 0
 skips
@@ -456,7 +456,7 @@ ROYKSOPP nocover nometa
 type
 video
 video_0/bitrate
-203554
+1431243
 video_0/channels
 0
 video_0/d_height
