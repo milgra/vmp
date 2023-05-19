@@ -1,5 +1,5 @@
 added
-...
+2023-05-19 22:30
 album
 Unknown
 artist
@@ -33,45 +33,10 @@ ADELE nocover nometa
 type
 audio
 -
-added
-...
-album
-Unknown
-artist
-Unknown
-audio_0/bitrate
-0
-audio_0/channels
-2
-audio_0/samplerate
-48000
-container
-ogg
-duration
-0:06
-path
-MOTHER nocover nometa.opus
-played
-0
-plays
-0
-size
-73218
-skipped
-0
-skips
-0
-streams
-1
-title
-MOTHER nocover nometa
-type
-audio
--
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Best Of
 artist
@@ -126,7 +91,7 @@ video_1/samplerate
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Unknown
 artist
@@ -171,7 +136,7 @@ audio
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Collection1
 artist
@@ -214,11 +179,11 @@ type
 audio
 -
 added
-...
+2023-05-19 22:30
 album
 Unknown
 artist
-Unknown
+Royksopp
 audio_1/bitrate
 127946
 audio_1/channels
@@ -244,7 +209,7 @@ played
 plays
 0
 size
-255302
+253942
 skipped
 0
 skips
@@ -256,7 +221,7 @@ ROYKSOPP nocover nometa
 type
 video
 video_0/bitrate
-1431243
+1375920
 video_0/channels
 0
 video_0/d_height
@@ -269,7 +234,7 @@ video_0/samplerate
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Collection
 artist
@@ -324,7 +289,7 @@ video_1/samplerate
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Skyfall - Single
 artist
@@ -369,7 +334,7 @@ audio
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Collection
 artist
@@ -412,7 +377,7 @@ type
 audio
 -
 added
-...
+2023-05-19 22:30
 album
 Flashdance
 artist

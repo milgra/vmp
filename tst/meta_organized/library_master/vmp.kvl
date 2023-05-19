@@ -1,7 +1,7 @@
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Best Of
 artist
@@ -56,7 +56,7 @@ video_1/samplerate
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Skyfall - Single
 artist
@@ -101,7 +101,7 @@ audio
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Collection
 artist
@@ -156,7 +156,7 @@ video_1/samplerate
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Collection
 artist
@@ -201,7 +201,7 @@ audio
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Collection1
 artist
@@ -244,7 +244,7 @@ type
 audio
 -
 added
-...
+2023-05-19 22:30
 album
 Flashdance
 artist
@@ -301,7 +301,7 @@ video_1/samplerate
 TYER
 0
 added
-...
+2023-05-19 22:30
 album
 Unknown
 artist
@@ -344,7 +344,60 @@ type
 audio
 -
 added
-...
+2023-05-19 22:30
+album
+Unknown
+artist
+Royksopp
+audio_1/bitrate
+127946
+audio_1/channels
+2
+audio_1/samplerate
+44100
+compatible_brands
+isomiso2avc1mp41
+container
+mp4
+duration
+0:06
+encoder
+Lavf59.27.100
+major_brand
+isom
+minor_version
+512
+path
+Royksopp/Unknown/ROYKSOPP nocover nometa.mp4
+played
+0
+plays
+0
+size
+253942
+skipped
+0
+skips
+0
+streams
+2
+title
+ROYKSOPP nocover nometa
+type
+video
+video_0/bitrate
+1375920
+video_0/channels
+0
+video_0/d_height
+360
+video_0/d_width
+480
+video_0/samplerate
+0
+-
+added
+2023-05-19 22:30
 album
 Unknown
 artist
@@ -377,92 +430,4 @@ title
 ADELE nocover nometa
 type
 audio
--
-added
-...
-album
-Unknown
-artist
-Unknown
-audio_0/bitrate
-0
-audio_0/channels
-2
-audio_0/samplerate
-48000
-container
-ogg
-duration
-0:06
-path
-Unknown/Unknown/MOTHER nocover nometa.opus
-played
-0
-plays
-0
-size
-73218
-skipped
-0
-skips
-0
-streams
-1
-title
-MOTHER nocover nometa
-type
-audio
--
-added
-...
-album
-Unknown
-artist
-Unknown
-audio_1/bitrate
-127946
-audio_1/channels
-2
-audio_1/samplerate
-44100
-compatible_brands
-isomiso2avc1mp41
-container
-mp4
-duration
-0:06
-encoder
-Lavf59.27.100
-major_brand
-isom
-minor_version
-512
-path
-Unknown/Unknown/ROYKSOPP nocover nometa.mp4
-played
-0
-plays
-0
-size
-255302
-skipped
-0
-skips
-0
-streams
-2
-title
-ROYKSOPP nocover nometa
-type
-video
-video_0/bitrate
-1431243
-video_0/channels
-0
-video_0/d_height
-360
-video_0/d_width
-480
-video_0/samplerate
-0
 -
