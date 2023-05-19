@@ -8,15 +8,16 @@ PROJECT_ROOT=.
 
 # parse arguments
 
+echo "TEST_RUN"
+
 for ARGUMENT in "$@"
 do
    KEY=$(echo $ARGUMENT | cut -f1 -d=)
    KEY_LENGTH=${#KEY}
    VALUE="${ARGUMENT:$KEY_LENGTH+1}"
    export "$KEY"="$VALUE"
+   echo "$KEY"="$VALUE"
 done
-
-echo "TEST_RUN $1 $2"
 
 EXECUTABLE="$BUILD_PATH/vmp"
 RESOURCES="$PROJECT_ROOT/res"
@@ -24,7 +25,7 @@ TESTLIB="$PROJECT_ROOT/tst/test_library"
 
 for FOLDER in $PROJECT_ROOT/tst/*organized; do
     echo "FOLDER" $FOLDER
-    sh tst/replay.sh TEST_NAME=$(basename $FOLDER) TEST_FOLDER=tst EXECUTABLE=$EXECUTABLE RESOURCES=$$RESOURCES
+    sh $PROJECT_ROOT/tst/replay.sh TEST_NAME=$(basename $FOLDER) TEST_FOLDER=tst EXECUTABLE=$EXECUTABLE RESOURCES=$$RESOURCES
     
     error=$?
     if [ $error -eq 0 ]
