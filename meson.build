@@ -236,7 +236,7 @@ mt_core_test = executable(
 	    'src/mt_core_test/mt_path_test.c'
 	    ],
 	    include_directories: ['src/mt_core'],
-	    vmp_dependencies)
+	    dependencies: vmp_dependencies)
 
 test('MT_CORE_TEST', mt_core_test)
 
