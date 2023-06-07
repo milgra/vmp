@@ -106,7 +106,9 @@ vmp_inc = include_directories(
 	'src/mt_core_ext')
 
 if build_machine.system() == 'freebsd'
-   epoll = cc.find_library('epoll-shim')
+   epoll = dependency('epoll-shim')
+   pthread = dependency('threads')
+   vmp_dependencies += pthread
    vmp_dependencies += epoll
 endif
 
@@ -233,7 +235,8 @@ mt_core_test = executable(
 	    'src/mt_core_test/mt_channel_test.c',
 	    'src/mt_core_test/mt_path_test.c'
 	    ],
-	    include_directories: ['src/mt_core'])
+	    include_directories: ['src/mt_core'],
+	    vmp_dependencies)
 
 test('MT_CORE_TEST', mt_core_test)
 
