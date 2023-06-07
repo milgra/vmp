@@ -215,7 +215,7 @@ executable(
   com_sources,
   include_directories: [vmp_inc],
   dependencies: vmp_dependencies,
-  install: true,
+  install: true
 )
 
 mt_core_test = executable(
