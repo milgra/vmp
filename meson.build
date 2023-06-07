@@ -18,7 +18,7 @@ glesv2 = dependency('glesv2')
 freetype = dependency('freetype2')
 xkbcommon = dependency('xkbcommon')
 
-avutil = cc.find_library('avutil')
+avutil = cc.find_library('avutil',version: '>=59')
 avcodec = cc.find_library('avcodec')
 avdevice = cc.find_library('avdevice')
 avformat = cc.find_library('avformat')
