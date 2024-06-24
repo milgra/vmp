@@ -31,7 +31,12 @@ Scroll over the seek knob to set a new positon or click on it. Scroll over the v
 Click on the visualizer to select the next visualizer available.  
 VMP's UI can be structured via html, styled via css.  
 
-## Installation ##
+## Try it! ##
+[https://github.com/milgra/vmp/releases/download/0.92b/vmp.app.tar.gz]
+
+Extract the archive and call vmp.app/vmp. It is a standalone application bundle running on all distributions.
+
+## Build ##
 
 Install the needed dependencies and libraries:
 
@@ -48,12 +53,6 @@ On debian based systems :
 sudo apg-get install git meson ninja-build pkg-config libpng-dev libfreetype-dev libgl-dev libegl-dev libglew-dev libwayland-dev libxkbcommon-dev wayland-protocols libgles2-mesa-dev libsdl2-dev libswscale-dev libjpeg-dev libjbig2dec-dev libopenjp2-7-dev libharfbuzz-dev libavutil-dev libavdevice-dev
 
 ```
-
-On arch based systems :
-```
-sudo pacman -Qs git meson pkg-config ninja glew wayland-protocols libpng freetype2 libgl libegl wayland wayland-protocols libxkbcommon ffmpeg
-```
-
 Then run these commands:
 
 ```
