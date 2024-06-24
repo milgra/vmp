@@ -20,6 +20,7 @@
 
 TEST
 
+- cli args test
 - leak free auto ui tests
 - user manual update
 - auto test with 2x scaling

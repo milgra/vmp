@@ -331,12 +331,13 @@ void update(ku_event_t ev)
 void destroy()
 {
     ui_destroy();
-    REL(vmp.kuwindow);
     ku_wayland_delete_window(vmp.wlwindow);
+    REL(vmp.kuwindow);
 
     lib_destroy();
 
-    if (!vmp.softrender) ku_renderer_egl_destroy();
+    if (!vmp.softrender)
+	ku_renderer_egl_destroy();
 
     SDL_Quit();
 }
@@ -379,7 +380,7 @@ int main(int argc, char* argv[])
 	    {"help", no_argument, NULL, 'h'},
 	    {"verbose", no_argument, NULL, 'v'},
 	    {"library", optional_argument, 0, 'l'},
-	    {"organize", optional_argument, 0, 0},
+	    {"organize", optional_argument, 0, 'o'},
 	    {"resources", optional_argument, 0, 'r'},
 	    {"software_renderer", optional_argument, 0, 0},
 	    {"record", optional_argument, 0, 'R'},
@@ -420,6 +421,7 @@ int main(int argc, char* argv[])
 	    case 'R': rec_par = STRNC(optarg); break; // REL 2
 	    case 'P': rep_par = STRNC(optarg); break; // REL 3
 	    case 'f': frm_par = STRNC(optarg); break; // REL 4
+	    case 'o': org_par = "1"; break;           // REL 4
 	    case 'v': verbose = 1; break;
 	    default: fprintf(stderr, "%s", usage); return EXIT_FAILURE;
 	}
@@ -484,7 +486,7 @@ int main(int argc, char* argv[])
     config_set("cfg_path", cfg_path);
     config_set("res_path", res_path);
     config_set("lib_path", lib_path);
-    config_set("lib_organize", org_par);
+    config_set_bool("lib_organize", atoi(org_par));
     config_set("css_path", css_path);
     config_set("html_path", html_path);
 
